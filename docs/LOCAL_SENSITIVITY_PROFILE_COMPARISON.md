@@ -14,6 +14,9 @@ Experiment settings:
 Result files are generated under `results/local_sensitivity_profiles/`.
 That directory is intentionally ignored by Git.
 
+The cross-profile summary heatmap is generated as
+`results/local_sensitivity_profiles/fig08_profile_true_sensitivity_heatmap.png`.
+
 ## Objective Definitions
 
 | Objective | Meaning |

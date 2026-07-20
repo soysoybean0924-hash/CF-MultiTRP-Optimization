@@ -49,6 +49,8 @@ if ~exist(resultRoot,'dir')
 end
 writetable(comparisonTable,fullfile(resultRoot,'profile_sensitivity_comparison.csv'));
 save(fullfile(resultRoot,'profile_sensitivity_comparison.mat'),'comparisonTable','summaries','profiles','seedList');
+cf_plot_profile_sensitivity_comparison(comparisonTable,resultRoot);
 
 fprintf('\nFinished profile comparison.\n');
 fprintf('Comparison CSV: %s\n',fullfile(resultRoot,'profile_sensitivity_comparison.csv'));
+fprintf('Comparison heatmap: %s\n',fullfile(resultRoot,'fig08_profile_true_sensitivity_heatmap.png'));
