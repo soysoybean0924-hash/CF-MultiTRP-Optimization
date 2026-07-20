@@ -4,10 +4,11 @@
 
 clear; clc; close all;
 
-rootFolder = fileparts(mfilename('fullpath'));
-addpath(rootFolder);
+scriptFolder = fileparts(mfilename('fullpath'));
+projectRoot = fileparts(fileparts(scriptFolder));
+run(fullfile(projectRoot,'setup_project_paths.m'));
 
-resultsDir = fullfile(rootFolder,'results','local_sensitivity');
+resultsDir = fullfile(projectRoot,'results','local_sensitivity');
 if ~exist(resultsDir,'dir')
     mkdir(resultsDir);
 end

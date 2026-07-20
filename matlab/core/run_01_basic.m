@@ -1,5 +1,5 @@
 %% 01 - Basic Cell-Free multi-DU / multi-UE model
-clear; clc; close all; rootFolder=fileparts(mfilename('fullpath')); addpath(rootFolder);
+clear; clc; close all; scriptFolder=fileparts(mfilename('fullpath')); projectRoot=fileparts(fileparts(scriptFolder)); run(fullfile(projectRoot,'setup_project_paths.m'));
 cfg=cf_default_config('quick'); scenario=cf_generate_scenario(cfg);
 candidate=cf_decode_candidate(cfg.defaultX,cfg); candidate.maxRank=1;
 result=cf_evaluate_candidate(cfg,scenario,candidate,false);
