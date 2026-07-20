@@ -16,6 +16,9 @@ if ~exist(resultsDir,'dir')
     mkdir(resultsDir);
 end
 
+% The profile changes only system scale and default configuration
+% dimensions. The sensitivity workflow below is identical for quick,
+% standard, and paper so their rankings are directly comparable.
 baseCfg = cf_default_config(profile);
 baseCfg.search.verbose = false;
 baseCandidate = cf_decode_candidate(baseCfg.defaultX,baseCfg);
@@ -29,6 +32,9 @@ fprintf('Result directory: %s\n',resultsDir);
 baselineMetrics = cell(numel(seedList),1);
 baselineScenarios = cell(numel(seedList),1);
 
+% Baselines are computed once per seed and reused for every parameter's
+% "base" point. This avoids measuring the same baseline repeatedly and also
+% lets diagnostics confirm that base rows are identical across parameters.
 for si = 1:numel(seedList)
     cfgSeed = prepareSeed(baseCfg,seedList(si));
     scenario = cf_generate_scenario(cfgSeed);
@@ -61,6 +67,11 @@ for pi = 1:numel(specs)
                 metrics = baselineMetrics{si};
             else
                 [cfgRun,candidateRun] = applySensitivityValue(cfgRun,candidateRun,spec,value);
+                % Candidate-only perturbations reuse the same scenario for
+                % that seed, so changes are attributed to the tested
+                % parameter rather than to a regenerated channel. Scenario
+                % parameters such as duHeight and numTransmitAntennas must
+                % regenerate H and related geometry-dependent quantities.
                 if spec.AffectsScenario
                     scenarioRun = cf_generate_scenario(cfgRun);
                 else
@@ -87,6 +98,9 @@ runInfo.objectiveNotes = [ ...
     "J_true is recomputed only from b and SLINR as scheduled sum log2(1+SINR)." ...
     ];
 
+% cf_export_sensitivity_results performs ranking, consistency checks, and
+% report/table export. cf_plot_local_sensitivity then creates the per-profile
+% figures from the exported summary.
 summary = cf_export_sensitivity_results(rawTable,parameterSettings,specs,resultsDir,runInfo);
 cf_plot_local_sensitivity(summary,resultsDir);
 
@@ -96,6 +110,8 @@ fprintf('Text report:   %s\n',fullfile(resultsDir,'local_sensitivity_report.txt'
 end
 
 function cfg = prepareSeed(cfg,seed)
+% Use separated seed offsets so user locations, channels, and any search
+% randomness can vary together by seed without sharing the same RNG stream.
 cfg.seedPosition = 1000 + seed;
 cfg.seedChannel = 2000 + seed;
 cfg.seedSearch = 3000 + seed;
@@ -103,6 +119,9 @@ cfg.search.verbose = false;
 end
 
 function [cfg,candidate] = applySensitivityValue(cfg,candidate,spec,value)
+% A sensitivity spec points either to cfg or candidate. Integer parameters
+% are rounded here because perturbation values are stored numerically even
+% when they represent counts.
 switch spec.Target
     case 'candidate'
         if strcmp(spec.DataType,'integer')
@@ -120,6 +139,9 @@ end
 end
 
 function row = makeRawRow(spec,value,label,pointIndex,seed,cfg,candidate,metrics)
+% Store both input settings and output metrics in every raw row. This makes
+% the CSV self-contained enough for later ranking, diagnostics, and plotting
+% without rerunning the MATLAB evaluation.
 row.ParameterIndex = spec.Index;
 row.TheoreticalName = spec.TheoreticalName;
 row.ActualField = spec.ActualField;

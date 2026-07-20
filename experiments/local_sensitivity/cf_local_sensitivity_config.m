@@ -5,6 +5,11 @@ function [specs,parameterSettings] = cf_local_sensitivity_config(cfg,candidate)
 
 specs = repmat(emptySpec(),0,1);
 
+% Each spec records two names:
+% - TheoreticalName: the name used in reports and discussion.
+% - ActualField: the concrete cfg/candidate field changed by the code.
+% This separation keeps the experiment readable while preserving the
+% implementation's current data structures.
 specs(end+1) = makeSpec(1,'betaPF','candidate.betaPF','candidate','betaPF', ...
     'continuous','continuous-linear',candidate.betaPF,cfg.search.betaPFRange,[],0.10,false, ...
     'PF exponent in the inner WPS weight update.');
@@ -42,6 +47,9 @@ specs(end+1) = makeSpec(9,'repairWeight','candidate.repairPower','candidate','re
     'Existing weak-user repair power; closest code field to repairWeight.');
 
 for k = 1:numel(specs)
+    % cf_perturb_parameter converts each parameter definition into
+    % minus/base/plus test points. Continuous log-scale fields are perturbed
+    % multiplicatively; integer fields use legal neighboring values.
     [values,labels,method,note] = cf_perturb_parameter(specs(k),specs(k).BaseValue);
     specs(k).Values = values;
     specs(k).PointLabels = labels;
@@ -51,6 +59,9 @@ for k = 1:numel(specs)
     specs(k).PerturbNote = note;
 end
 
+% parameterSettings is a compact audit table written to CSV/XLSX so the
+% numerical results can always be traced back to the exact perturbation
+% points used in the experiment.
 rows = repmat(struct(),numel(specs),1);
 for k = 1:numel(specs)
     rows(k).ParameterIndex = specs(k).Index;

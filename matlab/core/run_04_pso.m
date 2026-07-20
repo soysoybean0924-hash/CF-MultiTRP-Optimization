@@ -1,4 +1,5 @@
 %% 04 - Outer PSO
+% Outer-search example using particle swarm optimization over the 9-D vector.
 clear; clc; close all; scriptFolder=fileparts(mfilename('fullpath')); projectRoot=fileparts(fileparts(scriptFolder)); run(fullfile(projectRoot,'setup_project_paths.m'));
 cfg=cf_default_config('quick'); scenario=cf_generate_scenario(cfg);
 searchResult=cf_search('PSO',cfg,scenario,cfg.search); result=searchResult.BestResult;

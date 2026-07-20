@@ -20,6 +20,8 @@ scheduledUG = false(U,G);
 utility = zeros(Smax,U,G);
 Jtrue = 0;
 
+% A UE/RBG contributes only if at least one DU is scheduled for it. For each
+% selected stream, the utility is the plain log2(1+SINR) term.
 for u = 1:U
     for g = 1:G
         scheduledUG(u,g) = any(b(:,u,g) > 0);

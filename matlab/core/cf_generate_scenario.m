@@ -1,6 +1,8 @@
 function scenario = cf_generate_scenario(cfg)
 %CF_GENERATE_SCENARIO Generate fixed geometry and Nr x M x R x U x G H.
 
+% Position and channel seeds are separated so geometry-sensitive parameters
+% can be tested independently from small-scale fading randomness.
 rng(cfg.seedPosition,'twister');
 duXY = [cfg.areaX*rand(cfg.numDUs,1), cfg.areaY*rand(cfg.numDUs,1)];
 ueXY = [cfg.areaX*rand(cfg.numUEs,1), cfg.areaY*rand(cfg.numUEs,1)];
@@ -12,6 +14,8 @@ R=cfg.numDUs; U=cfg.numUEs; G=cfg.numRBGs;
 rng(cfg.seedChannel,'twister');
 H = complex(zeros(Nr,M,R,U,G));
 distance = zeros(R,U);
+% H(:,:,r,u,g) is the narrowband MIMO channel from DU r to UE u on RBG g.
+% Large-scale pathloss is distance based; small-scale fading is Rayleigh.
 for r=1:R
     for u=1:U
         d=max(norm(duPosition(r,:)-uePosition(u,:)),cfg.minimumDistance);
@@ -24,6 +28,8 @@ for r=1:R
     end
 end
 if cfg.normalizeChannel
+    % Normalization keeps score magnitudes comparable across random seeds and
+    % profiles while preserving relative channel structure.
     H=H/sqrt(mean(abs(H(:)).^2)+eps);
 end
 channelGain=zeros(R,U,G);

@@ -2,6 +2,8 @@ function result=cf_evaluate_candidate(cfg,scenario,candidate,doOptimize)
 %CF_EVALUATE_CANDIDATE Evaluate one b/p/r/W policy in a fixed H scenario.
 if nargin<4, doOptimize=true; end
 
+% Build the deterministic initial policy: top-gain DU associations bInit,
+% stream rank r, receive subspace Q, and matched-filter-like W baseline.
 [bInit,rankUG,Q,Wbaseline]=buildInitialState(cfg,scenario,candidate);
 [Wbaseline,~]=normalizeAllDUPower(Wbaseline,cfg.maxDUPower);
 pBaseline=powerFromW(Wbaseline);
@@ -9,6 +11,8 @@ baseline=computeMetrics(cfg,scenario,Wbaseline,bInit,Q,rankUG,ones(cfg.numUEs,1)
 W=Wbaseline; history=emptyHistory();
 
 if doOptimize && cfg.inner.maxIter>0
+    % Inner loop alternates between metric evaluation, WPS weights, sparse
+    % power penalties, and a closed-form beamformer update.
     R=cfg.numDUs; U=cfg.numUEs; G=cfg.numRBGs; S=cfg.maxRank;
     lambda=zeros(R,G); mu=zeros(R,G); averageRate=ones(U,1);
     delta=1./((averageRate+cfg.inner.pfEpsilon).^candidate.betaPF);
@@ -19,6 +23,8 @@ if doOptimize && cfg.inner.maxIter>0
     for iter=1:cfg.inner.maxIter
         Wold=W;
         current=computeMetrics(cfg,scenario,W,bInit,Q,rankUG,delta);
+        % zeta is the quadratic-transform auxiliary variable used to make
+        % the beamformer update tractable for the current SLINR state.
         zeta=complex(zeros(S,U,G));
         for g=1:G
             for u=1:U
@@ -31,6 +37,8 @@ if doOptimize && cfg.inner.maxIter>0
         end
 
         pNow=powerFromW(W); alpha=1./(pNow+cfg.inner.alphaEpsilon);
+        % lambda discourages too many effective active antenna/stream loads;
+        % mu is updated after normalization for per-DU/RBG power violations.
         for g=1:G
             for r=1:R
                 weightedLoad=sum(alpha(r,:,g).*pNow(r,:,g),'all');
@@ -76,6 +84,8 @@ if doOptimize && cfg.inner.maxIter>0
     history.Jain=fairnessHistory(1:iter); history.relativeChange=relativeChangeHistory(1:iter);
 end
 
+% Final cleanup: preserve minimum service, optionally repair weak users, and
+% normalize once more before converting continuous power p into binary b.
 W=ensureMinimumService(cfg,scenario,candidate,W,bInit,Q,rankUG);
 pFinal=powerFromW(W); bFinal=double(pFinal>candidate.scheduleThreshold);
 if doOptimize && candidate.maxRepairLinks>0
@@ -88,6 +98,8 @@ pFinal=powerFromW(W); bFinal=double(pFinal>candidate.scheduleThreshold);
 proposed=computeMetrics(cfg,scenario,W,bFinal,Q,rankUG,ones(cfg.numUEs,1));
 [score,scoreParts]=computeScore(cfg,proposed,baseline,bFinal,pFinal,rankUG);
 
+% Return both proposed and baseline fields so plotting, diagnostics, and
+% sensitivity analysis can compare them without rerunning the candidate.
 result.Candidate=candidate; result.Score=score; result.ScoreParts=scoreParts;
 result.H=scenario.H; result.Q=Q; result.b=bFinal; result.p=pFinal; result.r=rankUG; result.W=W;
 result.bInit=bInit; result.SLINR=proposed.SLINR; result.WPS=proposed.WPS;
@@ -109,6 +121,8 @@ function [bInit,rankUG,Q,W]=buildInitialState(cfg,scenario,candidate)
 R=cfg.numDUs; U=cfg.numUEs; G=cfg.numRBGs; M=cfg.numTxAntennas;
 Nr=cfg.numRxAntennas; Smax=cfg.maxRank; H=scenario.H;
 bInit=zeros(R,U,G);
+% For each UE/RBG, select the strongest candidate.numConnections DUs by
+% channel gain. This forms the initial binary association tensor bInit.
 for g=1:G
     for u=1:U
         [~,order]=sort(scenario.channelGain(:,u,g),'descend');
@@ -116,6 +130,9 @@ for g=1:G
     end
 end
 rankUG=ones(U,G); Q=complex(zeros(Nr,U,G,Smax));
+% The receive subspace Q and stream count r come from the SVD of the stacked
+% selected-DU channel. rankThreshold decides whether the second stream is
+% strong enough to keep.
 for g=1:G
     for u=1:U
         selected=find(bInit(:,u,g)>0); Hstack=complex(zeros(Nr,M*numel(selected))); offset=0;
@@ -132,6 +149,7 @@ for g=1:G
     end
 end
 W=complex(zeros(M,Smax,R,U,G));
+% Initialize each active precoder along the effective channel direction.
 for g=1:G
     for r=1:R
         for u=1:U
@@ -149,6 +167,7 @@ R=cfg.numDUs; U=cfg.numUEs; G=cfg.numRBGs; M=cfg.numTxAntennas; Smax=cfg.maxRank
 H=scenario.H; Wnew=complex(zeros(M,Smax,R,U,G)); identityM=eye(M);
 for g=1:G
     for r=1:R
+        % commonA aggregates how DU r's beam affects all users on this RBG.
         commonA=complex(zeros(M,M));
         for up=1:U
             for sp=1:rankUG(up,g)
@@ -199,6 +218,8 @@ for g=1:G
             end
             interferencePower(s,u,g)=interference;
             SLINR(s,u,g)=signalPower(s,u,g)/(interference+cfg.noisePower+eps);
+            % WPS is the weighted proportional-scheduling objective term
+            % used by the inner loop, not the final J_true diagnostic.
             WPS(s,u,g)=delta(u)*log(1+SLINR(s,u,g));
         end
     end
@@ -241,6 +262,8 @@ end
 
 function W=ensureMinimumService(cfg,scenario,candidate,W,bInit,Q,rankUG)
 p=powerFromW(W);
+% If a UE lost all links after thresholding, add a small protected beam on
+% its strongest initial DU/RBG so every UE remains represented.
 for u=1:cfg.numUEs
     if any(p(:,u,:)>candidate.scheduleThreshold,'all'), continue; end
     bestGain=-inf; bestR=1; bestG=1;
@@ -261,6 +284,8 @@ end
 
 function [W,bFinal,pFinal]=repairWeakUsers(cfg,scenario,candidate,W,bInit,bFinal,Q,rankUG,baselineRate)
 current=computeMetrics(cfg,scenario,W,bFinal,Q,rankUG,ones(cfg.numUEs,1));
+% Optional weak-user repair reactivates a limited number of previously
+% selected links when a user's final rate falls below a baseline fraction.
 for u=1:cfg.numUEs
     target=cfg.inner.fairnessRepairRatio*baselineRate(u);
     if current.userRate(u)>=target, continue; end
@@ -291,6 +316,8 @@ end
 
 function [score,parts]=computeScore(cfg,proposed,baseline,bFinal,pFinal,rankUG)
 activeLinks=sum(bFinal(:)); totalPower=sum(pFinal(:)); activeStreams=sum(rankUG(:));
+% J_outer balances proposed throughput/fairness benefits against resource
+% costs and losses relative to the baseline policy.
 minLoss=max(0,baseline.MinRate-proposed.MinRate);
 rate10Loss=max(0,baseline.Rate10-proposed.Rate10);
 jainLoss=max(0,cfg.score.jainTarget-proposed.Jain);

@@ -4,6 +4,8 @@ if nargin<4 || isempty(options), options=cfg.search; end
 method=upper(strrep(char(method),' ','')); rng(cfg.seedSearch,'twister');
 tracker=initializeTracker(options.maxEvaluations,cfg.search.dimension);
 N=min(options.populationSize,options.maxEvaluations); initialX=rand(N,cfg.search.dimension);
+% Every method consumes the same normalized 9-D candidate representation and
+% shares the same evaluation tracker, so scores and histories are comparable.
 switch method
     case 'GA'
         [X,scores,tracker]=gaPhase(cfg,scenario,options,tracker,initialX,[],options.maxEvaluations);
@@ -47,6 +49,8 @@ end
 function [score,result,t]=evaluateTracked(x,cfg,scenario,options,t)
 x=clip01(x); candidate=cf_decode_candidate(x,cfg);
 try
+    % One outer-search evaluation means: decode x, run the inner candidate
+    % evaluation, then use result.Score as the search fitness.
     result=cf_evaluate_candidate(cfg,scenario,candidate,true); score=result.Score;
     if ~isfinite(score), score=-realmax; end
 catch ME
@@ -66,6 +70,8 @@ function [X,scores,t]=gaPhase(cfg,scenario,o,t,X,initialScores,phaseEnd)
 N=size(X,1);
 if isempty(initialScores), scores=-inf(N,1);
 else, scores=initialScores(:); X=makeNextGeneration(X,scores,o); scores=-inf(N,1); end
+% GA evaluates a full population, then creates a new population by elitism,
+% tournament selection, crossover, and mutation.
 while t.evaluationCount<phaseEnd && t.evaluationCount<t.maxEvaluations
     completed=true;
     for i=1:N
@@ -116,6 +122,8 @@ else
     currentScores=initialScores(:); pbestX=X; pbestScore=currentScores;
     [X,V]=moveParticles(X,V,pbestX,pbestScore,t.bestX,t.evaluationCount,o);
 end
+% PSO keeps a personal best per particle and moves each particle toward its
+% own best and the global best, with inertia decreasing over the budget.
 while t.evaluationCount<phaseEnd && t.evaluationCount<t.maxEvaluations
     completed=true;
     for i=1:N
@@ -152,6 +160,8 @@ for i=1:N
     pbestScore(i)=scores(i); pbestX(i,:)=X(i,:);
 end
 particle=1;
+% PGSAO cycles through particles and tests four local offspring: peer-guided,
+% personal-best-guided, global-best-guided, and mutated variants.
 while t.evaluationCount<t.maxEvaluations
     i=particle; peer=randi(N);
     if N>1, while peer==i, peer=randi(N); end, end

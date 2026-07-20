@@ -14,6 +14,9 @@ tic;
 nativeResult = cf_evaluate_candidate(cfg,scenario,candidate,true);
 runtime = toc;
 
+% J_true is deliberately recomputed from the final schedule and SLINR. This
+% prevents the sensitivity analysis from conflating it with the weighted
+% search score used by the optimizer.
 [Jtrue,trueDetails] = cf_compute_true_objective(nativeResult);
 
 if ~isempty(nativeResult.history.objective)
@@ -39,6 +42,7 @@ rank2Count = sum(rankValues == 2);
 rankMean = mean(rankValues);
 
 fronthaul = 0;
+% Fronthaul proxy: each active DU-UE-RBG link consumes rankUG(u,g) streams.
 for r = 1:cfg.numDUs
     for u = 1:cfg.numUEs
         for g = 1:cfg.numRBGs
@@ -56,6 +60,8 @@ end
 
 h = scenario.H(:);
 idxH = (1:numel(h)).';
+% Lightweight deterministic hashes support diagnostics that verify whether
+% candidate-only perturbations reused the same channel/geometry.
 scenarioHash = sum(abs(h).^2 .* idxH) / max(1,numel(h));
 d = scenario.distance(:);
 idxD = (1:numel(d)).';

@@ -1,4 +1,6 @@
 %% 05 - GA exploration followed by PSO refinement
+% Hybrid search: GA explores first, then PSO refines the population within
+% the same total evaluation budget.
 clear; clc; close all; scriptFolder=fileparts(mfilename('fullpath')); projectRoot=fileparts(fileparts(scriptFolder)); run(fullfile(projectRoot,'setup_project_paths.m'));
 cfg=cf_default_config('quick'); scenario=cf_generate_scenario(cfg);
 searchResult=cf_search('GA+PSO',cfg,scenario,cfg.search); result=searchResult.BestResult;

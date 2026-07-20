@@ -1,4 +1,5 @@
 %% 03 - Outer GA
+% Outer-search example using only the genetic algorithm phase.
 clear; clc; close all; scriptFolder=fileparts(mfilename('fullpath')); projectRoot=fileparts(fileparts(scriptFolder)); run(fullfile(projectRoot,'setup_project_paths.m'));
 cfg=cf_default_config('quick'); scenario=cf_generate_scenario(cfg);
 searchResult=cf_search('GA',cfg,scenario,cfg.search); result=searchResult.BestResult;

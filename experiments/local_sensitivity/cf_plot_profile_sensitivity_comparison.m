@@ -16,6 +16,9 @@ end
 
 trueSensitivity = nan(numel(parameters),numel(profiles));
 trueRank = nan(numel(parameters),numel(profiles));
+% Build two aligned matrices:
+% - trueSensitivity stores the signed S_true_norm value shown in each cell.
+% - trueRank stores the absolute-sensitivity rank used for the color class.
 for pi = 1:numel(profiles)
     for pj = 1:numel(parameters)
         idx = strcmp(comparisonTable.Profile,profiles{pi}) & ...
@@ -27,6 +30,9 @@ for pi = 1:numel(profiles)
     end
 end
 
+% The plot uses rank classes instead of a continuous colorbar. That makes
+% the visual match the interpretation: red/orange/gray mean high/medium/low
+% rank groups, not a continuous numerical threshold.
 rankClass = nan(size(trueRank));
 rankClass(trueRank >= 1 & trueRank <= 3) = 3;
 rankClass(trueRank >= 4 & trueRank <= 6) = 2;

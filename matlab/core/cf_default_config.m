@@ -10,6 +10,9 @@ cfg.seedPosition = 11;
 cfg.seedChannel = 23;
 cfg.seedSearch = 37;
 
+% Profiles scale the network and evaluation budget. Keep algorithm weights
+% and default search-vector semantics shared so quick/standard/paper runs
+% remain comparable.
 switch cfg.profile
     case 'quick'
         cfg.numDUs = 4; cfg.numUEs = 6; cfg.numRBGs = 3;
@@ -37,6 +40,7 @@ cfg.referenceDistance = 10; cfg.minimumDistance = 10;
 cfg.normalizeChannel = true;
 cfg.maxDUPower = 1.0; cfg.noisePower = 1e-2;
 
+% Inner-loop controls for the WPS/SCA-like beam update.
 cfg.inner.tolerance = 1e-4;
 cfg.inner.alphaEpsilon = 1e-3;
 cfg.inner.regularization = 1e-8;
@@ -45,6 +49,8 @@ cfg.inner.rateAveragingFactor = 0.85; cfg.inner.pfEpsilon = 1e-6;
 cfg.inner.minimumServicePower = 0.04;
 cfg.inner.fairnessRepairRatio = 0.85;
 
+% Score weights define the existing outer-search fitness J_outer. They are
+% intentionally separate from J_true, which is recomputed for diagnostics.
 cfg.score.wSumRate = 1.0; cfg.score.wJain = 35;
 cfg.score.wMinRate = 15; cfg.score.wRate10 = 20;
 cfg.score.wActiveLinks = 0.02; cfg.score.wPower = 0.01;
@@ -52,6 +58,8 @@ cfg.score.wStreams = 0.01; cfg.score.wMinRateLoss = 40;
 cfg.score.wRate10Loss = 50; cfg.score.wJainTarget = 60;
 cfg.score.jainTarget = 0.80;
 
+% The outer search always operates in normalized [0,1]^9. cf_decode_candidate
+% maps these normalized coordinates into physical/mixed parameter values.
 cfg.search.dimension = 9;
 cfg.search.lowerBound = zeros(1,9); cfg.search.upperBound = ones(1,9);
 cfg.search.parameterNames = {'betaPF','numConnections','scheduleThreshold', ...
