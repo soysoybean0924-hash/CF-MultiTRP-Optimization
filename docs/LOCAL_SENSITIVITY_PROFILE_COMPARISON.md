@@ -16,6 +16,9 @@ That directory is intentionally ignored by Git.
 
 The cross-profile summary heatmap is generated as
 `results/local_sensitivity_profiles/fig08_profile_true_sensitivity_heatmap.png`.
+It uses explicit rank-class colors rather than a continuous colorbar:
+rank 1-3 is high sensitivity, rank 4-6 is medium sensitivity, and rank
+7-9 is low sensitivity.
 
 ## Objective Definitions
 

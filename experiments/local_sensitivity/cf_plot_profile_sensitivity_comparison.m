@@ -27,26 +27,27 @@ for pi = 1:numel(profiles)
     end
 end
 
+rankClass = nan(size(trueRank));
+rankClass(trueRank >= 1 & trueRank <= 3) = 3;
+rankClass(trueRank >= 4 & trueRank <= 6) = 2;
+rankClass(trueRank >= 7) = 1;
+
 fig = figure('Visible','off','Color','w','Position',[100 100 900 620]);
-imagesc(trueSensitivity);
-colormap(redblue(256));
-colorbar;
-cmax = max(abs(trueSensitivity(:)));
-if isfinite(cmax) && cmax > 0
-    caxis([-cmax cmax]);
-end
+imagesc(rankClass,[1 3]);
+colormap([0.78 0.78 0.78; 0.95 0.64 0.25; 0.78 0.18 0.16]);
 set(gca,'XTick',1:numel(profiles),'XTickLabel',profiles);
 set(gca,'YTick',1:numel(parameters),'YTickLabel',parameters);
-title('Cross-profile J\_true normalized sensitivity');
+title('Cross-profile J\_true sensitivity rank class');
 xlabel('Profile');
 ylabel('Parameter');
+hold on;
 
 for pi = 1:numel(profiles)
     for pj = 1:numel(parameters)
         value = trueSensitivity(pj,pi);
         rankValue = trueRank(pj,pi);
         if isfinite(value)
-            if abs(value) > 0.55*cmax
+            if rankClass(pj,pi) == 3
                 textColor = 'w';
             else
                 textColor = 'k';
@@ -57,29 +58,21 @@ for pi = 1:numel(profiles)
     end
 end
 
+plotDiscreteLegend();
 saveFigure(fig,fullfile(resultRoot,'fig08_profile_true_sensitivity_heatmap'));
+end
+
+function plotDiscreteLegend()
+legendHandles = gobjects(3,1);
+legendHandles(1) = patch(nan,nan,[0.78 0.18 0.16]);
+legendHandles(2) = patch(nan,nan,[0.95 0.64 0.25]);
+legendHandles(3) = patch(nan,nan,[0.78 0.78 0.78]);
+legend(legendHandles,{'High sensitivity rank 1-3','Medium sensitivity rank 4-6','Low sensitivity rank 7-9'}, ...
+    'Location','eastoutside');
 end
 
 function saveFigure(fig,outBase)
 savefig(fig,[outBase '.fig']);
 print(fig,[outBase '.png'],'-dpng','-r200');
 close(fig);
-end
-
-function cmap = redblue(n)
-if nargin < 1, n = 256; end
-bottom = [0.10 0.25 0.70];
-middle = [1.00 1.00 1.00];
-top = [0.75 0.10 0.10];
-x = linspace(0,1,n)';
-cmap = zeros(n,3);
-for i = 1:n
-    if x(i) < 0.5
-        a = x(i)/0.5;
-        cmap(i,:) = (1-a)*bottom + a*middle;
-    else
-        a = (x(i)-0.5)/0.5;
-        cmap(i,:) = (1-a)*middle + a*top;
-    end
-end
 end
