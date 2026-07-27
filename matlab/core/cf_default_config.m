@@ -11,7 +11,7 @@ cfg.seedChannel = 23;
 cfg.seedSearch = 37;
 
 % Profiles scale the network and evaluation budget. Keep algorithm weights
-% and default search-vector semantics shared so quick/standard/paper runs
+% and default search-vector semantics shared so quick/standard/paper/M3 runs
 % remain comparable.
 switch cfg.profile
     case 'quick'
@@ -29,8 +29,13 @@ switch cfg.profile
         cfg.numTxAntennas = 8; cfg.numRxAntennas = 2; cfg.maxRank = 2;
         cfg.inner.maxIter = 35;
         cfg.search.populationSize = 20; cfg.search.maxEvaluations = 200;
+    case 'm3'
+        cfg.numDUs = 7; cfg.numUEs = 100; cfg.numRBGs = 100;
+        cfg.numTxAntennas = 12; cfg.numRxAntennas = 2; cfg.maxRank = 2;
+        cfg.inner.maxIter = 35;
+        cfg.search.populationSize = 20; cfg.search.maxEvaluations = 200;
     otherwise
-        error('Unknown profile "%s". Use quick, standard, or paper.', profile);
+        error('Unknown profile "%s". Use quick, standard, paper, or M3.', profile);
 end
 
 cfg.areaX = 400; cfg.areaY = 400;
