@@ -21,6 +21,10 @@ end
 % standard, and paper so their rankings are directly comparable.
 baseCfg = cf_default_config(profile);
 baseCfg.search.verbose = false;
+innerIterCap = numericEnvOrEmpty('M3_SENSITIVITY_INNER_ITER_CAP');
+if ~isempty(innerIterCap)
+    baseCfg.inner.maxIter = max(0,round(min(baseCfg.inner.maxIter,innerIterCap)));
+end
 baseCandidate = cf_decode_candidate(baseCfg.defaultX,baseCfg);
 
 [specs,parameterSettings] = cf_local_sensitivity_config(baseCfg,baseCandidate);
@@ -91,6 +95,7 @@ rawTable = struct2table(rawStruct);
 runInfo = struct();
 runInfo.profile = profile;
 runInfo.seedList = seedList;
+runInfo.innerIterCap = innerIterCap;
 runInfo.createdAt = datestr(now,31);
 runInfo.objectiveNotes = [ ...
     "J_inner is the final recorded inner WPS/sparse-beam objective."; ...
@@ -107,6 +112,18 @@ cf_plot_local_sensitivity(summary,resultsDir);
 fprintf('\nFinished local sensitivity test.\n');
 fprintf('Main workbook: %s\n',fullfile(resultsDir,'local_sensitivity_all_results.xlsx'));
 fprintf('Text report:   %s\n',fullfile(resultsDir,'local_sensitivity_report.txt'));
+end
+
+function value = numericEnvOrEmpty(name)
+raw = getenv(name);
+if isempty(raw)
+    value = [];
+else
+    value = str2double(raw);
+    if ~isfinite(value)
+        error('Environment variable %s must be numeric.',name);
+    end
+end
 end
 
 function cfg = prepareSeed(cfg,seed)

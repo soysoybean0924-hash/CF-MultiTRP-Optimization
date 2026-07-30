@@ -1,0 +1,14 @@
+M3 reduced-dimension algorithm comparison
+
+Selected searchable parameters: numUEConnections, betaPF, scheduleThreshold
+High-sensitivity parameters skipped because they are not outer-search dimensions: numTransmitAntennas
+
+Best by Score: basic, Score=8332.19, J_true=7308.6, SumRate=7308.6, Runtime=4.003s
+
+- basic  Score= 8332.19 J_true= 7308.6 SumRate= 7308.6 Jain=0.6805 ActiveLinks=20000 Runtime=4.003s
+- inner  Score=-213.293 J_true= 3377.95 SumRate= 3377.95 Jain=0.0935 ActiveLinks=1534 Runtime=220.198s
+- GA     Score= 1126.57 J_true= 2834.76 SumRate= 2834.76 Jain=0.2563 ActiveLinks=2718 Runtime=1724.430s
+- PSO    Score= 1126.57 J_true= 2834.76 SumRate= 2834.76 Jain=0.2563 ActiveLinks=2718 Runtime=1756.980s
+- GA+PSO Score= 1126.57 J_true= 2834.76 SumRate= 2834.76 Jain=0.2563 ActiveLinks=2718 Runtime=1620.575s
+- PSO+GA Score= 1126.57 J_true= 2834.76 SumRate= 2834.76 Jain=0.2563 ActiveLinks=2718 Runtime=1606.776s
+- PGSAO  Score= 1126.57 J_true= 2834.76 SumRate= 2834.76 Jain=0.2563 ActiveLinks=2718 Runtime=1602.636s

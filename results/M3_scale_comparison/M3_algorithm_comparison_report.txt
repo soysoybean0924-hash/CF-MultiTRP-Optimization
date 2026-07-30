@@ -1,0 +1,53 @@
+M3 scale algorithm comparison
+Created: 2026-07-30 17:05:16
+Result root: D:\GitHubProjects\CF-MultiTRP-Optimization\results\M3_scale_comparison
+
+Profiles: quick, standard, paper, m3
+Methods: basic, inner, GA, PSO, GA+PSO, PSO+GA, PGSAO
+
+Budget caps applied: maxEvalCap=8, innerIterCap=2
+
+Profile quick
+  Scale: DUs=4, UEs=6, RBGs=3, MIMO=2x4, innerIter=12, maxEval=32
+  Best by Score: GA, Score=573.761, J_true=95.1936, SumRate=95.1936, runtime=13.635s
+  - basic  Score= 217.349 J_true= 39.4493 SumRate= 39.4493 Jain=0.8606 ActiveLinks=36 Runtime=0.518s
+  - inner  Score=-24.7847 J_true= 48.0234 SumRate= 48.0234 Jain=0.6420 ActiveLinks=23 Runtime=0.188s
+  - GA     Score= 573.761 J_true= 95.1936 SumRate= 95.1936 Jain=0.9786 ActiveLinks=15 Runtime=13.635s
+  - PSO    Score= 290.305 J_true= 56.6245 SumRate= 56.6245 Jain=0.9037 ActiveLinks=15 Runtime=8.496s
+  - GA+PSO Score= 308.45 J_true= 58.0495 SumRate= 58.0495 Jain=0.9233 ActiveLinks=15 Runtime=9.028s
+  - PSO+GA Score= 318.486 J_true= 58.848 SumRate= 58.848 Jain=0.9444 ActiveLinks=15 Runtime=5.570s
+  - PGSAO  Score= 502.496 J_true= 96.3405 SumRate= 96.3405 Jain=0.9692 ActiveLinks=15 Runtime=5.801s
+
+Profile standard
+  Scale: DUs=8, UEs=16, RBGs=4, MIMO=2x8, innerIter=25, maxEval=72
+  Best by Score: PSO, Score=869.708, J_true=390.918, SumRate=390.918, runtime=140.466s
+  - basic  Score= 463.379 J_true= 177.538 SumRate= 177.538 Jain=0.9368 ActiveLinks=128 Runtime=0.071s
+  - inner  Score= 237.481 J_true= 190.523 SumRate= 190.523 Jain=0.6804 ActiveLinks=70 Runtime=0.906s
+  - GA     Score= 808.959 J_true= 337.74 SumRate= 337.74 Jain=0.8516 ActiveLinks=59 Runtime=143.025s
+  - PSO    Score= 869.708 J_true= 390.918 SumRate= 390.918 Jain=0.7820 ActiveLinks=55 Runtime=140.466s
+  - GA+PSO Score= 797.885 J_true= 335.536 SumRate= 335.536 Jain=0.8344 ActiveLinks=57 Runtime=89.519s
+  - PSO+GA Score= 847.481 J_true= 387.712 SumRate= 387.712 Jain=0.7785 ActiveLinks=55 Runtime=107.320s
+  - PGSAO  Score= 853.722 J_true= 401.833 SumRate= 401.833 Jain=0.7524 ActiveLinks=55 Runtime=101.769s
+
+Profile paper
+  Scale: DUs=16, UEs=30, RBGs=5, MIMO=2x8, innerIter=35, maxEval=200
+  Best by Score: PSO, Score=1284.4, J_true=757.28, SumRate=757.28, runtime=675.997s
+  - basic  Score= 729.469 J_true= 441.248 SumRate= 441.248 Jain=0.6511 ActiveLinks=300 Runtime=0.166s
+  - inner  Score= 192.907 J_true= 383.562 SumRate= 383.562 Jain=0.5670 ActiveLinks=139 Runtime=4.635s
+  - GA     Score= 1240.84 J_true= 816.146 SumRate= 816.146 Jain=0.6726 ActiveLinks=120 Runtime=645.465s
+  - PSO    Score= 1284.4 J_true= 757.28 SumRate= 757.28 Jain=0.7615 ActiveLinks=121 Runtime=675.997s
+  - GA+PSO Score= 1248.38 J_true= 789.417 SumRate= 789.417 Jain=0.7034 ActiveLinks=116 Runtime=644.991s
+  - PSO+GA Score= 1278.91 J_true= 771.089 SumRate= 771.089 Jain=0.7404 ActiveLinks=123 Runtime=767.099s
+  - PGSAO  Score= 1264.44 J_true= 750.2 SumRate= 750.2 Jain=0.7568 ActiveLinks=124 Runtime=868.347s
+
+Profile m3
+  Scale: DUs=7, UEs=100, RBGs=100, MIMO=2x12, innerIter=35, maxEval=200
+  Best by Score: basic, Score=8332.19, J_true=7308.6, SumRate=7308.6, runtime=3.936s
+  - basic  Score= 8332.19 J_true= 7308.6 SumRate= 7308.6 Jain=0.6805 ActiveLinks=20000 Runtime=3.936s
+  - inner  Score=-1310.76 J_true= 2473.19 SumRate= 2473.19 Jain=0.1659 ActiveLinks=534 Runtime=468.920s
+  - GA     Score= 466.815 J_true= 2468.69 SumRate= 2468.69 Jain=0.3321 ActiveLinks=5567 Runtime=1704.366s
+  - PSO    Score= 466.815 J_true= 2468.69 SumRate= 2468.69 Jain=0.3321 ActiveLinks=5567 Runtime=1532.116s
+  - GA+PSO Score= 466.815 J_true= 2468.69 SumRate= 2468.69 Jain=0.3321 ActiveLinks=5567 Runtime=1509.229s
+  - PSO+GA Score= 466.815 J_true= 2468.69 SumRate= 2468.69 Jain=0.3321 ActiveLinks=5567 Runtime=1528.099s
+  - PGSAO  Score= 466.815 J_true= 2468.69 SumRate= 2468.69 Jain=0.3321 ActiveLinks=5567 Runtime=1511.267s
+

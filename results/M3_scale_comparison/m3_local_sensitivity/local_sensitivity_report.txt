@@ -1,0 +1,59 @@
+Nine-parameter local sensitivity report
+Created at: 2026-07-30 14:37:27
+
+Objective definitions:
+J_inner: final inner WPS/sparse-beam objective recorded in result.history.objective.
+J_outer: existing outer-search fitness result.Score.
+J_true : sum I(any_r b(r,u,g)=1)*log2(1+SLINR(s,u,g)); computed only from b and SLINR.
+
+Top sensitivities:
+J_inner: scheduleThreshold(4.808) numUEConnections(-4.615) rhoFronthaul(-3.916)
+J_outer: numUEConnections(-55.57) betaPF(-27.74) numTransmitAntennas(2.298)
+J_true: numUEConnections(-2.814) betaPF(-2.395) numTransmitAntennas(1.262)
+
+True-objective direction by parameter:
+- betaPF: decreases J_true when parameter increases (S_true_norm=-2.39543, Fully consistent)
+- numUEConnections: decreases J_true when parameter increases (S_true_norm=-2.81394, Fully consistent)
+- scheduleThreshold: decreases J_true when parameter increases (S_true_norm=-0.43302, Partially consistent)
+- duHeight: increases J_true when parameter increases (S_true_norm=0.0602494, Inconsistent)
+- numTransmitAntennas: increases J_true when parameter increases (S_true_norm=1.26178, Fully consistent)
+- rhoFronthaul: decreases J_true when parameter increases (S_true_norm=-0.0476298, Fully consistent)
+- rhoPower: decreases J_true when parameter increases (S_true_norm=-0.00486696, Fully consistent)
+- rankThreshold: decreases J_true when parameter increases (S_true_norm=-0.000172598, Fully consistent)
+- repairWeight: decreases J_true when parameter increases (S_true_norm=-0.00172943, Inconsistent)
+
+Ranking and recommendations:
+- betaPF: true class=Medium, composite rank=2, Keep in GA/PSO/CEM outer search.
+- numUEConnections: true class=High, composite rank=1, Keep in GA/PSO/CEM outer search.
+- scheduleThreshold: true class=Low, composite rank=3, Consider fixing or narrowing this parameter.
+- duHeight: true class=Low, composite rank=6, Consider fixing or narrowing this parameter.
+- numTransmitAntennas: true class=Low, composite rank=5, Retest with wider samples before deciding.
+- rhoFronthaul: true class=Low, composite rank=4, Consider fixing or narrowing this parameter.
+- rhoPower: true class=Low, composite rank=8, Consider fixing or narrowing this parameter.
+- rankThreshold: true class=Low, composite rank=9, Consider fixing or narrowing this parameter.
+- repairWeight: true class=Low, composite rank=7, Consider fixing or narrowing this parameter.
+
+Main conclusions:
+1. Parameters with the largest abs(S_inner_norm) dominate the inner WPS/SCA-like loop.
+2. Parameters with the largest abs(S_outer_norm) dominate the current search fitness.
+3. Parameters with the largest abs(S_true_norm) are the most important for the real scheduled SINR utility.
+4. If J_outer and J_true rankings differ, the current score is not a fully reliable proxy for the true objective.
+5. Positive S_true_norm means increasing the parameter improves the true objective locally; negative means it hurts locally.
+6. Low true-sensitivity and stable parameters are candidates for fixing or narrowing.
+7. Nonsmooth or unstable parameters should be searched by population methods rather than tuned by smooth gradients.
+8. If fronthaul or power penalties show opposite J_outer/J_true directions, score weights should be redesigned or constrained.
+
+Diagnostics:
+- [1] baseline reused consistently: Baseline rows are identical per seed across parameter tests.
+- [1] no NaN or Inf in key metrics: All key metrics are finite.
+- [1] parameter values within legal ranges: All perturbations stayed within configured bounds.
+- [1] true objective source: J_true was computed by cf_compute_true_objective from b and SLINR.
+- [1] three objectives are not the same field: J_inner, J_outer, and J_true have different definitions and values.
+- [1] inner convergence recorded: Convergence flag recorded; convergence rate is reported in raw table.
+- [1] common channel for non-scenario parameters: Candidate-only perturbations reused the same H per seed.
+- [1] numTransmitAntennas updates W dimension: W first dimension changes with cfg.numTxAntennas.
+- [1] numUEConnections regenerates service mask: Initial active links change with candidate.numConnections.
+- [1] duHeight regenerates pathloss/channel: Distance hash changes with cfg.duHeight.
+- [1] scheduleThreshold can change active links: Active-link count was tracked for threshold perturbations.
+- [1] repair function condition checked: candidate.maxRepairLinks > 0 so weak-user repair path is entered.
+- [1] rho penalties affect decisions: rhoLink and rhoPower enter updateBeamformers penalties, so they affect W, not only reporting.

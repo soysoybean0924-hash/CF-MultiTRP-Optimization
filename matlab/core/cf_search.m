@@ -2,8 +2,9 @@ function output=cf_search(method,cfg,scenario,options)
 %CF_SEARCH GA, PSO, GA+PSO, PSO+GA, or PGSAO under one evaluation budget.
 if nargin<4 || isempty(options), options=cfg.search; end
 method=upper(strrep(char(method),' ','')); rng(cfg.seedSearch,'twister');
-tracker=initializeTracker(options.maxEvaluations,cfg.search.dimension);
-N=min(options.populationSize,options.maxEvaluations); initialX=rand(N,cfg.search.dimension);
+[activeDimensions,fixedX,searchDimension]=searchSpace(options,cfg);
+tracker=initializeTracker(options.maxEvaluations,searchDimension);
+N=min(options.populationSize,options.maxEvaluations); initialX=rand(N,searchDimension);
 % Every method consumes the same normalized 9-D candidate representation and
 % shares the same evaluation tracker, so scores and histories are comparable.
 switch method
@@ -26,12 +27,43 @@ switch method
 end
 count=tracker.evaluationCount;
 output.Method=method; output.BestX=tracker.bestX;
-output.BestCandidate=cf_decode_candidate(tracker.bestX,cfg);
+output.BestReducedX=tracker.bestX;
+output.ActiveDimensions=activeDimensions;
+output.FixedX=fixedX;
+output.BestX=expandSearchVector(tracker.bestX,activeDimensions,fixedX);
+output.BestCandidate=cf_decode_candidate(output.BestX,cfg);
 output.BestResult=tracker.bestResult; output.BestScore=tracker.bestScore; output.Evaluations=count;
 output.History=table((1:count)',tracker.traceScore(1:count),tracker.traceBest(1:count), ...
     'VariableNames',{'Evaluation','Score','BestScore'});
 output.EvaluationX=tracker.archiveX(1:count,:); output.EvaluationScore=tracker.traceScore(1:count);
 output.FinalPopulation=X; output.FinalScores=scores;
+end
+
+function [activeDimensions,fixedX,searchDimension]=searchSpace(options,cfg)
+if isfield(options,'activeDimensions') && ~isempty(options.activeDimensions)
+    activeDimensions=unique(round(options.activeDimensions(:)'),'stable');
+else
+    activeDimensions=1:cfg.search.dimension;
+end
+if any(activeDimensions<1) || any(activeDimensions>cfg.search.dimension)
+    error('activeDimensions must be in 1:%d.',cfg.search.dimension);
+end
+if isfield(options,'fixedX') && ~isempty(options.fixedX)
+    fixedX=reshape(double(options.fixedX),1,[]);
+else
+    fixedX=cfg.defaultX;
+end
+if numel(fixedX)~=cfg.search.dimension
+    error('fixedX must contain %d normalized variables.',cfg.search.dimension);
+end
+fixedX=min(max(fixedX,cfg.search.lowerBound),cfg.search.upperBound);
+searchDimension=numel(activeDimensions);
+end
+
+function fullX=expandSearchVector(x,activeDimensions,fixedX)
+fullX=fixedX;
+fullX(activeDimensions)=reshape(double(x),1,[]);
+fullX=min(max(fullX,0),1);
 end
 
 function budget=hybridFirstBudget(options,N)
@@ -47,7 +79,10 @@ t.traceBest=nan(maxEval,1); t.archiveX=nan(maxEval,D);
 end
 
 function [score,result,t]=evaluateTracked(x,cfg,scenario,options,t)
-x=clip01(x); candidate=cf_decode_candidate(x,cfg);
+x=clip01(x);
+[activeDimensions,fixedX,~]=searchSpace(options,cfg);
+fullX=expandSearchVector(x,activeDimensions,fixedX);
+candidate=cf_decode_candidate(fullX,cfg);
 try
     % One outer-search evaluation means: decode x, run the inner candidate
     % evaluation, then use result.Score as the search fitness.

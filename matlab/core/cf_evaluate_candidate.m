@@ -194,34 +194,48 @@ R=cfg.numDUs; U=cfg.numUEs; G=cfg.numRBGs; Smax=cfg.maxRank; H=scenario.H;
 SLINR=zeros(Smax,U,G); WPS=SLINR; signalPower=SLINR; interferencePower=SLINR;
 usefulAmplitude=complex(zeros(Smax,U,G));
 for g=1:G
-    for u=1:U
-        for s=1:rankUG(u,g)
-            q=Q(:,u,g,s); useful=0;
+    activeColumns=false(1,Smax*U);
+    queryColumns=false(1,Smax*U);
+    Wmasked=complex(zeros(cfg.numTxAntennas*R,Smax*U));
+    Hquery=complex(zeros(cfg.numTxAntennas*R,Smax*U));
+    for up=1:U
+        for sp=1:rankUG(up,g)
+            col=(sp-1)*U+up;
+            activeColumns(col)=true;
+            queryColumns(col)=true;
+            Hquery(:,col)=effectiveChannelVector(H,Q,up,g,sp,R,cfg.numTxAntennas);
             for r=1:R
-                if bMask(r,u,g)>0
-                    hEff=H(:,:,r,u,g)'*q; useful=useful+hEff'*W(:,s,r,u,g);
+                if bMask(r,up,g)>0
+                    rows=(r-1)*cfg.numTxAntennas+(1:cfg.numTxAntennas);
+                    Wmasked(rows,col)=W(:,sp,r,up,g);
                 end
             end
-            usefulAmplitude(s,u,g)=useful; signalPower(s,u,g)=abs(useful)^2; interference=0;
-            for up=1:U
-                for sp=1:rankUG(up,g)
-                    if up==u && sp==s, continue; end
-                    interAmplitude=0;
-                    for r=1:R
-                        if bMask(r,up,g)>0
-                            hEff=H(:,:,r,u,g)'*q;
-                            interAmplitude=interAmplitude+hEff'*W(:,sp,r,up,g);
-                        end
-                    end
-                    interference=interference+abs(interAmplitude)^2;
-                end
-            end
-            interferencePower(s,u,g)=interference;
-            SLINR(s,u,g)=signalPower(s,u,g)/(interference+cfg.noisePower+eps);
-            % WPS is the weighted proportional-scheduling objective term
-            % used by the inner loop, not the final J_true diagnostic.
-            WPS(s,u,g)=delta(u)*log(1+SLINR(s,u,g));
         end
+    end
+    activeIndex=find(activeColumns);
+    queryIndex=find(queryColumns);
+    if isempty(activeIndex) || isempty(queryIndex)
+        continue;
+    end
+    amplitudeMatrix=Hquery(:,queryIndex)'*Wmasked(:,activeIndex);
+    totalPowerByQuery=sum(abs(amplitudeMatrix).^2,2);
+    [signalIsActive,signalLocations]=ismember(queryIndex,activeIndex);
+    for qi=1:numel(queryIndex)
+        col=queryIndex(qi);
+        u=mod(col-1,U)+1;
+        s=floor((col-1)/U)+1;
+        if signalIsActive(qi)
+            useful=amplitudeMatrix(qi,signalLocations(qi));
+        else
+            useful=0;
+        end
+        usefulAmplitude(s,u,g)=useful; signalPower(s,u,g)=abs(useful)^2;
+        interference=max(real(totalPowerByQuery(qi)-signalPower(s,u,g)),0);
+        interferencePower(s,u,g)=interference;
+        SLINR(s,u,g)=signalPower(s,u,g)/(interference+cfg.noisePower+eps);
+        % WPS is the weighted proportional-scheduling objective term
+        % used by the inner loop, not the final J_true diagnostic.
+        WPS(s,u,g)=delta(u)*log(1+SLINR(s,u,g));
     end
 end
 ratePerStream=log2(1+SLINR); userRate=zeros(U,1);
@@ -233,6 +247,15 @@ metrics.ratePerStream=ratePerStream; metrics.userRate=userRate;
 metrics.SumRate=sum(userRate); metrics.MeanRate=mean(userRate); metrics.MinRate=min(userRate);
 metrics.Rate5=sortedRate(idx5); metrics.Rate10=sortedRate(idx10);
 metrics.Jain=(sum(userRate)^2)/(U*sum(userRate.^2)+eps);
+end
+
+function hVector=effectiveChannelVector(H,Q,u,g,s,R,M)
+q=Q(:,u,g,s);
+hVector=complex(zeros(M*R,1));
+for r=1:R
+    rows=(r-1)*M+(1:M);
+    hVector(rows)=H(:,:,r,u,g)'*q;
+end
 end
 
 function p=powerFromW(W)
