@@ -7,7 +7,7 @@ scriptFolder = fileparts(mfilename('fullpath'));
 projectRoot = fileparts(fileparts(scriptFolder));
 run(fullfile(projectRoot,'setup_project_paths.m'));
 
-resultRoot = getenvOrDefault('M3_RESULT_ROOT',fullfile(projectRoot,'results','M3_scale_comparison'));
+resultRoot = getenvOrDefault('M3_RESULT_ROOT',fullfile(projectRoot,'results','M3_true_objective_comparison'));
 resultsDir = fullfile(resultRoot,'m3_local_sensitivity');
 seedList = parseSeedList(getenvOrDefault('M3_SENSITIVITY_SEEDS','1'));
 

@@ -5,8 +5,8 @@ method=upper(strrep(char(method),' ','')); rng(cfg.seedSearch,'twister');
 [activeDimensions,fixedX,searchDimension]=searchSpace(options,cfg);
 tracker=initializeTracker(options.maxEvaluations,searchDimension);
 N=min(options.populationSize,options.maxEvaluations); initialX=rand(N,searchDimension);
-% Every method consumes the same normalized 9-D candidate representation and
-% shares the same evaluation tracker, so scores and histories are comparable.
+% Every method consumes the same normalized candidate representation and
+% shares the same objective tracker, so histories are comparable.
 switch method
     case 'GA'
         [X,scores,tracker]=gaPhase(cfg,scenario,options,tracker,initialX,[],options.maxEvaluations);
@@ -32,10 +32,13 @@ output.ActiveDimensions=activeDimensions;
 output.FixedX=fixedX;
 output.BestX=expandSearchVector(tracker.bestX,activeDimensions,fixedX);
 output.BestCandidate=cf_decode_candidate(output.BestX,cfg);
-output.BestResult=tracker.bestResult; output.BestScore=tracker.bestScore; output.Evaluations=count;
+output.BestResult=tracker.bestResult; output.BestScore=tracker.bestScore;
+output.BestObjective=tracker.bestScore; output.ObjectiveName='J_true';
+output.Evaluations=count;
 output.History=table((1:count)',tracker.traceScore(1:count),tracker.traceBest(1:count), ...
-    'VariableNames',{'Evaluation','Score','BestScore'});
+    'VariableNames',{'Evaluation','Objective','BestObjective'});
 output.EvaluationX=tracker.archiveX(1:count,:); output.EvaluationScore=tracker.traceScore(1:count);
+output.EvaluationObjective=tracker.traceScore(1:count);
 output.FinalPopulation=X; output.FinalScores=scores;
 end
 
@@ -85,7 +88,7 @@ fullX=expandSearchVector(x,activeDimensions,fixedX);
 candidate=cf_decode_candidate(fullX,cfg);
 try
     % One outer-search evaluation means: decode x, run the inner candidate
-    % evaluation, then use result.Score as the search fitness.
+    % evaluation, then maximize the paper-style objective in result.Score.
     result=cf_evaluate_candidate(cfg,scenario,candidate,true); score=result.Score;
     if ~isfinite(score), score=-realmax; end
 catch ME
@@ -97,7 +100,7 @@ t.traceScore(k)=score; t.archiveX(k,:)=x;
 if score>t.bestScore, t.bestScore=score; t.bestX=x; t.bestResult=result; end
 t.traceBest(k)=t.bestScore;
 if options.verbose
-    fprintf('search eval %3d/%3d: score=%10.4f, best=%10.4f\n',k,t.maxEvaluations,score,t.bestScore);
+    fprintf('search eval %3d/%3d: objective=%10.4f, best=%10.4f\n',k,t.maxEvaluations,score,t.bestScore);
 end
 end
 

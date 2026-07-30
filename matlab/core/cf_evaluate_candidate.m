@@ -11,8 +11,8 @@ baseline=computeMetrics(cfg,scenario,Wbaseline,bInit,Q,rankUG,ones(cfg.numUEs,1)
 W=Wbaseline; history=emptyHistory();
 
 if doOptimize && cfg.inner.maxIter>0
-    % Inner loop alternates between metric evaluation, WPS weights, sparse
-    % power penalties, and a closed-form beamformer update.
+    % Inner loop alternates between metric evaluation, WPS weights, power
+    % constraint multipliers, and a closed-form beamformer update.
     R=cfg.numDUs; U=cfg.numUEs; G=cfg.numRBGs; S=cfg.maxRank;
     lambda=zeros(R,G); mu=zeros(R,G); averageRate=ones(U,1);
     delta=1./((averageRate+cfg.inner.pfEpsilon).^candidate.betaPF);
@@ -72,7 +72,7 @@ if doOptimize && cfg.inner.maxIter>0
         pUpdated=powerFromW(W);
         activeLinks=sum(pUpdated(:)>candidate.scheduleThreshold);
         totalPower=sum(pUpdated(:)); sumWPS=sum(updated.WPS(:));
-        objective=sumWPS-candidate.rhoLink*activeLinks-candidate.rhoPower*totalPower;
+        objective=sumWPS;
         relativeChange=norm(W(:)-Wold(:))/(norm(Wold(:))+eps);
         objectiveHistory(iter)=objective; sumWPSHistory(iter)=sumWPS;
         activeLinksHistory(iter)=activeLinks; totalPowerHistory(iter)=totalPower;
@@ -177,7 +177,7 @@ for g=1:G
         end
         for u=1:U
             if bInit(r,u,g)==0, continue; end
-            penalty=lambda(r,g)*alpha(r,u,g)+mu(r,g)+candidate.rhoLink*alpha(r,u,g)+candidate.rhoPower;
+            penalty=lambda(r,g)*alpha(r,u,g)+mu(r,g);
             systemMatrix=commonA+(penalty+cfg.inner.regularization)*identityM;
             for s=1:rankUG(u,g)
                 hEff=H(:,:,r,u,g)'*Q(:,u,g,s);
@@ -339,8 +339,9 @@ end
 
 function [score,parts]=computeScore(cfg,proposed,baseline,bFinal,pFinal,rankUG)
 activeLinks=sum(bFinal(:)); totalPower=sum(pFinal(:)); activeStreams=sum(rankUG(:));
-% J_outer balances proposed throughput/fairness benefits against resource
-% costs and losses relative to the baseline policy.
+% The optimization score follows the paper-style max objective used in this
+% project: maximize the scheduled sum log2(1+SINR). Resource, fairness, and
+% power values are retained only as diagnostics.
 minLoss=max(0,baseline.MinRate-proposed.MinRate);
 rate10Loss=max(0,baseline.Rate10-proposed.Rate10);
 jainLoss=max(0,cfg.score.jainTarget-proposed.Jain);
@@ -348,8 +349,11 @@ benefit=cfg.score.wSumRate*proposed.SumRate+cfg.score.wJain*proposed.Jain+ ...
     cfg.score.wMinRate*proposed.MinRate+cfg.score.wRate10*proposed.Rate10;
 cost=cfg.score.wActiveLinks*activeLinks+cfg.score.wPower*totalPower+cfg.score.wStreams*activeStreams;
 penalty=cfg.score.wMinRateLoss*minLoss+cfg.score.wRate10Loss*rate10Loss+cfg.score.wJainTarget*jainLoss;
-score=benefit-cost-penalty;
+legacyWeightedScore=benefit-cost-penalty;
+score=proposed.SumRate;
+parts.Objective='scheduled sum log2(1+SINR)';
 parts.Benefit=benefit; parts.Cost=cost; parts.Penalty=penalty;
+parts.LegacyWeightedScore=legacyWeightedScore;
 parts.MinRateLoss=minLoss; parts.Rate10Loss=rate10Loss; parts.JainTargetLoss=jainLoss;
 end
 

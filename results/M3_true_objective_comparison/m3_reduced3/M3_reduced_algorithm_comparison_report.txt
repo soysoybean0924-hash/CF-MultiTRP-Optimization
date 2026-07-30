@@ -1,0 +1,17 @@
+M3 reduced-dimension algorithm comparison
+
+Optimization objective: maximize J_true = scheduled sum log2(1+SINR).
+Other metrics are reported only for evaluation.
+
+Selected searchable parameters: numUEConnections, betaPF, scheduleThreshold
+High-sensitivity parameters skipped because they are not outer-search dimensions: numTransmitAntennas
+
+Best by objective: basic, Objective=7308.6, J_true=7308.6, SumRate=7308.6, Runtime=4.846s
+
+- basic  Objective= 7308.6 J_true= 7308.6 SumRate= 7308.6 Jain=0.6805 ActiveLinks=20000 Runtime=4.846s
+- inner  Objective= 3394.26 J_true= 3394.26 SumRate= 3394.26 Jain=0.0930 ActiveLinks=1545 Runtime=213.667s
+- GA     Objective= 2984.58 J_true= 2984.58 SumRate= 2984.58 Jain=0.2365 ActiveLinks=2726 Runtime=1688.619s
+- PSO    Objective= 2984.58 J_true= 2984.58 SumRate= 2984.58 Jain=0.2365 ActiveLinks=2726 Runtime=1708.898s
+- GA+PSO Objective= 2984.58 J_true= 2984.58 SumRate= 2984.58 Jain=0.2365 ActiveLinks=2726 Runtime=1698.756s
+- PSO+GA Objective= 2984.58 J_true= 2984.58 SumRate= 2984.58 Jain=0.2365 ActiveLinks=2726 Runtime=1660.156s
+- PGSAO  Objective= 2984.58 J_true= 2984.58 SumRate= 2984.58 Jain=0.2365 ActiveLinks=2726 Runtime=1664.128s

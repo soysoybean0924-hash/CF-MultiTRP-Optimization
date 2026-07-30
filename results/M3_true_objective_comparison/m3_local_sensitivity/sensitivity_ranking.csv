@@ -1,0 +1,10 @@
+Parameter,ActualField,InnerRank,OuterRank,TrueRank,CompositeRank,S_inner_norm,S_outer_norm,S_true_norm,TrueSensitivityClass,FocusSearchVariable,CanFix,ShrinkSearchRange,Recommendation
+betaPF,candidate.betaPF,2,2,2,2,-2.06889154372802,-2.39204107960608,-2.39204107960609,Medium,1,0,0,Keep in GA/PSO/CEM outer search.
+numUEConnections,candidate.numConnections,1,1,1,1,-3.96469417993519,-2.80401467526132,-2.80401467526133,High,1,0,1,Keep in GA/PSO/CEM outer search.
+scheduleThreshold,candidate.scheduleThreshold,3,4,4,4,1.6572530773301,-0.373689678949197,-0.373689678949365,Low,0,1,1,Consider fixing or narrowing this parameter.
+duHeight,cfg.duHeight,4,5,5,5,0.991577172232683,0.0528929445438243,0.0528929445438262,Low,0,1,1,Consider fixing or narrowing this parameter.
+numTransmitAntennas,cfg.numTxAntennas,5,3,3,3,0.941471990318395,1.26101525940358,1.26101525940359,Low,0,0,1,Retest with wider samples before deciding.
+rhoFronthaul,candidate.rhoLink,7,8,8,8,0,0,0,Low,0,1,1,Consider fixing or narrowing this parameter.
+rhoPower,candidate.rhoPower,8,9,9,9,0,0,0,Low,0,1,1,Consider fixing or narrowing this parameter.
+rankThreshold,candidate.rankThreshold,6,7,7,7,-0.000168814161508285,-0.00019526331877305,-0.000195263318762411,Low,0,1,1,Consider fixing or narrowing this parameter.
+repairWeight,candidate.repairPower,9,6,6,6,0,-0.0109634703897441,-0.0109634703897432,Low,0,1,1,Consider fixing or narrowing this parameter.

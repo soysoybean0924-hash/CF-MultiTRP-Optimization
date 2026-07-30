@@ -8,7 +8,7 @@ scriptFolder = fileparts(mfilename('fullpath'));
 projectRoot = fileparts(fileparts(scriptFolder));
 run(fullfile(projectRoot,'setup_project_paths.m'));
 
-resultRoot = getenvOrDefault('M3_RESULT_ROOT',fullfile(projectRoot,'results','M3_scale_comparison'));
+resultRoot = getenvOrDefault('M3_RESULT_ROOT',fullfile(projectRoot,'results','M3_true_objective_comparison'));
 sensitivityDir = fullfile(resultRoot,'m3_local_sensitivity');
 sensitivityFile = fullfile(sensitivityDir,'sensitivity_ranking.csv');
 if ~exist(sensitivityFile,'file')
@@ -147,7 +147,7 @@ searchResult.BestResult = result;
 searchResult.BestScore = result.Score;
 searchResult.Evaluations = 1;
 searchResult.History = table(1,result.Score,result.Score, ...
-    'VariableNames',{'Evaluation','Score','BestScore'});
+    'VariableNames',{'Evaluation','Objective','BestObjective'});
 searchResult.EvaluationX = bestX;
 searchResult.EvaluationScore = result.Score;
 searchResult.FinalPopulation = bestX;
@@ -171,6 +171,11 @@ row.MaxEvaluations = cfg.search.maxEvaluations;
 row.Evaluations = searchResult.Evaluations;
 row.RuntimeSeconds = runtimeSeconds;
 row.BestScore = searchResult.BestScore;
+if isfield(searchResult,'BestObjective')
+    row.BestObjective = searchResult.BestObjective;
+else
+    row.BestObjective = searchResult.BestScore;
+end
 row.J_true = Jtrue;
 row.SumRate = result.SumRate;
 row.MeanRate = result.MeanRate;
@@ -235,6 +240,8 @@ function writeReducedReport(summaryTable,selectedParameters,skippedParameters,ou
 fid = fopen(outFile,'w');
 cleanup = onCleanup(@() fclose(fid));
 fprintf(fid,'M3 reduced-dimension algorithm comparison\n\n');
+fprintf(fid,'Optimization objective: maximize J_true = scheduled sum log2(1+SINR).\n');
+fprintf(fid,'Other metrics are reported only for evaluation.\n\n');
 fprintf(fid,'Selected searchable parameters: %s\n',strjoin(selectedParameters,', '));
 if ~isempty(skippedParameters)
     fprintf(fid,'High-sensitivity parameters skipped because they are not outer-search dimensions: %s\n', ...
@@ -242,11 +249,11 @@ if ~isempty(skippedParameters)
 end
 fprintf(fid,'\n');
 [~,bestIdx] = max(summaryTable.BestScore);
-fprintf(fid,'Best by Score: %s, Score=%.6g, J_true=%.6g, SumRate=%.6g, Runtime=%.3fs\n\n', ...
+fprintf(fid,'Best by objective: %s, Objective=%.6g, J_true=%.6g, SumRate=%.6g, Runtime=%.3fs\n\n', ...
     summaryTable.Method{bestIdx},summaryTable.BestScore(bestIdx), ...
     summaryTable.J_true(bestIdx),summaryTable.SumRate(bestIdx),summaryTable.RuntimeSeconds(bestIdx));
 for i = 1:height(summaryTable)
-    fprintf(fid,'- %-6s Score=% .6g J_true=% .6g SumRate=% .6g Jain=%.4f ActiveLinks=%d Runtime=%.3fs\n', ...
+    fprintf(fid,'- %-6s Objective=% .6g J_true=% .6g SumRate=% .6g Jain=%.4f ActiveLinks=%d Runtime=%.3fs\n', ...
         summaryTable.Method{i},summaryTable.BestScore(i),summaryTable.J_true(i), ...
         summaryTable.SumRate(i),summaryTable.Jain(i),summaryTable.ActiveLinks(i), ...
         summaryTable.RuntimeSeconds(i));

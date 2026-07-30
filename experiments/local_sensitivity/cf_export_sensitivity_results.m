@@ -404,7 +404,7 @@ fprintf(fid,'Nine-parameter local sensitivity report\n');
 fprintf(fid,'Created at: %s\n\n',summary.runInfo.createdAt);
 fprintf(fid,'Objective definitions:\n');
 fprintf(fid,'J_inner: final inner WPS/sparse-beam objective recorded in result.history.objective.\n');
-fprintf(fid,'J_outer: existing outer-search fitness result.Score.\n');
+fprintf(fid,'J_outer: outer-search fitness result.Score, aligned with J_true.\n');
 fprintf(fid,'J_true : sum I(any_r b(r,u,g)=1)*log2(1+SLINR(s,u,g)); computed only from b and SLINR.\n\n');
 
 fprintf(fid,'Top sensitivities:\n');

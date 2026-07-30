@@ -1,0 +1,10 @@
+ParameterIndex,TheoreticalName,ActualField,DataType,Baseline,Minus,Plus,MinAllowed,MaxAllowed,PerturbRatio,PerturbMethod,AffectsScenario,Notes,PerturbNote
+1,betaPF,candidate.betaPF,continuous,1.23,1.05,1.41,0.6,2.4,0.1,central linear step 0.18 (10.0% of range),0,PF exponent in the inner WPS weight update.,Central local perturbation used.
+2,numUEConnections,candidate.numConnections,integer,2,1,3,1,4,1,adjacent integer values,0,Number of candidate DUs/TRPs serving each UE/RBG.,Central local perturbation used.
+3,scheduleThreshold,candidate.scheduleThreshold,continuous,0.0001,3.98107170553497e-05,0.000251188643150958,1e-06,0.01,0.1,central log10 step 0.4 decades,0,Power threshold used to convert p into active binary b.,Central local perturbation used.
+4,duHeight,cfg.duHeight,continuous,20,14.5,25.5,5,60,0.1,central linear step 5.5 (10.0% of range),1,DU/TRP antenna height; regenerates geometry-dependent pathloss.,Central local perturbation used.
+5,numTransmitAntennas,cfg.numTxAntennas,integer,12,4,16,2,16,1,adjacent set values from [2 4 8 16],1,Number of transmit antennas per DU; changes H and W dimensions.,Central local perturbation used.
+6,rhoFronthaul,candidate.rhoLink,continuous,0.00794328234724281,0.00501187233627272,0.0125892541179417,0.001,0.1,0.1,central log10 step 0.2 decades,0,Existing link sparsity penalty; used here as fronthaul proxy penalty.,Central local perturbation used.
+7,rhoPower,candidate.rhoPower,continuous,0.00108508434571002,0.000638793514896382,0.0018431746876703,0.0001,0.02,0.1,central log10 step 0.2301 decades,0,Power penalty in beam update and objective accounting.,Central local perturbation used.
+8,rankThreshold,candidate.rankThreshold,continuous,0.1625,0.1175,0.2075,0.05,0.5,0.1,central linear step 0.045 (10.0% of range),0,SVD threshold for selecting one or two streams.,Central local perturbation used.
+9,repairWeight,candidate.repairPower,continuous,0.052,0.038,0.066,0.01,0.15,0.1,central linear step 0.014 (10.0% of range),0,Existing weak-user repair power; closest code field to repairWeight.,Central local perturbation used.

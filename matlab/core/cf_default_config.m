@@ -10,9 +10,9 @@ cfg.seedPosition = 11;
 cfg.seedChannel = 23;
 cfg.seedSearch = 37;
 
-% Profiles scale the network and evaluation budget. Keep algorithm weights
-% and default search-vector semantics shared so quick/standard/paper/M3 runs
-% remain comparable.
+% Profiles scale the network and evaluation budget. Keep default
+% search-vector semantics shared so quick/standard/paper/M3 runs remain
+% comparable.
 switch cfg.profile
     case 'quick'
         cfg.numDUs = 4; cfg.numUEs = 6; cfg.numRBGs = 3;
@@ -54,8 +54,9 @@ cfg.inner.rateAveragingFactor = 0.85; cfg.inner.pfEpsilon = 1e-6;
 cfg.inner.minimumServicePower = 0.04;
 cfg.inner.fairnessRepairRatio = 0.85;
 
-% Score weights define the existing outer-search fitness J_outer. They are
-% intentionally separate from J_true, which is recomputed for diagnostics.
+% Legacy diagnostic weights. The active outer-search objective is J_true:
+% scheduled sum log2(1+SINR). These weights are retained only to report the
+% previous weighted score in result.ScoreParts.LegacyWeightedScore.
 cfg.score.wSumRate = 1.0; cfg.score.wJain = 35;
 cfg.score.wMinRate = 15; cfg.score.wRate10 = 20;
 cfg.score.wActiveLinks = 0.02; cfg.score.wPower = 0.01;

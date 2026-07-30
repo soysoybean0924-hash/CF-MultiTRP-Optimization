@@ -10,5 +10,5 @@ change=proposed-baseline; changePercent=100*change./(abs(baseline)+eps);
 comparisonTable=table(metric,baseline,proposed,change,changePercent, ...
     'VariableNames',{'Metric','Baseline','Proposed','Change','ChangePercent'});
 fprintf('\n================ %s ================\n',label);
-fprintf('Score = %.6f\n',result.Score); disp(result.Candidate); disp(comparisonTable);
+fprintf('Objective J_true = %.6f\n',result.Score); disp(result.Candidate); disp(comparisonTable);
 end

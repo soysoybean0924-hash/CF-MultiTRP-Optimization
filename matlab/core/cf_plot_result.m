@@ -46,7 +46,7 @@ else
     xlabel(ax,'User rate'); ylabel(ax,'CDF');
     legend(ax,'Baseline','Result','Location','best'); title(ax,'User-rate CDF');
 end
-title(layout,sprintf('%s | Score %.3f',figureName,result.Score));
+title(layout,sprintf('%s | Objective %.3f',figureName,result.Score));
 end
 
 function plotDiscreteIntegerHeatmap(ax,data,allowedValues,plotTitle,xLabelText,yLabelText)

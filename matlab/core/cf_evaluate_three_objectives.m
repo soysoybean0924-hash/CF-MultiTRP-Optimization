@@ -3,7 +3,7 @@ function [metrics,nativeResult] = cf_evaluate_three_objectives(cfg,scenario,cand
 %
 % J_inner: final inner-loop objective recorded by cf_evaluate_candidate.
 %          It is WPS minus link and power penalties inside the beam loop.
-% J_outer: existing outer-search fitness, result.Score.
+% J_outer: outer-search fitness, now aligned with J_true.
 % J_true : scheduled sum log2(1+SINR), recomputed from b and SLINR only.
 
 if nargin < 2 || isempty(scenario)
@@ -15,8 +15,7 @@ nativeResult = cf_evaluate_candidate(cfg,scenario,candidate,true);
 runtime = toc;
 
 % J_true is deliberately recomputed from the final schedule and SLINR. This
-% prevents the sensitivity analysis from conflating it with the weighted
-% search score used by the optimizer.
+% keeps the sensitivity analysis tied to the paper-style objective.
 [Jtrue,trueDetails] = cf_compute_true_objective(nativeResult);
 
 if ~isempty(nativeResult.history.objective)

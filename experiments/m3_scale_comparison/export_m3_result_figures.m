@@ -2,7 +2,7 @@ function export_m3_result_figures(resultRoot)
 %EXPORT_M3_RESULT_FIGURES Export M3 comparison plots and a markdown summary.
 if nargin < 1 || isempty(resultRoot)
     projectRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
-    resultRoot = fullfile(projectRoot,'results','M3_scale_comparison');
+    resultRoot = fullfile(projectRoot,'results','M3_true_objective_comparison');
 end
 
 figDir = fullfile(resultRoot,'figures');
@@ -35,12 +35,12 @@ if ~isempty(fullTable)
     m3Full = fullTable(strcmp(string(fullTable.Profile),'m3'),:);
     if ~isempty(m3Full)
         plotAlgorithmBars(m3Full,fullfile(figDir,'fig_m3_full9_algorithm_comparison.png'), ...
-            'M3 full 9-D comparison');
+            'M3 full 9-D true-objective comparison');
     end
 end
 if ~isempty(reducedTable)
     plotAlgorithmBars(reducedTable,fullfile(figDir,'fig_m3_reduced3_algorithm_comparison.png'), ...
-        'M3 reduced 3-D comparison');
+        'M3 reduced 3-D true-objective comparison');
 end
 if ~isempty(threeObjectiveTable)
     plotSensitivityBars(threeObjectiveTable,fullfile(figDir,'fig_m3_parameter_sensitivity_all.png'));
@@ -129,7 +129,7 @@ end
 function plotOne(ax,labels,values,yText)
 bar(ax,categorical(labels),values);
 grid(ax,'on');
-ylabel(ax,yText);
+ylabel(ax,strrep(yText,'BestScore','Objective'));
 xtickangle(ax,30);
 end
 
@@ -152,6 +152,8 @@ cleanup = onCleanup(@() fclose(fid));
 fprintf(fid,'# M3 Results Summary\n\n');
 fprintf(fid,'Generated at: %s\n\n',datestr(now,31));
 fprintf(fid,'M3 scale: 7 DUs, 100 UEs, 100 RBGs, 2x12 MIMO.\n\n');
+fprintf(fid,'Optimization objective: maximize J_true = scheduled sum log2(1+SINR), matching the max objective in the reference figure.\n');
+fprintf(fid,'Jain, ActiveLinks, TotalPower, and runtime are reported only as evaluation metrics.\n\n');
 
 writeTableSection(fid,'Full 9-D M3 Algorithm Comparison',filterProfile(fullTable,'m3'));
 if ~isempty(threeObjectiveTable)
@@ -206,7 +208,7 @@ if isempty(t)
     fprintf(fid,'No results available yet.\n\n');
     return;
 end
-fprintf(fid,'| Method | Eval | InnerIter | BestScore | J_true | SumRate | Jain | ActiveLinks | RuntimeSeconds |\n');
+fprintf(fid,'| Method | Eval | InnerIter | Objective | J_true | SumRate | Jain | ActiveLinks | RuntimeSeconds |\n');
 fprintf(fid,'|---|---:|---:|---:|---:|---:|---:|---:|---:|\n');
 for i = 1:height(t)
     fprintf(fid,'| %s | %d | %d | %.6g | %.6g | %.6g | %.4f | %d | %.3f |\n', ...

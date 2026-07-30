@@ -22,12 +22,14 @@ basicResult = cf_evaluate_candidate(quickCfg,scenario,candidate,false);
 assert(isfinite(basicResult.Score));
 assert(basicDetails.valueMatchesSumRate);
 assert(abs(basicTrue - basicResult.SumRate) <= 1e-8*max(1,abs(basicResult.SumRate)));
+assert(abs(basicResult.Score - basicTrue) <= 1e-8*max(1,abs(basicTrue)));
 
 innerResult = cf_evaluate_candidate(quickCfg,scenario,candidate,true);
 [innerTrue,innerDetails] = cf_compute_true_objective(innerResult);
 assert(isfinite(innerResult.Score));
 assert(innerDetails.valueMatchesSumRate);
 assert(abs(innerTrue - innerResult.SumRate) <= 1e-8*max(1,abs(innerResult.SumRate)));
+assert(abs(innerResult.Score - innerTrue) <= 1e-8*max(1,abs(innerTrue)));
 
 quickCfg.search.maxEvaluations = 2;
 quickCfg.search.populationSize = 2;
