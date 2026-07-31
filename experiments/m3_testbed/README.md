@@ -12,6 +12,8 @@ search vector before a change is promoted to the formal M3 scripts:
 - Objective: maximize J_true, the scheduled sum log2(1+SINR).
 - Other metrics such as Jain, ActiveLinks, TotalPower, and Runtime are
   evaluation metrics only.
+- The first outer-search candidate is always `cfg.defaultX`, so every
+  search algorithm is compared against the default inner candidate.
 
 Run from the repository root:
 
@@ -22,8 +24,9 @@ run('experiments/m3_testbed/run_m3_full9_testbed.m')
 Useful environment variables:
 
 - `M3_TESTBED_RUN_ID`: result folder name under `results/m3_testbed`.
-- `M3_TESTBED_MAX_EVAL_CAP`: optional cap for outer-search evaluations.
-- `M3_TESTBED_INNER_ITER_CAP`: optional cap for inner-loop iterations.
+- `M3_TESTBED_MAX_EVAL_CAP`: outer-search evaluations, default `16`.
+- `M3_TESTBED_POPULATION_SIZE`: outer-search population size, default `8`.
+- `M3_TESTBED_INNER_ITER_CAP`: inner-loop iterations, default `2`.
 
 The script is resumable: if a method already has `search_result.mat` in the
 selected run folder, it is loaded instead of recomputed.

@@ -1,0 +1,11 @@
+Parameter,Value
+x,[0.35 0.41664348 0.11702851 0.45 0.80603837 1 0.97705124 0.43417447 0.9399807]
+betaPF,1.23
+numConnections,2
+scheduleThreshold,2.938421e-06
+rhoLink,0.0079432823
+rhoPower,0.0071567932
+maxRank,2
+rankThreshold,0.48967306
+repairPower,0.070784426
+maxRepairLinks,4

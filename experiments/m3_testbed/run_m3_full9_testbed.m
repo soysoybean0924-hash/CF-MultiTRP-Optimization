@@ -11,8 +11,9 @@ methods = {'basic','inner','GA','PSO','GA+PSO','PSO+GA','PGSAO'};
 runId = getenvOrDefault('M3_TESTBED_RUN_ID', ...
     ['run_' char(datetime('now','Format','yyyyMMdd_HHmmss'))]);
 resultRoot = fullfile(projectRoot,'results','m3_testbed',runId);
-maxEvalCap = numericEnvOrEmpty('M3_TESTBED_MAX_EVAL_CAP');
-innerIterCap = numericEnvOrEmpty('M3_TESTBED_INNER_ITER_CAP');
+maxEvalCap = numericEnvOrDefault('M3_TESTBED_MAX_EVAL_CAP',16);
+populationSize = numericEnvOrDefault('M3_TESTBED_POPULATION_SIZE',8);
+innerIterCap = numericEnvOrDefault('M3_TESTBED_INNER_ITER_CAP',2);
 
 if ~exist(resultRoot,'dir')
     mkdir(resultRoot);
@@ -21,7 +22,7 @@ end
 cfg = cf_default_config('m3');
 cfg.search.activeDimensions = [];
 cfg.search.fixedX = [];
-cfg = applyBudgetCaps(cfg,maxEvalCap,innerIterCap);
+cfg = applyBudgetCaps(cfg,maxEvalCap,populationSize,innerIterCap);
 scenario = cf_generate_scenario(cfg);
 save(fullfile(resultRoot,'scenario.mat'),'cfg','scenario','-v7.3');
 
@@ -33,7 +34,9 @@ runInfo.methods = methods;
 runInfo.objective = 'J_true = scheduled sum log2(1+SINR)';
 runInfo.searchSpace = 'full 9-D normalized candidate vector';
 runInfo.maxEvalCap = maxEvalCap;
+runInfo.populationSize = populationSize;
 runInfo.innerIterCap = innerIterCap;
+runInfo.defaultCandidateInjected = true;
 
 summaryRows = cell(numel(methods),1);
 for mi = 1:numel(methods)
@@ -102,7 +105,7 @@ switch methodKey
         result = cf_evaluate_candidate(cfg,scenario,candidate,true);
         searchResult = singleEvaluationResult(methodKey,cfg.defaultX,candidate,result);
     otherwise
-        searchResult = cf_search(method,cfg,scenario,cfg.search);
+        searchResult = m3_testbed_search(method,cfg,scenario,cfg.search);
 end
 end
 
@@ -128,15 +131,11 @@ searchResult.FinalPopulation = bestX;
 searchResult.FinalScores = result.Score;
 end
 
-function cfg = applyBudgetCaps(cfg,maxEvalCap,innerIterCap)
-if ~isempty(maxEvalCap)
-    cfg.search.maxEvaluations = max(1,round(min(cfg.search.maxEvaluations,maxEvalCap)));
-    cfg.search.populationSize = max(1,round(min(cfg.search.populationSize,cfg.search.maxEvaluations)));
-    cfg.search.eliteCount = min(cfg.search.eliteCount,max(0,cfg.search.populationSize-1));
-end
-if ~isempty(innerIterCap)
-    cfg.inner.maxIter = max(0,round(min(cfg.inner.maxIter,innerIterCap)));
-end
+function cfg = applyBudgetCaps(cfg,maxEvalCap,populationSize,innerIterCap)
+cfg.search.maxEvaluations = max(1,round(min(cfg.search.maxEvaluations,maxEvalCap)));
+cfg.search.populationSize = max(1,round(min(populationSize,cfg.search.maxEvaluations)));
+cfg.search.eliteCount = min(cfg.search.eliteCount,max(0,cfg.search.populationSize-1));
+cfg.inner.maxIter = max(0,round(min(cfg.inner.maxIter,innerIterCap)));
 end
 
 function row = makeSummaryRow(method,cfg,searchResult,result,Jtrue,trueDetails,runtimeSeconds)
@@ -213,6 +212,9 @@ fprintf(fid,'Generated at: %s\n\n',runInfo.createdAt);
 fprintf(fid,'Run ID: `%s`\n\n',runInfo.runId);
 fprintf(fid,'Scale: 7 DUs, 100 UEs, 100 RBGs, 2x12 MIMO.\n\n');
 fprintf(fid,'Search space: full 9-D normalized candidate vector.\n\n');
+fprintf(fid,'Default candidate injection: enabled; cfg.defaultX is the first outer-search candidate.\n\n');
+fprintf(fid,'Budget: populationSize=%d, maxEvaluations=%d, innerMaxIter=%d.\n\n', ...
+    runInfo.populationSize,summaryTable.MaxEvaluations(1),summaryTable.InnerMaxIter(1));
 fprintf(fid,'Optimization objective: maximize `J_true = scheduled sum log2(1+SINR)`.\n');
 fprintf(fid,'Jain, ActiveLinks, TotalPower, and Runtime are evaluation metrics only.\n\n');
 
@@ -231,7 +233,7 @@ fprintf(fid,'- Best objective: `%s` with %.6g.\n',bestObj.Method{1},bestObj.Obje
 fprintf(fid,'- Best Jain index: `%s` with %.4f.\n',bestJain.Method{1},bestJain.Jain(1));
 fprintf(fid,'- Fewest active links: `%s` with %d links.\n\n',fewestLinks.Method{1},fewestLinks.ActiveLinks(1));
 fprintf(fid,'If `basic` is best by objective, it should be treated as a high-link upper baseline rather than a low-cost scheduling solution.\n');
-fprintf(fid,'If `inner` beats outer-search methods, the current search budget or search-space design is not yet strong enough to improve over the default inner candidate.\n');
+fprintf(fid,'If `inner` beats outer-search methods even after default-candidate injection, the current algorithm update or search-space design is not yet strong enough to improve over the default inner candidate.\n');
 fprintf(fid,'If outer-search methods improve objective but worsen Jain or ActiveLinks, the change improves the target max objective but may need engineering constraints later.\n');
 end
 
@@ -243,6 +245,8 @@ fprintf(fid,'Created: %s\n',runInfo.createdAt);
 fprintf(fid,'Run ID: %s\n',runInfo.runId);
 fprintf(fid,'Objective: %s\n',runInfo.objective);
 fprintf(fid,'Search space: %s\n',runInfo.searchSpace);
+fprintf(fid,'Default candidate injected: %d\n',runInfo.defaultCandidateInjected);
+fprintf(fid,'Population size: %d\n',runInfo.populationSize);
 fprintf(fid,'Result root: %s\n\n',runInfo.resultRoot);
 for i = 1:height(summaryTable)
     fprintf(fid,'%-6s Objective=% .6g J_true=% .6g Jain=%.4f ActiveLinks=%d TotalPower=%.6g Runtime=%.3fs\n', ...
@@ -279,10 +283,10 @@ if isempty(value)
 end
 end
 
-function value = numericEnvOrEmpty(name)
+function value = numericEnvOrDefault(name,defaultValue)
 raw = getenv(name);
 if isempty(raw)
-    value = [];
+    value = defaultValue;
 else
     value = str2double(raw);
     if ~isfinite(value)
