@@ -3,6 +3,8 @@ clear; clc; close all;
 
 projectRoot = fileparts(fileparts(mfilename('fullpath')));
 run(fullfile(projectRoot,'setup_project_paths.m'));
+assert(exist(fullfile(projectRoot,'experiments','m3_testbed','run_m3_full9_testbed.m'),'file') == 2);
+assert(exist('run_m3_full9_testbed','file') == 2);
 
 cfg = cf_default_config('m3');
 assert(cfg.numDUs == 7);

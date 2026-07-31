@@ -1,0 +1,14 @@
+M3 full-scale 9-D testbed
+Created: 2026-07-31 10:06:21
+Run ID: jtrue_full9_current
+Objective: J_true = scheduled sum log2(1+SINR)
+Search space: full 9-D normalized candidate vector
+Result root: D:\GitHubProjects\CF-MultiTRP-Optimization\results\m3_testbed\jtrue_full9_current
+
+basic  Objective= 7308.6 J_true= 7308.6 Jain=0.6805 ActiveLinks=20000 TotalPower=700 Runtime=4.031s
+inner  Objective= 3394.26 J_true= 3394.26 Jain=0.0930 ActiveLinks=1545 TotalPower=25.9007 Runtime=240.397s
+GA     Objective= 2799.17 J_true= 2799.17 Jain=0.3249 ActiveLinks=1214 TotalPower=55.9035 Runtime=1706.228s
+PSO    Objective= 2799.17 J_true= 2799.17 Jain=0.3249 ActiveLinks=1214 TotalPower=55.9035 Runtime=1722.690s
+GA+PSO Objective= 2799.17 J_true= 2799.17 Jain=0.3249 ActiveLinks=1214 TotalPower=55.9035 Runtime=1664.761s
+PSO+GA Objective= 2799.17 J_true= 2799.17 Jain=0.3249 ActiveLinks=1214 TotalPower=55.9035 Runtime=1391.648s
+PGSAO  Objective= 2799.17 J_true= 2799.17 Jain=0.3249 ActiveLinks=1214 TotalPower=55.9035 Runtime=1386.534s
