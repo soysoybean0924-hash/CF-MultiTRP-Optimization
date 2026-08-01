@@ -6,6 +6,8 @@ run(fullfile(projectRoot,'setup_project_paths.m'));
 assert(exist(fullfile(projectRoot,'experiments','m3_testbed','run_m3_full9_testbed.m'),'file') == 2);
 assert(exist('run_m3_full9_testbed','file') == 2);
 assert(exist('m3_testbed_search','file') == 2);
+assert(exist(fullfile(projectRoot,'experiments','m3_efficiency','run_m3_efficiency_benchmark.m'),'file') == 2);
+assert(exist('run_m3_efficiency_benchmark','file') == 2);
 
 cfg = cf_default_config('m3');
 assert(cfg.numDUs == 7);
