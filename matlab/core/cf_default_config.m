@@ -34,8 +34,19 @@ switch cfg.profile
         cfg.numTxAntennas = 12; cfg.numRxAntennas = 2; cfg.maxRank = 2;
         cfg.inner.maxIter = 35;
         cfg.search.populationSize = 20; cfg.search.maxEvaluations = 200;
+    case 'huawei'
+        % Huawei typical validation scene from the challenge material:
+        % 7 sites, 3 cells/sectors per site, 64TRX, 2T4R UE, 100 MHz
+        % bandwidth with 273 RB at 30 kHz SCS.
+        cfg.numSites = 7; cfg.cellsPerSite = 3; cfg.numDUs = 21;
+        cfg.usersPerCellRange = [10 20];
+        cfg.numUEs = round(mean(cfg.usersPerCellRange) * cfg.numDUs);
+        cfg.numRBGs = 273;
+        cfg.numTxAntennas = 64; cfg.numRxAntennas = 4; cfg.maxRank = 4;
+        cfg.inner.maxIter = 35;
+        cfg.search.populationSize = 12; cfg.search.maxEvaluations = 48;
     otherwise
-        error('Unknown profile "%s". Use quick, standard, paper, or M3.', profile);
+        error('Unknown profile "%s". Use quick, standard, paper, M3, or huawei.', profile);
 end
 
 cfg.areaX = 400; cfg.areaY = 400;
@@ -44,6 +55,38 @@ cfg.pathlossExponent = 3.4;
 cfg.referenceDistance = 10; cfg.minimumDistance = 10;
 cfg.normalizeChannel = true;
 cfg.maxDUPower = 1.0; cfg.noisePower = 1e-2;
+
+if strcmp(cfg.profile,'huawei')
+    cfg.areaX = 900; cfg.areaY = 900;
+    cfg.interSiteDistance = 300;
+    cfg.frequencyGHz = [2.6 3.5];
+    cfg.channelModel = 'TR 38.901 UMi/UMa';
+    cfg.bandwidthMHz = 100;
+    cfg.subcarrierSpacingKHz = 30;
+    cfg.numRB = 273;
+    cfg.loadRatio = 0.30;
+    cfg.prbUtilizationRange = [0.30 0.50];
+    cfg.mobilityKmh = 3;
+    cfg.traffic.model = 'burst';
+    cfg.traffic.tailDataFraction = 0.30;
+    cfg.traffic.tailTtiFraction = 0.60;
+    cfg.antenna.baseStationTrx = 64;
+    cfg.antenna.arrayHorizontal = 8;
+    cfg.antenna.arrayVertical = 4;
+    cfg.antenna.polarization = 2;
+    cfg.antenna.elementSpacingWavelength = 0.5;
+    cfg.antenna.ueTx = 2;
+    cfg.antenna.ueRx = 4;
+    cfg.measurement.srsChannelEstimation = {'ideal','nonideal'};
+    cfg.measurement.srsPeriodTti = 340;
+    cfg.measurement.srsHoppingFactor = 17;
+    cfg.measurement.srsHoppingPeriodMs = 20;
+    cfg.measurement.srsRbPerHop = 16;
+    cfg.measurement.srsLastHopRb = 17;
+    cfg.measurement.csiRsPeriodTti = 40;
+    cfg.measurement.rankMode = 'adaptive';
+    cfg.receiver.type = 'IRC';
+end
 
 % Inner-loop controls for the WPS/SCA-like beam update.
 cfg.inner.tolerance = 1e-4;
