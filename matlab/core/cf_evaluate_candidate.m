@@ -96,6 +96,8 @@ W=ensureMinimumService(cfg,scenario,candidate,W,bInit,Q,rankUG);
 [W,~]=normalizeAllDUPower(W,cfg.maxDUPower);
 pFinal=powerFromW(W); bFinal=double(pFinal>candidate.scheduleThreshold);
 proposed=computeMetrics(cfg,scenario,W,bFinal,Q,rankUG,ones(cfg.numUEs,1));
+baselineExperience=cf_compute_experience_rate(cfg,baseline.ratePerStream,bInit);
+proposedExperience=cf_compute_experience_rate(cfg,proposed.ratePerStream,bFinal);
 [score,scoreParts]=computeScore(cfg,proposed,baseline,bFinal,pFinal,rankUG);
 
 % Return both proposed and baseline fields so plotting, diagnostics, and
@@ -107,14 +109,15 @@ result.ratePerStream=proposed.ratePerStream; result.userRate=proposed.userRate;
 result.SumRate=proposed.SumRate; result.MeanRate=proposed.MeanRate;
 result.MinRate=proposed.MinRate; result.Rate5=proposed.Rate5; result.Rate10=proposed.Rate10;
 result.Jain=proposed.Jain; result.ActiveLinks=sum(bFinal(:)); result.TotalPower=sum(pFinal(:));
-result.ActiveStreams=sum(rankUG(:)); result.history=history;
+result.ActiveStreams=sum(rankUG(:)); result.ExperienceRate=proposedExperience; result.history=history;
 result.baseline.W=Wbaseline; result.baseline.b=bInit; result.baseline.p=pBaseline; result.baseline.r=rankUG;
 result.baseline.SLINR=baseline.SLINR; result.baseline.WPS=baseline.WPS;
 result.baseline.userRate=baseline.userRate; result.baseline.SumRate=baseline.SumRate;
 result.baseline.MeanRate=baseline.MeanRate; result.baseline.MinRate=baseline.MinRate;
 result.baseline.Rate5=baseline.Rate5; result.baseline.Rate10=baseline.Rate10;
 result.baseline.Jain=baseline.Jain; result.baseline.ActiveLinks=sum(bInit(:));
-result.baseline.TotalPower=sum(pBaseline(:)); result.scenario=scenario;
+result.baseline.TotalPower=sum(pBaseline(:)); result.baseline.ExperienceRate=baselineExperience;
+result.scenario=scenario;
 end
 
 function [bInit,rankUG,Q,W]=buildInitialState(cfg,scenario,candidate)

@@ -8,6 +8,7 @@ assert(exist('run_m3_full9_testbed','file') == 2);
 assert(exist('m3_testbed_search','file') == 2);
 assert(exist(fullfile(projectRoot,'experiments','m3_efficiency','run_m3_efficiency_benchmark.m'),'file') == 2);
 assert(exist('run_m3_efficiency_benchmark','file') == 2);
+assert(exist('cf_compute_experience_rate','file') == 2);
 
 cfg = cf_default_config('m3');
 assert(cfg.numDUs == 7);
@@ -52,6 +53,10 @@ assert(isfinite(basicResult.Score));
 assert(basicDetails.valueMatchesSumRate);
 assert(abs(basicTrue - basicResult.SumRate) <= 1e-8*max(1,abs(basicResult.SumRate)));
 assert(abs(basicResult.Score - basicTrue) <= 1e-8*max(1,abs(basicTrue)));
+assert(isfield(basicResult,'ExperienceRate'));
+assert(numel(basicResult.ExperienceRate.UeExperienceRate) == quickCfg.numUEs);
+assert(all(basicResult.ExperienceRate.ThpTimeDl >= 0));
+assert(isfinite(basicResult.ExperienceRate.EdgeExperienceRate5));
 
 innerResult = cf_evaluate_candidate(quickCfg,scenario,candidate,true);
 [innerTrue,innerDetails] = cf_compute_true_objective(innerResult);
@@ -59,6 +64,8 @@ assert(isfinite(innerResult.Score));
 assert(innerDetails.valueMatchesSumRate);
 assert(abs(innerTrue - innerResult.SumRate) <= 1e-8*max(1,abs(innerResult.SumRate)));
 assert(abs(innerResult.Score - innerTrue) <= 1e-8*max(1,abs(innerTrue)));
+assert(isfield(innerResult.baseline,'ExperienceRate'));
+assert(isfinite(innerResult.ExperienceRate.MeanExperienceRate));
 
 quickCfg.search.maxEvaluations = 2;
 quickCfg.search.populationSize = 2;

@@ -39,12 +39,12 @@ if ~isempty(result.history.objective)
     plot(ax,result.history.Jain,'s-','LineWidth',1.5); ylabel(ax,'Jain index');
     xlabel(ax,'Inner iteration'); grid(ax,'on'); title(ax,'WPS/beam iteration');
 else
-    [baseRate,baseCDF]=empiricalCDF(result.baseline.userRate);
-    [finalRate,finalCDF]=empiricalCDF(result.userRate);
+    [baseRate,baseCDF]=experienceCDF(result.baseline);
+    [finalRate,finalCDF]=experienceCDF(result);
     plot(ax,baseRate,baseCDF,'--','LineWidth',1.5); hold(ax,'on');
     plot(ax,finalRate,finalCDF,'LineWidth',1.5); grid(ax,'on');
-    xlabel(ax,'User rate'); ylabel(ax,'CDF');
-    legend(ax,'Baseline','Result','Location','best'); title(ax,'User-rate CDF');
+    xlabel(ax,'UE experience rate'); ylabel(ax,'CDF');
+    legend(ax,'Baseline','Result','Location','best'); title(ax,'Experience-rate CDF');
 end
 title(layout,sprintf('%s | Objective %.3f',figureName,result.Score));
 end
@@ -104,4 +104,13 @@ end
 
 function [sortedData,cdfValue]=empiricalCDF(data)
 sortedData=sort(data(:)); cdfValue=(1:numel(sortedData))'/numel(sortedData);
+end
+
+function [sortedData,cdfValue]=experienceCDF(resultPart)
+if isfield(resultPart,'ExperienceRate')
+    sortedData=resultPart.ExperienceRate.CdfRate;
+    cdfValue=resultPart.ExperienceRate.CdfProbability;
+else
+    [sortedData,cdfValue]=empiricalCDF(resultPart.userRate);
+end
 end

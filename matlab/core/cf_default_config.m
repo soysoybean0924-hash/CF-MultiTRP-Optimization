@@ -86,6 +86,7 @@ if strcmp(cfg.profile,'huawei')
     cfg.measurement.csiRsPeriodTti = 40;
     cfg.measurement.rankMode = 'adaptive';
     cfg.receiver.type = 'IRC';
+    cfg.experience.protocol = '3GPP TS 28.554 6.3.6.2';
 end
 
 % Inner-loop controls for the WPS/SCA-like beam update.
@@ -96,6 +97,15 @@ cfg.inner.lambdaStep = 0.05; cfg.inner.muStep = 0.10;
 cfg.inner.rateAveragingFactor = 0.85; cfg.inner.pfEpsilon = 1e-6;
 cfg.inner.minimumServicePower = 0.04;
 cfg.inner.fairnessRepairRatio = 0.85;
+
+% Experience-rate controls follow the 3GPP TS 28.554 Sec. 6.3.6.2 idea:
+% measure throughput as ThpVolDl / ThpTimeDl while excluding idle or
+% buffer-empty intervals and the last sample of each DL burst.
+if ~isfield(cfg,'experience'), cfg.experience = struct(); end
+cfg.experience.bottomPercentile = 5;
+cfg.experience.excludeLastBurstSample = true;
+cfg.experience.keepSingleSampleBursts = true;
+cfg.experience.sampleAxis = 'RBG';
 
 % Legacy diagnostic weights. The active outer-search objective is J_true:
 % scheduled sum log2(1+SINR). These weights are retained only to report the
