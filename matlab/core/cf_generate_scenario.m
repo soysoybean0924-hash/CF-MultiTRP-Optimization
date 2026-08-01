@@ -31,15 +31,14 @@ if cfg.normalizeChannel
     % profiles while preserving relative channel structure.
     H=H/sqrt(mean(abs(H(:)).^2)+eps);
 end
-channelGain=zeros(R,U,G);
-for g=1:G
-    for r=1:R
-        for u=1:U
-            h=H(:,:,r,u,g); channelGain(r,u,g)=sum(abs(h(:)).^2);
-        end
-    end
-end
-scenario.H=H; scenario.channelGain=channelGain; scenario.distance=distance;
+measurement=cf_apply_srs_measurement_model(cfg,H,distance);
+scenario.H=measurement.H_est;
+scenario.H_true=measurement.H_true;
+scenario.H_est=measurement.H_est;
+scenario.channelGain=measurement.ChannelGainEstimated;
+scenario.channelGainTrue=measurement.ChannelGainTrue;
+scenario.srs=rmfield(measurement,{'H_true','H_est','ChannelGainTrue','ChannelGainEstimated'});
+scenario.distance=distance;
 scenario.duPosition=duPosition; scenario.uePosition=uePosition;
 scenario.siteIndex=siteIndex; scenario.cellIndex=cellIndex;
 scenario.profile=cfg.profile;

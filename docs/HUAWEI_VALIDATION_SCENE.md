@@ -43,10 +43,20 @@ tail-packet samples, and PRB-utilization targets. Experience-rate calculation
 excludes idle samples and removes tail samples before computing the user
 experience-rate CDF and bottom-5% edge rate.
 
+The scenario also contains a first SRS nonideal measurement model:
+
+- `scenario.H_true`: validation channel;
+- `scenario.H_est`: scheduler-visible channel estimate;
+- `scenario.H`: currently points to `H_est` for backward compatibility;
+- `scenario.srs.SrsPresinrDb`: TRP/UE/RB SRS Presinr;
+- `scenario.srs.SrsMeasuredMask`: RBs covered by the SRS hopping snapshot;
+- `scenario.srs.ErrorVariance`: channel-estimation uncertainty used to form
+  `H_est`.
+
 It does not yet implement the full validation physics:
 
 - packet-level burst arrivals with queue evolution;
-- SRS hopping measurement error and `H_true` / `H_est`;
+- robust beam-weight updates that explicitly use SRS uncertainty;
 - CSI-RS periodic measurement behavior;
 - full TR 38.901 UMi/UMa channel equations;
 - IRC receiver processing.

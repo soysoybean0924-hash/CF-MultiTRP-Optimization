@@ -10,6 +10,7 @@ assert(exist(fullfile(projectRoot,'experiments','m3_efficiency','run_m3_efficien
 assert(exist('run_m3_efficiency_benchmark','file') == 2);
 assert(exist('cf_compute_experience_rate','file') == 2);
 assert(exist('cf_generate_burst_traffic','file') == 2);
+assert(exist('cf_apply_srs_measurement_model','file') == 2);
 
 cfg = cf_default_config('m3');
 assert(cfg.numDUs == 7);
@@ -39,6 +40,16 @@ huaweiProbeScenario = cf_generate_scenario(huaweiProbeCfg);
 assert(size(huaweiProbeScenario.H,3) == huaweiCfg.numDUs);
 assert(size(huaweiProbeScenario.H,4) == huaweiProbeCfg.numUEs);
 assert(size(huaweiProbeScenario.H,5) == huaweiProbeCfg.numRBGs);
+assert(isfield(huaweiProbeScenario,'H_true'));
+assert(isfield(huaweiProbeScenario,'H_est'));
+assert(isfield(huaweiProbeScenario,'srs'));
+assert(size(huaweiProbeScenario.H_true,3) == huaweiCfg.numDUs);
+assert(size(huaweiProbeScenario.srs.SrsPresinrDb,1) == huaweiCfg.numDUs);
+assert(size(huaweiProbeScenario.srs.SrsPresinrDb,2) == huaweiProbeCfg.numUEs);
+assert(size(huaweiProbeScenario.srs.SrsPresinrDb,3) == huaweiProbeCfg.numRBGs);
+assert(any(huaweiProbeScenario.srs.SrsMeasuredMask(:)));
+assert(all(huaweiProbeScenario.srs.ErrorVariance(:) >= 0));
+assert(norm(huaweiProbeScenario.H_true(:)-huaweiProbeScenario.H_est(:)) > 0);
 assert(numel(unique(huaweiProbeScenario.siteIndex)) == huaweiCfg.numSites);
 assert(all(ismember(unique(huaweiProbeScenario.cellIndex),1:huaweiCfg.cellsPerSite)));
 assert(isfield(huaweiProbeScenario,'traffic'));

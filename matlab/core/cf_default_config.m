@@ -85,6 +85,14 @@ if strcmp(cfg.profile,'huawei')
     cfg.measurement.srsLastHopRb = 17;
     cfg.measurement.csiRsPeriodTti = 40;
     cfg.measurement.rankMode = 'adaptive';
+    cfg.measurement.mode = 'nonideal';
+    cfg.measurement.seed = 53;
+    cfg.measurement.presinrReferenceDb = 8;
+    cfg.measurement.presinrDistancePenaltyDb = 18;
+    cfg.measurement.presinrShadowStdDb = 3;
+    cfg.measurement.unmeasuredErrorMultiplier = 3;
+    cfg.measurement.minimumErrorVariance = 1e-4;
+    cfg.measurement.maximumErrorVariance = 0.45;
     cfg.receiver.type = 'IRC';
     cfg.experience.protocol = '3GPP TS 28.554 6.3.6.2';
 end
