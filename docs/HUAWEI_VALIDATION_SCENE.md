@@ -36,16 +36,16 @@ now represented by `cf_default_config('huawei')`.
 ## Current Scope
 
 The current implementation adds the scenario configuration, a 7-site
-sectorized geometry layout, and a first experience-rate metric compatible
-with the `ThpVolDl / ThpTimeDl` definition. Since the simulator does not yet
-have packet-buffer TTI traces, each scheduled UE/RBG transmission is treated
-as one non-empty DL sample, idle samples are excluded, and the last sample of
-each contiguous burst is removed by default before computing the user
+sectorized geometry layout, a lightweight burst-traffic trace, and an
+experience-rate metric compatible with the `ThpVolDl / ThpTimeDl` definition.
+The burst trace records per-UE non-empty buffer samples, burst identifiers,
+tail-packet samples, and PRB-utilization targets. Experience-rate calculation
+excludes idle samples and removes tail samples before computing the user
 experience-rate CDF and bottom-5% edge rate.
 
 It does not yet implement the full validation physics:
 
-- explicit burst traffic arrival traces and buffer-empty time gaps;
+- packet-level burst arrivals with queue evolution;
 - SRS hopping measurement error and `H_true` / `H_est`;
 - CSI-RS periodic measurement behavior;
 - full TR 38.901 UMi/UMa channel equations;

@@ -45,6 +45,9 @@ scenario.siteIndex=siteIndex; scenario.cellIndex=cellIndex;
 scenario.profile=cfg.profile;
 if isfield(cfg,'channelModel'), scenario.channelModel=cfg.channelModel; end
 if isfield(cfg,'frequencyGHz'), scenario.frequencyGHz=cfg.frequencyGHz; end
+if isfield(cfg,'traffic')
+    scenario.traffic=cf_generate_burst_traffic(cfg);
+end
 end
 
 function [duXY,ueXY,siteIndex,cellIndex] = generateLayout(cfg)

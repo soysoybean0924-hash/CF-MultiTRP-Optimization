@@ -96,8 +96,10 @@ W=ensureMinimumService(cfg,scenario,candidate,W,bInit,Q,rankUG);
 [W,~]=normalizeAllDUPower(W,cfg.maxDUPower);
 pFinal=powerFromW(W); bFinal=double(pFinal>candidate.scheduleThreshold);
 proposed=computeMetrics(cfg,scenario,W,bFinal,Q,rankUG,ones(cfg.numUEs,1));
-baselineExperience=cf_compute_experience_rate(cfg,baseline.ratePerStream,bInit);
-proposedExperience=cf_compute_experience_rate(cfg,proposed.ratePerStream,bFinal);
+trafficTrace=[];
+if isfield(scenario,'traffic'), trafficTrace=scenario.traffic; end
+baselineExperience=cf_compute_experience_rate(cfg,baseline.ratePerStream,bInit,trafficTrace);
+proposedExperience=cf_compute_experience_rate(cfg,proposed.ratePerStream,bFinal,trafficTrace);
 [score,scoreParts]=computeScore(cfg,proposed,baseline,bFinal,pFinal,rankUG);
 
 % Return both proposed and baseline fields so plotting, diagnostics, and

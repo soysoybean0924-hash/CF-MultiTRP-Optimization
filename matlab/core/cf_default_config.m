@@ -106,6 +106,11 @@ cfg.experience.bottomPercentile = 5;
 cfg.experience.excludeLastBurstSample = true;
 cfg.experience.keepSingleSampleBursts = true;
 cfg.experience.sampleAxis = 'RBG';
+cfg.traffic.seed = 41;
+cfg.traffic.numSamples = cfg.numRBGs;
+cfg.traffic.meanBurstTti = max(3,round(0.08*cfg.numRBGs));
+cfg.traffic.minBurstTti = 2;
+cfg.traffic.maxBurstTti = max(3,round(0.20*cfg.numRBGs));
 
 % Legacy diagnostic weights. The active outer-search objective is J_true:
 % scheduled sum log2(1+SINR). These weights are retained only to report the
