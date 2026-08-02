@@ -16,4 +16,8 @@ comparisonTable=table(metric,baseline,proposed,change,changePercent, ...
     'VariableNames',{'Metric','Baseline','Proposed','Change','ChangePercent'});
 fprintf('\n================ %s ================\n',label);
 fprintf('Objective J_true = %.6f\n',result.Score); disp(result.Candidate); disp(comparisonTable);
+if isfield(result,'TrueChannel') && result.TrueChannel.Available
+    fprintf('True-channel objective = %.6f, true edge experience p5 = %.6f\n', ...
+        result.TrueChannel.SumRate,result.TrueChannel.ExperienceRate.EdgeExperienceRate5);
+end
 end

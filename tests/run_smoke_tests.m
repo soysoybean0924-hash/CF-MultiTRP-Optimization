@@ -100,6 +100,9 @@ robustCandidate = cf_decode_candidate(robustProbeCfg.defaultX,robustProbeCfg);
 robustResult = cf_evaluate_candidate(robustProbeCfg,huaweiProbeScenario,robustCandidate,true);
 assert(robustResult.Robust.Enabled);
 assert(robustResult.Robust.MeanErrorVariance > 0);
+assert(robustResult.TrueChannel.Available);
+assert(isfinite(robustResult.TrueChannel.SumRate));
+assert(isfield(robustResult.TrueChannel,'ExperienceRate'));
 
 quickCfg.search.maxEvaluations = 2;
 quickCfg.search.populationSize = 2;

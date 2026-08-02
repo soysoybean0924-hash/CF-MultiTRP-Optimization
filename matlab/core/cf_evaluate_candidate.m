@@ -101,6 +101,7 @@ if isfield(scenario,'traffic'), trafficTrace=scenario.traffic; end
 baselineExperience=cf_compute_experience_rate(cfg,baseline.ratePerStream,bInit,trafficTrace);
 proposedExperience=cf_compute_experience_rate(cfg,proposed.ratePerStream,bFinal,trafficTrace);
 [score,scoreParts]=computeScore(cfg,proposed,baseline,bFinal,pFinal,rankUG);
+trueChannel=evaluateOnTrueChannel(cfg,scenario,W,bFinal,Q,rankUG,trafficTrace);
 
 % Return both proposed and baseline fields so plotting, diagnostics, and
 % sensitivity analysis can compare them without rerunning the candidate.
@@ -112,7 +113,7 @@ result.SumRate=proposed.SumRate; result.MeanRate=proposed.MeanRate;
 result.MinRate=proposed.MinRate; result.Rate5=proposed.Rate5; result.Rate10=proposed.Rate10;
 result.Jain=proposed.Jain; result.ActiveLinks=sum(bFinal(:)); result.TotalPower=sum(pFinal(:));
 result.ActiveStreams=sum(rankUG(:)); result.ExperienceRate=proposedExperience;
-result.Robust=robustSummary(cfg,scenario); result.history=history;
+result.Robust=robustSummary(cfg,scenario); result.TrueChannel=trueChannel; result.history=history;
 result.baseline.W=Wbaseline; result.baseline.b=bInit; result.baseline.p=pBaseline; result.baseline.r=rankUG;
 result.baseline.SLINR=baseline.SLINR; result.baseline.WPS=baseline.WPS;
 result.baseline.userRate=baseline.userRate; result.baseline.SumRate=baseline.SumRate;
@@ -367,6 +368,33 @@ end
 
 function h=emptyHistory()
 h.objective=[]; h.sumWPS=[]; h.activeLinks=[]; h.totalPower=[]; h.Jain=[]; h.relativeChange=[];
+end
+
+function trueChannel=evaluateOnTrueChannel(cfg,scenario,W,bFinal,Q,rankUG,trafficTrace)
+trueChannel=struct();
+trueChannel.Available=false;
+if ~isfield(scenario,'H_true') || isempty(scenario.H_true)
+    return;
+end
+trueScenario=scenario;
+trueScenario.H=scenario.H_true;
+if isfield(scenario,'channelGainTrue')
+    trueScenario.channelGain=scenario.channelGainTrue;
+end
+metrics=computeMetrics(cfg,trueScenario,W,bFinal,Q,rankUG,ones(cfg.numUEs,1));
+experience=cf_compute_experience_rate(cfg,metrics.ratePerStream,bFinal,trafficTrace);
+trueChannel.Available=true;
+trueChannel.SLINR=metrics.SLINR;
+trueChannel.ratePerStream=metrics.ratePerStream;
+trueChannel.userRate=metrics.userRate;
+trueChannel.SumRate=metrics.SumRate;
+trueChannel.MeanRate=metrics.MeanRate;
+trueChannel.MinRate=metrics.MinRate;
+trueChannel.Rate5=metrics.Rate5;
+trueChannel.Rate10=metrics.Rate10;
+trueChannel.Jain=metrics.Jain;
+trueChannel.ExperienceRate=experience;
+trueChannel.Objective='true-channel scheduled sum log2(1+SINR)';
 end
 
 function hEff=applyRobustChannelScale(cfg,scenario,hEff,r,u,g)
