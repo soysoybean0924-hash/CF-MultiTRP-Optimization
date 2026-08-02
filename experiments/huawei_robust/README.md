@@ -13,6 +13,12 @@ and antenna dimensions enough to iterate quickly.
 run('experiments/huawei_robust/run_huawei_robust_comparison.m')
 ```
 
+For the staged probe/medium/full-lite workflow:
+
+```matlab
+run('experiments/huawei_robust/run_huawei_robust_scale_suite.m')
+```
+
 Outputs are written under:
 
 ```text
@@ -32,3 +38,11 @@ results/huawei_robust/<run_id>/
 The key metrics are computed on both the scheduler-visible estimated channel
 and the validation `H_true` channel. The robust challenge should be judged by
 the true-channel columns.
+
+## Scale Suite
+
+- `probe`: validates logic and output fields.
+- `medium`: tunes soft/default/aggressive robust parameters and screens
+  feasible algorithms.
+- `full_lite`: keeps 21 sectors and increases UE/RBG/antenna dimensions with
+  a low search budget before final full Huawei validation.
