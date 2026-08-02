@@ -95,6 +95,11 @@ if strcmp(cfg.profile,'huawei')
     cfg.measurement.maximumErrorVariance = 0.45;
     cfg.receiver.type = 'IRC';
     cfg.experience.protocol = '3GPP TS 28.554 6.3.6.2';
+    cfg.robust.enabled = true;
+    cfg.robust.uncertaintyPenalty = 2.5;
+    cfg.robust.channelShrinkage = 0.75;
+    cfg.robust.unmeasuredPenalty = 1.0;
+    cfg.robust.minimumChannelScale = 0.35;
 end
 
 % Inner-loop controls for the WPS/SCA-like beam update.
@@ -105,6 +110,13 @@ cfg.inner.lambdaStep = 0.05; cfg.inner.muStep = 0.10;
 cfg.inner.rateAveragingFactor = 0.85; cfg.inner.pfEpsilon = 1e-6;
 cfg.inner.minimumServicePower = 0.04;
 cfg.inner.fairnessRepairRatio = 0.85;
+
+if ~isfield(cfg,'robust'), cfg.robust = struct(); end
+if ~isfield(cfg.robust,'enabled'), cfg.robust.enabled = false; end
+if ~isfield(cfg.robust,'uncertaintyPenalty'), cfg.robust.uncertaintyPenalty = 0; end
+if ~isfield(cfg.robust,'channelShrinkage'), cfg.robust.channelShrinkage = 0; end
+if ~isfield(cfg.robust,'unmeasuredPenalty'), cfg.robust.unmeasuredPenalty = 0; end
+if ~isfield(cfg.robust,'minimumChannelScale'), cfg.robust.minimumChannelScale = 0.0; end
 
 % Experience-rate controls follow the 3GPP TS 28.554 Sec. 6.3.6.2 idea:
 % measure throughput as ThpVolDl / ThpTimeDl while excluding idle or

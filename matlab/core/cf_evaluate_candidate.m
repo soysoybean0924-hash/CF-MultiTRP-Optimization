@@ -111,7 +111,8 @@ result.ratePerStream=proposed.ratePerStream; result.userRate=proposed.userRate;
 result.SumRate=proposed.SumRate; result.MeanRate=proposed.MeanRate;
 result.MinRate=proposed.MinRate; result.Rate5=proposed.Rate5; result.Rate10=proposed.Rate10;
 result.Jain=proposed.Jain; result.ActiveLinks=sum(bFinal(:)); result.TotalPower=sum(pFinal(:));
-result.ActiveStreams=sum(rankUG(:)); result.ExperienceRate=proposedExperience; result.history=history;
+result.ActiveStreams=sum(rankUG(:)); result.ExperienceRate=proposedExperience;
+result.Robust=robustSummary(cfg,scenario); result.history=history;
 result.baseline.W=Wbaseline; result.baseline.b=bInit; result.baseline.p=pBaseline; result.baseline.r=rankUG;
 result.baseline.SLINR=baseline.SLINR; result.baseline.WPS=baseline.WPS;
 result.baseline.userRate=baseline.userRate; result.baseline.SumRate=baseline.SumRate;
@@ -177,15 +178,17 @@ for g=1:G
         for up=1:U
             for sp=1:rankUG(up,g)
                 hEff=H(:,:,r,up,g)'*Q(:,up,g,sp);
+                hEff=applyRobustChannelScale(cfg,scenario,hEff,r,up,g);
                 commonA=commonA+abs(zeta(sp,up,g))^2*(hEff*hEff');
             end
         end
         for u=1:U
             if bInit(r,u,g)==0, continue; end
-            penalty=lambda(r,g)*alpha(r,u,g)+mu(r,g);
+            penalty=lambda(r,g)*alpha(r,u,g)+mu(r,g)+robustPenalty(cfg,scenario,r,u,g);
             systemMatrix=commonA+(penalty+cfg.inner.regularization)*identityM;
             for s=1:rankUG(u,g)
                 hEff=H(:,:,r,u,g)'*Q(:,u,g,s);
+                hEff=applyRobustChannelScale(cfg,scenario,hEff,r,u,g);
                 scale=conj(zeta(s,u,g))*sqrt(delta(u)*(1+SLINR(s,u,g)));
                 Wnew(:,s,r,u,g)=systemMatrix\(scale*hEff);
             end
@@ -364,4 +367,57 @@ end
 
 function h=emptyHistory()
 h.objective=[]; h.sumWPS=[]; h.activeLinks=[]; h.totalPower=[]; h.Jain=[]; h.relativeChange=[];
+end
+
+function hEff=applyRobustChannelScale(cfg,scenario,hEff,r,u,g)
+if ~robustEnabled(cfg,scenario), return; end
+uncertainty=linkUncertainty(scenario,r,u,g);
+scale=sqrt(max(cfg.robust.minimumChannelScale,1-cfg.robust.channelShrinkage*uncertainty));
+hEff=scale*hEff;
+end
+
+function penalty=robustPenalty(cfg,scenario,r,u,g)
+penalty=0;
+if ~robustEnabled(cfg,scenario), return; end
+uncertainty=linkUncertainty(scenario,r,u,g);
+penalty=cfg.robust.uncertaintyPenalty*uncertainty;
+if isfield(scenario,'srs') && isfield(scenario.srs,'SrsMeasuredMask') && ...
+        ~scenario.srs.SrsMeasuredMask(r,u,g)
+    penalty=penalty+cfg.robust.unmeasuredPenalty*uncertainty;
+end
+end
+
+function value=linkUncertainty(scenario,r,u,g)
+value=0;
+if isfield(scenario,'srs') && isfield(scenario.srs,'ErrorVariance')
+    value=scenario.srs.ErrorVariance(r,u,g);
+end
+value=max(0,min(1,value));
+end
+
+function enabled=robustEnabled(cfg,scenario)
+enabled=isfield(cfg,'robust') && isfield(cfg.robust,'enabled') && cfg.robust.enabled && ...
+    isfield(scenario,'srs') && isfield(scenario.srs,'ErrorVariance');
+end
+
+function summary=robustSummary(cfg,scenario)
+summary=struct();
+summary.Enabled=robustEnabled(cfg,scenario);
+summary.UncertaintyPenalty=cfg.robust.uncertaintyPenalty;
+summary.ChannelShrinkage=cfg.robust.channelShrinkage;
+summary.UnmeasuredPenalty=cfg.robust.unmeasuredPenalty;
+summary.MinimumChannelScale=cfg.robust.minimumChannelScale;
+if isfield(scenario,'srs') && isfield(scenario.srs,'ErrorVariance')
+    summary.MeanErrorVariance=mean(scenario.srs.ErrorVariance(:));
+    summary.MaxErrorVariance=max(scenario.srs.ErrorVariance(:));
+    if isfield(scenario.srs,'SrsMeasuredMask')
+        summary.MeasuredFraction=mean(scenario.srs.SrsMeasuredMask(:));
+    else
+        summary.MeasuredFraction=1;
+    end
+else
+    summary.MeanErrorVariance=0;
+    summary.MaxErrorVariance=0;
+    summary.MeasuredFraction=1;
+end
 end

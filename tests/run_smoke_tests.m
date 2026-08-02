@@ -31,6 +31,7 @@ assert(huaweiCfg.antenna.baseStationTrx == 64);
 assert(huaweiCfg.measurement.srsPeriodTti == 340);
 assert(huaweiCfg.measurement.srsHoppingFactor == 17);
 assert(huaweiCfg.measurement.csiRsPeriodTti == 40);
+assert(huaweiCfg.robust.enabled);
 huaweiProbeCfg = huaweiCfg;
 huaweiProbeCfg.numUEs = huaweiProbeCfg.numDUs;
 huaweiProbeCfg.numRBGs = 2;
@@ -89,6 +90,16 @@ assert(abs(innerTrue - innerResult.SumRate) <= 1e-8*max(1,abs(innerResult.SumRat
 assert(abs(innerResult.Score - innerTrue) <= 1e-8*max(1,abs(innerTrue)));
 assert(isfield(innerResult.baseline,'ExperienceRate'));
 assert(isfinite(innerResult.ExperienceRate.MeanExperienceRate));
+assert(isfield(innerResult,'Robust'));
+assert(~innerResult.Robust.Enabled);
+
+robustProbeCfg = huaweiProbeCfg;
+robustProbeCfg.inner.maxIter = 1;
+robustProbeCfg.search.verbose = false;
+robustCandidate = cf_decode_candidate(robustProbeCfg.defaultX,robustProbeCfg);
+robustResult = cf_evaluate_candidate(robustProbeCfg,huaweiProbeScenario,robustCandidate,true);
+assert(robustResult.Robust.Enabled);
+assert(robustResult.Robust.MeanErrorVariance > 0);
 
 quickCfg.search.maxEvaluations = 2;
 quickCfg.search.populationSize = 2;
