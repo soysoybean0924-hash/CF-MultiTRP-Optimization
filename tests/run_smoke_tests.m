@@ -8,6 +8,8 @@ assert(exist('run_m3_full9_testbed','file') == 2);
 assert(exist('m3_testbed_search','file') == 2);
 assert(exist(fullfile(projectRoot,'experiments','m3_efficiency','run_m3_efficiency_benchmark.m'),'file') == 2);
 assert(exist('run_m3_efficiency_benchmark','file') == 2);
+assert(exist(fullfile(projectRoot,'experiments','huawei_robust','run_huawei_robust_comparison.m'),'file') == 2);
+assert(exist('run_huawei_robust_comparison','file') == 2);
 assert(exist('cf_compute_experience_rate','file') == 2);
 assert(exist('cf_generate_burst_traffic','file') == 2);
 assert(exist('cf_apply_srs_measurement_model','file') == 2);
