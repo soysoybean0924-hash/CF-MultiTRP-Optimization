@@ -22,6 +22,8 @@ edgeProfiles = parseList(getenvOrDefault('HUAWEI_FINAL_EDGE_PROFILES', ...
     'edge_aware,non_edge_aware'));
 
 cfgBase = makeFinalConfig(scaleName);
+saveHeavyMat = logical(numericEnvOrDefault('HUAWEI_FINAL_SAVE_MAT', ...
+    double(~strcmp(scaleName,'final'))));
 scenarioCache = containers.Map('KeyType','char','ValueType','any');
 
 runInfo = struct();
@@ -34,6 +36,7 @@ runInfo.EdgeProfiles = edgeProfiles;
 runInfo.ResultRoot = resultRoot;
 runInfo.Objective = 'scheduler optimizes H_est; acceptance metrics use H_true when available';
 runInfo.Config = cfgBase;
+runInfo.SaveHeavyMat = saveHeavyMat;
 
 rows = {};
 for ei = 1:numel(edgeProfiles)
@@ -45,8 +48,10 @@ for ei = 1:numel(edgeProfiles)
     else
         scenario = cf_generate_scenario(cfgEdge);
         scenarioCache(scenarioKey) = scenario;
-        save(fullfile(resultRoot,['scenario_' edgeProfile '.mat']), ...
-            'cfgEdge','scenario','edgeProfile','-v7.3');
+        if saveHeavyMat
+            save(fullfile(resultRoot,['scenario_' edgeProfile '.mat']), ...
+                'cfgEdge','scenario','edgeProfile','-v7.3');
+        end
     end
 
     for ri = 1:numel(robustProfiles)
@@ -62,8 +67,15 @@ for ei = 1:numel(edgeProfiles)
 
             methodDir = fullfile(resultRoot,edgeProfile,robustProfile,methodToTag(method));
             if ~exist(methodDir,'dir'), mkdir(methodDir); end
-            save(fullfile(methodDir,'result.mat'),'cfgRun','scenario','searchResult', ...
-                'result','runtimeSeconds','edgeProfile','robustProfile','runInfo','-v7.3');
+            if saveHeavyMat
+                save(fullfile(methodDir,'result.mat'),'cfgRun','scenario','searchResult', ...
+                    'result','runtimeSeconds','edgeProfile','robustProfile','runInfo','-v7.3');
+            else
+                lightResult = makeLightResult(result); %#ok<NASGU>
+                lightSearchResult = makeLightSearchResult(searchResult); %#ok<NASGU>
+                save(fullfile(methodDir,'result_light.mat'),'cfgRun','lightSearchResult', ...
+                    'lightResult','runtimeSeconds','edgeProfile','robustProfile','runInfo','-v7.3');
+            end
             writetable(searchResult.History,fullfile(methodDir,'search_history.csv'));
             writeCandidateTable(searchResult.BestCandidate,fullfile(methodDir,'best_candidate.csv'));
             writeMetricsTable(result,fullfile(methodDir,'best_result_metrics.csv'));
@@ -387,6 +399,44 @@ ylabel('Mean runtime per evaluation');
 title('Huawei final complexity trend by method group','Interpreter','none');
 exportgraphics(fig,outFile,'Resolution',180);
 close(fig);
+end
+
+function lightResult = makeLightResult(result)
+lightResult = struct();
+fields = {'Candidate','Score','ScoreParts','SumRate','MeanRate','MinRate', ...
+    'Rate5','Rate10','Jain','ActiveLinks','TotalPower','ActiveStreams', ...
+    'ExperienceRate','Robust','Edge','TrueChannel','history'};
+for i = 1:numel(fields)
+    name = fields{i};
+    if isfield(result,name)
+        lightResult.(name) = result.(name);
+    end
+end
+if isfield(lightResult,'TrueChannel')
+    lightResult.TrueChannel = trimTrueChannel(lightResult.TrueChannel);
+end
+end
+
+function trueChannel = trimTrueChannel(trueChannel)
+heavyFields = {'SLINR','ratePerStream','userRate'};
+for i = 1:numel(heavyFields)
+    if isfield(trueChannel,heavyFields{i})
+        trueChannel = rmfield(trueChannel,heavyFields{i});
+    end
+end
+end
+
+function lightSearchResult = makeLightSearchResult(searchResult)
+lightSearchResult = struct();
+fields = {'Method','BestX','BestReducedX','ActiveDimensions','FixedX', ...
+    'BestCandidate','BestScore','BestObjective','ObjectiveName','Evaluations', ...
+    'History','EvaluationX','EvaluationScore','EvaluationObjective','FinalScores'};
+for i = 1:numel(fields)
+    name = fields{i};
+    if isfield(searchResult,name)
+        lightSearchResult.(name) = searchResult.(name);
+    end
+end
 end
 
 function writeFinalReport(t,complexityTable,runInfo,outFile)
