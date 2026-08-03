@@ -113,7 +113,8 @@ result.SumRate=proposed.SumRate; result.MeanRate=proposed.MeanRate;
 result.MinRate=proposed.MinRate; result.Rate5=proposed.Rate5; result.Rate10=proposed.Rate10;
 result.Jain=proposed.Jain; result.ActiveLinks=sum(bFinal(:)); result.TotalPower=sum(pFinal(:));
 result.ActiveStreams=sum(rankUG(:)); result.ExperienceRate=proposedExperience;
-result.Robust=robustSummary(cfg,scenario); result.TrueChannel=trueChannel; result.history=history;
+result.Robust=robustSummary(cfg,scenario); result.Edge=edgeSummary(cfg,scenario,bFinal,proposedExperience);
+result.TrueChannel=trueChannel; result.history=history;
 result.baseline.W=Wbaseline; result.baseline.b=bInit; result.baseline.p=pBaseline; result.baseline.r=rankUG;
 result.baseline.SLINR=baseline.SLINR; result.baseline.WPS=baseline.WPS;
 result.baseline.userRate=baseline.userRate; result.baseline.SumRate=baseline.SumRate;
@@ -133,7 +134,8 @@ bInit=zeros(R,U,G);
 for g=1:G
     for u=1:U
         [~,order]=sort(scenario.channelGain(:,u,g),'descend');
-        count=min(candidate.numConnections,R); bInit(order(1:count),u,g)=1;
+        [order,count]=applyEdgeAssociationPolicy(cfg,scenario,order,u,candidate.numConnections,R);
+        bInit(order(1:count),u,g)=1;
     end
 end
 rankUG=ones(U,G); Q=complex(zeros(Nr,U,G,Smax));
@@ -154,6 +156,28 @@ for g=1:G
         rankUG(u,g)=selectedRank;
         Q(:,u,g,1:selectedRank)=reshape(leftVectors(:,1:selectedRank),Nr,1,1,selectedRank);
     end
+end
+
+function [order,count]=applyEdgeAssociationPolicy(cfg,scenario,order,u,requestedCount,R)
+count=min(requestedCount,R);
+if ~isfield(cfg,'edge') || ~cfg.edge.enabled || ~isfield(scenario,'edge')
+    return;
+end
+if ~scenario.edge.EdgeUserMask(u)
+    order=scenario.edge.PrimaryDU(u);
+    count=1;
+    return;
+end
+allowed=find(scenario.edge.ServingMask(:,u));
+if isempty(allowed)
+    return;
+end
+[~,position]=ismember(order,allowed);
+edgeOrder=order(position>0);
+otherOrder=order(position==0);
+order=[edgeOrder(:); otherOrder(:)];
+count=min([requestedCount,numel(edgeOrder),R]);
+count=max(1,count);
 end
 W=complex(zeros(M,Smax,R,U,G));
 % Initialize each active precoder along the effective channel direction.
@@ -447,5 +471,38 @@ else
     summary.MeanErrorVariance=0;
     summary.MaxErrorVariance=0;
     summary.MeasuredFraction=1;
+end
+end
+
+function summary=edgeSummary(cfg,scenario,bFinal,experience)
+summary=struct();
+summary.Available=isfield(scenario,'edge');
+if ~summary.Available
+    summary.NumEdgeUsers=0; summary.EdgeUserRatio=0;
+    summary.MeanEdgeExperienceRate=NaN; summary.MeanNonEdgeExperienceRate=NaN;
+    summary.ActiveEdgeLinks=NaN; summary.ActiveNonEdgeLinks=NaN;
+    return;
+end
+edgeMask=scenario.edge.EdgeUserMask(:);
+nonEdgeMask=~edgeMask;
+summary.Enabled=isfield(cfg,'edge') && cfg.edge.enabled;
+summary.Method=scenario.edge.Method;
+summary.PathlossThresholdDb=scenario.edge.PathlossThresholdDb;
+summary.NumEdgeUsers=sum(edgeMask);
+summary.NumNonEdgeUsers=sum(nonEdgeMask);
+summary.EdgeUserRatio=summary.NumEdgeUsers/max(1,cfg.numUEs);
+summary.MeanServingDUCount=mean(scenario.edge.ServingDUCount);
+ueExperience=experience.UeExperienceRate(:);
+summary.MeanEdgeExperienceRate=meanOrNan(ueExperience(edgeMask));
+summary.MeanNonEdgeExperienceRate=meanOrNan(ueExperience(nonEdgeMask));
+summary.ActiveEdgeLinks=sum(bFinal(:,edgeMask,:),'all');
+summary.ActiveNonEdgeLinks=sum(bFinal(:,nonEdgeMask,:),'all');
+end
+
+function value=meanOrNan(x)
+if isempty(x)
+    value=NaN;
+else
+    value=mean(x);
 end
 end

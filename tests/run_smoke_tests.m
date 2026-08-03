@@ -35,6 +35,8 @@ assert(huaweiCfg.antenna.baseStationTrx == 64);
 assert(huaweiCfg.measurement.srsPeriodTti == 340);
 assert(huaweiCfg.measurement.srsHoppingFactor == 17);
 assert(huaweiCfg.measurement.csiRsPeriodTti == 40);
+assert(huaweiCfg.edge.enabled);
+assert(huaweiCfg.edge.pathlossThresholdDb == 3);
 assert(huaweiCfg.robust.enabled);
 huaweiProbeCfg = huaweiCfg;
 huaweiProbeCfg.numUEs = huaweiProbeCfg.numDUs;
@@ -55,6 +57,10 @@ assert(size(huaweiProbeScenario.srs.SrsPresinrDb,3) == huaweiProbeCfg.numRBGs);
 assert(any(huaweiProbeScenario.srs.SrsMeasuredMask(:)));
 assert(all(huaweiProbeScenario.srs.ErrorVariance(:) >= 0));
 assert(norm(huaweiProbeScenario.H_true(:)-huaweiProbeScenario.H_est(:)) > 0);
+assert(isfield(huaweiProbeScenario,'edge'));
+assert(numel(huaweiProbeScenario.edge.EdgeUserMask) == huaweiProbeCfg.numUEs);
+assert(huaweiProbeScenario.edge.NumEdgeUsers + huaweiProbeScenario.edge.NumNonEdgeUsers == huaweiProbeCfg.numUEs);
+assert(all(huaweiProbeScenario.edge.ServingDUCount(huaweiProbeScenario.edge.EdgeUserMask) >= huaweiProbeCfg.edge.minServingDUs));
 assert(numel(unique(huaweiProbeScenario.siteIndex)) == huaweiCfg.numSites);
 assert(all(ismember(unique(huaweiProbeScenario.cellIndex),1:huaweiCfg.cellsPerSite)));
 assert(isfield(huaweiProbeScenario,'traffic'));
@@ -107,6 +113,13 @@ assert(robustResult.Robust.MeanErrorVariance > 0);
 assert(robustResult.TrueChannel.Available);
 assert(isfinite(robustResult.TrueChannel.SumRate));
 assert(isfield(robustResult.TrueChannel,'ExperienceRate'));
+assert(isfield(robustResult,'Edge'));
+assert(robustResult.Edge.Available);
+assert(robustResult.Edge.NumEdgeUsers == huaweiProbeScenario.edge.NumEdgeUsers);
+nonEdgeUsers = find(huaweiProbeScenario.edge.NonEdgeUserMask);
+if ~isempty(nonEdgeUsers)
+    assert(all(squeeze(sum(robustResult.bInit(:,nonEdgeUsers,:),1)) == 1,'all'));
+end
 
 quickCfg.search.maxEvaluations = 2;
 quickCfg.search.populationSize = 2;

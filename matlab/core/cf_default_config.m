@@ -95,6 +95,10 @@ if strcmp(cfg.profile,'huawei')
     cfg.measurement.maximumErrorVariance = 0.45;
     cfg.receiver.type = 'IRC';
     cfg.experience.protocol = '3GPP TS 28.554 6.3.6.2';
+    cfg.edge.enabled = true;
+    cfg.edge.method = 'm3_pathloss_delta';
+    cfg.edge.pathlossThresholdDb = 3;
+    cfg.edge.minServingDUs = 2;
     cfg.robust.enabled = true;
     cfg.robust.uncertaintyPenalty = 2.5;
     cfg.robust.channelShrinkage = 0.75;
@@ -117,6 +121,14 @@ if ~isfield(cfg.robust,'uncertaintyPenalty'), cfg.robust.uncertaintyPenalty = 0;
 if ~isfield(cfg.robust,'channelShrinkage'), cfg.robust.channelShrinkage = 0; end
 if ~isfield(cfg.robust,'unmeasuredPenalty'), cfg.robust.unmeasuredPenalty = 0; end
 if ~isfield(cfg.robust,'minimumChannelScale'), cfg.robust.minimumChannelScale = 0.0; end
+
+if ~isfield(cfg,'edge'), cfg.edge = struct(); end
+if ~isfield(cfg.edge,'enabled')
+    cfg.edge.enabled = strcmp(cfg.profile,'m3') || strcmp(cfg.profile,'huawei');
+end
+if ~isfield(cfg.edge,'method'), cfg.edge.method = 'm3_pathloss_delta'; end
+if ~isfield(cfg.edge,'pathlossThresholdDb'), cfg.edge.pathlossThresholdDb = 3; end
+if ~isfield(cfg.edge,'minServingDUs'), cfg.edge.minServingDUs = 2; end
 
 % Experience-rate controls follow the 3GPP TS 28.554 Sec. 6.3.6.2 idea:
 % measure throughput as ThpVolDl / ThpTimeDl while excluding idle or

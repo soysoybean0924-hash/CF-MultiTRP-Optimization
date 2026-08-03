@@ -32,6 +32,7 @@ if cfg.normalizeChannel
     H=H/sqrt(mean(abs(H(:)).^2)+eps);
 end
 measurement=cf_apply_srs_measurement_model(cfg,H,distance);
+edge=cf_classify_edge_users(cfg,distance);
 scenario.H=measurement.H_est;
 scenario.H_true=measurement.H_true;
 scenario.H_est=measurement.H_est;
@@ -39,6 +40,7 @@ scenario.channelGain=measurement.ChannelGainEstimated;
 scenario.channelGainTrue=measurement.ChannelGainTrue;
 scenario.srs=rmfield(measurement,{'H_true','H_est','ChannelGainTrue','ChannelGainEstimated'});
 scenario.distance=distance;
+scenario.edge=edge;
 scenario.duPosition=duPosition; scenario.uePosition=uePosition;
 scenario.siteIndex=siteIndex; scenario.cellIndex=cellIndex;
 scenario.profile=cfg.profile;

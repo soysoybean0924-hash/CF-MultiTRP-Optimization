@@ -32,6 +32,7 @@ now represented by `cf_default_config('huawei')`.
 | CSI-RS | Period | 40 TTI |
 | Rank | Measurement rank | adaptive |
 | Receiver | UE receiver | IRC |
+| Edge UE | Classification | M3-style large-scale pathloss delta, 3 dB |
 
 ## Current Scope
 
@@ -52,11 +53,27 @@ The scenario also contains a first SRS nonideal measurement model:
 - `scenario.srs.SrsMeasuredMask`: RBs covered by the SRS hopping snapshot;
 - `scenario.srs.ErrorVariance`: channel-estimation uncertainty used to form
   `H_est`.
+- `scenario.edge.EdgeUserMask`: M3-style cell-edge users whose long-term
+  pathloss to at least two TRPs is within the configured threshold;
+- `scenario.edge.NonEdgeUserMask`: users kept on their primary TRP by default;
+- `scenario.edge.ServingMask`: candidate serving TRPs used to limit the
+  initial association search space.
+
+The edge classification follows the M3 scheduler idea: cell-edge users are
+the only users allowed to start with multi-TRP joint-transmission candidates,
+while non-edge users start from their primary TRP and can be used for
+single-TRP/MU-MIMO-style scheduling diagnostics. Huawei acceptance metrics
+still use the 3GPP-style experience-rate CDF and bottom-5% rate, so the M3
+classification is a scheduling-space reduction mechanism rather than a
+replacement for the final edge-experience KPI.
+
+The robust beam-weight update uses SRS uncertainty during the inner loop by
+shrinking high-uncertainty effective channels and adding an uncertainty
+penalty, then reports validation metrics on `H_true`.
 
 It does not yet implement the full validation physics:
 
 - packet-level burst arrivals with queue evolution;
-- robust beam-weight updates that explicitly use SRS uncertainty;
 - CSI-RS periodic measurement behavior;
 - full TR 38.901 UMi/UMa channel equations;
 - IRC receiver processing.
