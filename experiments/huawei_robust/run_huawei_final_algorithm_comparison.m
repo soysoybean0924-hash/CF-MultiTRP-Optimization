@@ -42,7 +42,7 @@ rows = {};
 for ei = 1:numel(edgeProfiles)
     edgeProfile = edgeProfiles{ei};
     cfgEdge = applyEdgeProfile(cfgBase,edgeProfile);
-    scenarioKey = edgeProfile;
+    scenarioKey = 'shared_channel';
     if isKey(scenarioCache,scenarioKey)
         scenario = scenarioCache(scenarioKey);
     else
