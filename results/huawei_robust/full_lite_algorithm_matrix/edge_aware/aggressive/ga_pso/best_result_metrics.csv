@@ -1,0 +1,8 @@
+metric,value
+EstimatedObjective,3062.98586575983
+TrueObjective,2879.44489128723
+TrueMeanExperienceRate,3.65341433416663
+TrueEdgeExperienceRate5,1.35577175256598
+TotalPower,252
+ActiveLinks,2100
+TrueJain,0.85491549511122
