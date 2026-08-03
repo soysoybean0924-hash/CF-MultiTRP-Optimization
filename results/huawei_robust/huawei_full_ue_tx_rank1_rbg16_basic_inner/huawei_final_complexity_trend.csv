@@ -1,0 +1,17 @@
+Group,NumPoints,MinScale,MaxScale,MeanRuntimePerEvaluation,LinearSlope,LinearIntercept,LinearR2
+edge_aware/nonrobust/basic,1,6773760,6773760,7.341329,NaN,NaN,NaN
+edge_aware/nonrobust/inner,1,6773760,6773760,35.3690744,NaN,NaN,NaN
+edge_aware/soft/basic,1,6773760,6773760,9.3429542,NaN,NaN,NaN
+edge_aware/soft/inner,1,6773760,6773760,31.4670025,NaN,NaN,NaN
+edge_aware/robust/basic,1,6773760,6773760,32.755377,NaN,NaN,NaN
+edge_aware/robust/inner,1,6773760,6773760,27.2142877,NaN,NaN,NaN
+edge_aware/aggressive/basic,1,6773760,6773760,12.3567324,NaN,NaN,NaN
+edge_aware/aggressive/inner,1,6773760,6773760,27.9772385,NaN,NaN,NaN
+non_edge_aware/nonrobust/basic,1,6773760,6773760,11.8332137,NaN,NaN,NaN
+non_edge_aware/nonrobust/inner,1,6773760,6773760,33.7246652,NaN,NaN,NaN
+non_edge_aware/soft/basic,1,6773760,6773760,11.79254,NaN,NaN,NaN
+non_edge_aware/soft/inner,1,6773760,6773760,20.3498357,NaN,NaN,NaN
+non_edge_aware/robust/basic,1,6773760,6773760,20.429369,NaN,NaN,NaN
+non_edge_aware/robust/inner,1,6773760,6773760,33.9474854,NaN,NaN,NaN
+non_edge_aware/aggressive/basic,1,6773760,6773760,6.9381412,NaN,NaN,NaN
+non_edge_aware/aggressive/inner,1,6773760,6773760,30.400809,NaN,NaN,NaN
