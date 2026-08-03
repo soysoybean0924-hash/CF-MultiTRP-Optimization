@@ -12,6 +12,8 @@ assert(exist(fullfile(projectRoot,'experiments','huawei_robust','run_huawei_robu
 assert(exist('run_huawei_robust_comparison','file') == 2);
 assert(exist(fullfile(projectRoot,'experiments','huawei_robust','run_huawei_robust_scale_suite.m'),'file') == 2);
 assert(exist('run_huawei_robust_scale_suite','file') == 2);
+assert(exist(fullfile(projectRoot,'experiments','huawei_robust','run_huawei_final_algorithm_comparison.m'),'file') == 2);
+assert(exist('run_huawei_final_algorithm_comparison','file') == 2);
 assert(exist('cf_compute_experience_rate','file') == 2);
 assert(exist('cf_generate_burst_traffic','file') == 2);
 assert(exist('cf_apply_srs_measurement_model','file') == 2);

@@ -19,6 +19,12 @@ For the staged probe/medium/full-lite workflow:
 run('experiments/huawei_robust/run_huawei_robust_scale_suite.m')
 ```
 
+For the formal Huawei algorithm comparison entry:
+
+```matlab
+run('experiments/huawei_robust/run_huawei_final_algorithm_comparison.m')
+```
+
 Outputs are written under:
 
 ```text
@@ -46,3 +52,21 @@ the true-channel columns.
   feasible algorithms.
 - `full_lite`: keeps 21 sectors and increases UE/RBG/antenna dimensions with
   a low search budget before final full Huawei validation.
+
+## Final Comparison Entry
+
+`run_huawei_final_algorithm_comparison.m` compares:
+
+- basic, inner, GA, PSO, GA+PSO, PSO+GA, and PGSAO;
+- robust and nonrobust SRS handling;
+- edge-aware and non-edge-aware scheduling.
+
+It exports summary CSV/XLSX/MAT files, per-method search histories, best
+candidate tables, experience-rate CDF CSV files, comparison figures, a
+Markdown report, and a runtime-per-evaluation complexity trend table.
+
+The default `HUAWEI_FINAL_SCALE=final` uses the full `cf_default_config('huawei')`
+scale. Use `probe`, `medium`, or `full_lite` for fast checks, or override
+`HUAWEI_FINAL_NUM_UES`, `HUAWEI_FINAL_NUM_RBGS`, `HUAWEI_FINAL_NUM_TX`,
+`HUAWEI_FINAL_NUM_RX`, `HUAWEI_FINAL_INNER_ITER`, `HUAWEI_FINAL_MAX_EVAL`,
+and `HUAWEI_FINAL_POPULATION` for controlled acceptance runs.
