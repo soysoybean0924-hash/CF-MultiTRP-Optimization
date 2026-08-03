@@ -140,6 +140,7 @@ cfg.numUEs = numericEnvOrDefault('HUAWEI_FINAL_NUM_UES',cfg.numUEs);
 cfg.numRBGs = numericEnvOrDefault('HUAWEI_FINAL_NUM_RBGS',cfg.numRBGs);
 cfg.numTxAntennas = numericEnvOrDefault('HUAWEI_FINAL_NUM_TX',cfg.numTxAntennas);
 cfg.numRxAntennas = numericEnvOrDefault('HUAWEI_FINAL_NUM_RX',cfg.numRxAntennas);
+cfg.maxRank = numericEnvOrDefault('HUAWEI_FINAL_MAX_RANK',cfg.maxRank);
 cfg.inner.maxIter = numericEnvOrDefault('HUAWEI_FINAL_INNER_ITER',cfg.inner.maxIter);
 cfg.search.maxEvaluations = numericEnvOrDefault('HUAWEI_FINAL_MAX_EVAL',cfg.search.maxEvaluations);
 cfg.search.populationSize = numericEnvOrDefault('HUAWEI_FINAL_POPULATION',cfg.search.populationSize);
