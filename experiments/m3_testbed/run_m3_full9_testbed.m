@@ -7,13 +7,15 @@ scriptFolder = fileparts(mfilename('fullpath'));
 projectRoot = fileparts(fileparts(scriptFolder));
 run(fullfile(projectRoot,'setup_project_paths.m'));
 
-methods = {'basic','inner','GA','PSO','GA+PSO','PSO+GA','PGSAO'};
+methods = parseList(getenvOrDefault('M3_TESTBED_METHODS', ...
+    'basic,inner,GA,PSO,GA+PSO,PSO+GA,PGSAO'));
 runId = getenvOrDefault('M3_TESTBED_RUN_ID', ...
     ['run_' char(datetime('now','Format','yyyyMMdd_HHmmss'))]);
 resultRoot = fullfile(projectRoot,'results','m3_testbed',runId);
 maxEvalCap = numericEnvOrDefault('M3_TESTBED_MAX_EVAL_CAP',16);
 populationSize = numericEnvOrDefault('M3_TESTBED_POPULATION_SIZE',8);
 innerIterCap = numericEnvOrEmpty('M3_TESTBED_INNER_ITER_CAP');
+saveHeavyMat = logical(numericEnvOrDefault('M3_TESTBED_SAVE_MAT',0));
 
 if ~exist(resultRoot,'dir')
     mkdir(resultRoot);
@@ -24,7 +26,12 @@ cfg.search.activeDimensions = [];
 cfg.search.fixedX = [];
 cfg = applyBudgetCaps(cfg,maxEvalCap,populationSize,innerIterCap);
 scenario = cf_generate_scenario(cfg);
-save(fullfile(resultRoot,'scenario.mat'),'cfg','scenario','-v7.3');
+if saveHeavyMat
+    save(fullfile(resultRoot,'scenario.mat'),'cfg','scenario','-v7.3');
+else
+    scenarioInfo = makeScenarioInfo(cfg,scenario); %#ok<NASGU>
+    save(fullfile(resultRoot,'scenario_info.mat'),'cfg','scenarioInfo','-v7.3');
+end
 
 runInfo = struct();
 runInfo.createdAt = char(datetime('now','Format','yyyy-MM-dd HH:mm:ss'));
@@ -36,6 +43,7 @@ runInfo.searchSpace = 'full 9-D normalized candidate vector';
 runInfo.maxEvalCap = maxEvalCap;
 runInfo.populationSize = populationSize;
 runInfo.innerIterCap = innerIterCap;
+runInfo.saveHeavyMat = saveHeavyMat;
 runInfo.defaultCandidateInjected = true;
 
 summaryRows = cell(numel(methods),1);
@@ -68,8 +76,17 @@ for mi = 1:numel(methods)
         comparisonTable = cf_print_result(result,sprintf('M3 testbed %s',method));
         resultCfg = cfg;
 
-        save(resultFile,'cfg','searchResult','result','comparisonTable', ...
-            'Jtrue','trueDetails','runtimeSeconds','runInfo','-v7.3');
+        if saveHeavyMat
+            save(resultFile,'cfg','searchResult','result','comparisonTable', ...
+                'Jtrue','trueDetails','runtimeSeconds','runInfo','-v7.3');
+        else
+            lightSearchResult = makeLightSearchResult(searchResult); %#ok<NASGU>
+            lightResult = makeLightResult(result); %#ok<NASGU>
+            lightTrueDetails = trimTrueDetails(trueDetails); %#ok<NASGU>
+            save(fullfile(methodDir,'search_result_light.mat'),'cfg','lightSearchResult', ...
+                'lightResult','comparisonTable','Jtrue','lightTrueDetails', ...
+                'runtimeSeconds','runInfo','-v7.3');
+        end
         writetable(searchResult.History,fullfile(methodDir,'search_history.csv'));
         writetable(comparisonTable,fullfile(methodDir,'best_result_metrics.csv'));
         writeCandidateTable(searchResult.BestCandidate,fullfile(methodDir,'best_candidate.csv'));
@@ -279,6 +296,63 @@ end
 writetable(cell2table(rows,'VariableNames',{'Parameter','Value'}),outFile);
 end
 
+function scenarioInfo = makeScenarioInfo(cfg,scenario)
+scenarioInfo = struct();
+cfgFields = {'scale','numDUs','numUEs','numRBGs','numTx','numRx'};
+for i = 1:numel(cfgFields)
+    name = cfgFields{i};
+    if isfield(cfg,name)
+        scenarioInfo.(name) = cfg.(name);
+    end
+end
+scenarioInfo.hasTrueChannel = isfield(scenario,'H_true');
+scenarioInfo.hasEstimatedChannel = isfield(scenario,'H_est') || isfield(scenario,'H');
+if isfield(scenario,'positions')
+    scenarioInfo.positions = scenario.positions;
+end
+if isfield(scenario,'largeScale')
+    scenarioInfo.largeScale = scenario.largeScale;
+end
+end
+
+function lightResult = makeLightResult(result)
+lightResult = struct();
+fields = {'Candidate','Objective','Score','ScoreParts','SumRate','MeanRate','MinRate', ...
+    'Rate5','Rate10','Jain','ActiveLinks','TotalPower','ActiveStreams', ...
+    'ExperienceRate','Robust','Edge','TrueChannel','history'};
+for i = 1:numel(fields)
+    name = fields{i};
+    if isfield(result,name)
+        lightResult.(name) = result.(name);
+    end
+end
+if isfield(lightResult,'TrueChannel')
+    lightResult.TrueChannel = trimTrueDetails(lightResult.TrueChannel);
+end
+end
+
+function lightSearchResult = makeLightSearchResult(searchResult)
+lightSearchResult = struct();
+fields = {'Method','BestX','BestReducedX','ActiveDimensions','FixedX', ...
+    'BestCandidate','BestScore','BestObjective','ObjectiveName','Evaluations', ...
+    'History','EvaluationX','EvaluationScore','EvaluationObjective','FinalObjectives','FinalScores'};
+for i = 1:numel(fields)
+    name = fields{i};
+    if isfield(searchResult,name)
+        lightSearchResult.(name) = searchResult.(name);
+    end
+end
+end
+
+function details = trimTrueDetails(details)
+heavyFields = {'SLINR','ratePerStream','userRate'};
+for i = 1:numel(heavyFields)
+    if isfield(details,heavyFields{i})
+        details = rmfield(details,heavyFields{i});
+    end
+end
+end
+
 function tag = methodToTag(method)
 tag = lower(strrep(method,'+','_'));
 end
@@ -298,6 +372,17 @@ else
     value = str2double(raw);
     if ~isfinite(value)
         error('Environment variable %s must be numeric.',name);
+    end
+end
+end
+
+function list = parseList(raw)
+parts = strsplit(char(raw),',');
+list = {};
+for i = 1:numel(parts)
+    item = strtrim(parts{i});
+    if ~isempty(item)
+        list{end+1} = item; %#ok<AGROW>
     end
 end
 end
