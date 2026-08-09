@@ -1,0 +1,14 @@
+M3 full-scale 9-D testbed
+Created: 2026-08-09 21:03:18
+Run ID: m3_outer_probe_20260809
+Objective: J_true = scheduled sum log2(1+SINR)
+Search space: full 9-D normalized candidate vector
+Default candidate injected: 1
+Population size: 2
+Result root: D:\GitHubProjects\CF-MultiTRP-Optimization\results\m3_testbed\m3_outer_probe_20260809
+
+GA     Objective= 2881.39 Score= 674.043 J_true= 2881.39 Jain=0.1571 ActiveLinks=728 TotalPower=229.092 Runtime=821.839s
+PSO    Objective= 2881.39 Score= 674.043 J_true= 2881.39 Jain=0.1571 ActiveLinks=728 TotalPower=229.092 Runtime=793.506s
+GA+PSO Objective= 2881.39 Score= 674.043 J_true= 2881.39 Jain=0.1571 ActiveLinks=728 TotalPower=229.092 Runtime=791.121s
+PSO+GA Objective= 2881.39 Score= 674.043 J_true= 2881.39 Jain=0.1571 ActiveLinks=728 TotalPower=229.092 Runtime=796.339s
+PGSAO  Objective= 2881.39 Score= 674.043 J_true= 2881.39 Jain=0.1571 ActiveLinks=728 TotalPower=229.092 Runtime=799.471s
