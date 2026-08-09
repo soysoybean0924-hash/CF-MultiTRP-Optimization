@@ -20,6 +20,8 @@ if doOptimize && cfg.inner.maxIter>0
     activeLinksHistory=objectiveHistory; totalPowerHistory=objectiveHistory;
     fairnessHistory=objectiveHistory; relativeChangeHistory=objectiveHistory;
 
+    stopReason = 'max_iter';
+    converged = false;
     for iter=1:cfg.inner.maxIter
         Wold=W;
         current=computeMetrics(cfg,scenario,W,bInit,Q,rankUG,delta);
@@ -77,11 +79,18 @@ if doOptimize && cfg.inner.maxIter>0
         objectiveHistory(iter)=objective; sumWPSHistory(iter)=sumWPS;
         activeLinksHistory(iter)=activeLinks; totalPowerHistory(iter)=totalPower;
         fairnessHistory(iter)=updated.Jain; relativeChangeHistory(iter)=relativeChange;
-        if relativeChange<cfg.inner.tolerance, break; end
+        if relativeChange<cfg.inner.tolerance
+            converged = true;
+            stopReason = 'relative_change';
+            break;
+        end
     end
     history.objective=objectiveHistory(1:iter); history.sumWPS=sumWPSHistory(1:iter);
     history.activeLinks=activeLinksHistory(1:iter); history.totalPower=totalPowerHistory(1:iter);
     history.Jain=fairnessHistory(1:iter); history.relativeChange=relativeChangeHistory(1:iter);
+    history.iterations=iter;
+    history.converged=converged;
+    history.stopReason=stopReason;
 end
 
 % Final cleanup: preserve minimum service, optionally repair weak users, and
@@ -100,12 +109,13 @@ trafficTrace=[];
 if isfield(scenario,'traffic'), trafficTrace=scenario.traffic; end
 baselineExperience=cf_compute_experience_rate(cfg,baseline.ratePerStream,bInit,trafficTrace);
 proposedExperience=cf_compute_experience_rate(cfg,proposed.ratePerStream,bFinal,trafficTrace);
+objective=proposed.SumRate;
 [score,scoreParts]=computeScore(cfg,proposed,baseline,bFinal,pFinal,rankUG);
 trueChannel=evaluateOnTrueChannel(cfg,scenario,W,bFinal,Q,rankUG,trafficTrace);
 
 % Return both proposed and baseline fields so plotting, diagnostics, and
 % sensitivity analysis can compare them without rerunning the candidate.
-result.Candidate=candidate; result.Score=score; result.ScoreParts=scoreParts;
+result.Candidate=candidate; result.Objective=objective; result.Score=score; result.ScoreParts=scoreParts;
 result.H=scenario.H; result.Q=Q; result.b=bFinal; result.p=pFinal; result.r=rankUG; result.W=W;
 result.bInit=bInit; result.SLINR=proposed.SLINR; result.WPS=proposed.WPS;
 result.ratePerStream=proposed.ratePerStream; result.userRate=proposed.userRate;
@@ -372,9 +382,9 @@ end
 
 function [score,parts]=computeScore(cfg,proposed,baseline,bFinal,pFinal,rankUG)
 activeLinks=sum(bFinal(:)); totalPower=sum(pFinal(:)); activeStreams=sum(rankUG(:));
-% The optimization score follows the paper-style max objective used in this
-% project: maximize the scheduled sum log2(1+SINR). Resource, fairness, and
-% power values are retained only as diagnostics.
+% The objective and the evaluation score are intentionally separated:
+% result.Objective is the paper/Huawei max target, while result.Score is a
+% weighted engineering score used to judge fairness, cost, and loss tradeoffs.
 minLoss=max(0,baseline.MinRate-proposed.MinRate);
 rate10Loss=max(0,baseline.Rate10-proposed.Rate10);
 jainLoss=max(0,cfg.score.jainTarget-proposed.Jain);
@@ -383,15 +393,18 @@ benefit=cfg.score.wSumRate*proposed.SumRate+cfg.score.wJain*proposed.Jain+ ...
 cost=cfg.score.wActiveLinks*activeLinks+cfg.score.wPower*totalPower+cfg.score.wStreams*activeStreams;
 penalty=cfg.score.wMinRateLoss*minLoss+cfg.score.wRate10Loss*rate10Loss+cfg.score.wJainTarget*jainLoss;
 legacyWeightedScore=benefit-cost-penalty;
-score=proposed.SumRate;
+score=legacyWeightedScore;
 parts.Objective='scheduled sum log2(1+SINR)';
+parts.Score='weighted engineering evaluation score';
 parts.Benefit=benefit; parts.Cost=cost; parts.Penalty=penalty;
+parts.WeightedEvaluationScore=score;
 parts.LegacyWeightedScore=legacyWeightedScore;
 parts.MinRateLoss=minLoss; parts.Rate10Loss=rate10Loss; parts.JainTargetLoss=jainLoss;
 end
 
 function h=emptyHistory()
 h.objective=[]; h.sumWPS=[]; h.activeLinks=[]; h.totalPower=[]; h.Jain=[]; h.relativeChange=[];
+h.iterations=0; h.converged=false; h.stopReason='not_run';
 end
 
 function trueChannel=evaluateOnTrueChannel(cfg,scenario,W,bFinal,Q,rankUG,trafficTrace)

@@ -144,9 +144,9 @@ cfg.traffic.meanBurstTti = max(3,round(0.08*cfg.numRBGs));
 cfg.traffic.minBurstTti = 2;
 cfg.traffic.maxBurstTti = max(3,round(0.20*cfg.numRBGs));
 
-% Legacy diagnostic weights. The active outer-search objective is J_true:
-% scheduled sum log2(1+SINR). These weights are retained only to report the
-% previous weighted score in result.ScoreParts.LegacyWeightedScore.
+% Engineering evaluation-score weights. The active outer-search objective is
+% J_true = scheduled sum log2(1+SINR). result.Score uses these weights to
+% report fairness, link, power, and weak-user tradeoffs for each candidate.
 cfg.score.wSumRate = 1.0; cfg.score.wJain = 35;
 cfg.score.wMinRate = 15; cfg.score.wRate10 = 20;
 cfg.score.wActiveLinks = 0.02; cfg.score.wPower = 0.01;

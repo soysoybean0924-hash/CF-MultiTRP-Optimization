@@ -45,16 +45,18 @@ output.BestX = bestFullX;
 output.BestCandidate = cf_decode_candidate(bestFullX,cfg);
 output.BestResult = tracker.bestResult;
 output.BestScore = tracker.bestScore;
-output.BestObjective = tracker.bestScore;
+output.BestObjective = tracker.bestObjective;
 output.ObjectiveName = 'J_true';
 output.Evaluations = count;
-output.History = table((1:count)',tracker.traceScore(1:count),tracker.traceBest(1:count), ...
-    'VariableNames',{'Evaluation','Objective','BestObjective'});
+output.History = table((1:count)',tracker.traceObjective(1:count),tracker.traceScore(1:count), ...
+    tracker.traceBestObjective(1:count),tracker.traceBestScore(1:count), ...
+    'VariableNames',{'Evaluation','Objective','Score','BestObjective','BestScore'});
 output.EvaluationX = tracker.archiveX(1:count,:);
-output.EvaluationObjective = tracker.traceScore(1:count);
+output.EvaluationObjective = tracker.traceObjective(1:count);
 output.EvaluationScore = tracker.traceScore(1:count);
 output.FinalPopulation = X;
-output.FinalScores = scores;
+output.FinalObjectives = scores;
+output.FinalScores = [];
 output.DefaultCandidateInjected = true;
 output.DefaultCandidateReducedX = fixedX(activeDimensions);
 end
@@ -100,14 +102,17 @@ function t = initializeTracker(maxEval,D)
 t.maxEvaluations = maxEval;
 t.evaluationCount = 0;
 t.bestScore = -inf;
+t.bestObjective = -inf;
 t.bestX = nan(1,D);
 t.bestResult = [];
+t.traceObjective = nan(maxEval,1);
 t.traceScore = nan(maxEval,1);
-t.traceBest = nan(maxEval,1);
+t.traceBestObjective = nan(maxEval,1);
+t.traceBestScore = nan(maxEval,1);
 t.archiveX = nan(maxEval,D);
 end
 
-function [score,result,t] = evaluateTracked(x,cfg,scenario,options,t)
+function [objective,result,t] = evaluateTracked(x,cfg,scenario,options,t)
 x = clip01(x);
 [activeDimensions,fixedX,~] = searchSpace(options,cfg);
 fullX = expandSearchVector(x,activeDimensions,fixedX);
@@ -115,27 +120,35 @@ candidate = cf_decode_candidate(fullX,cfg);
 try
     result = cf_evaluate_candidate(cfg,scenario,candidate,true);
     score = result.Score;
+    objective = result.Objective;
+    if ~isfinite(objective)
+        objective = -realmax;
+    end
     if ~isfinite(score)
         score = -realmax;
     end
 catch ME
     warning('m3_testbed_search:CandidateFailed','Candidate failed: %s',ME.message);
     result = [];
+    objective = -realmax;
     score = -realmax;
 end
 t.evaluationCount = t.evaluationCount + 1;
 k = t.evaluationCount;
+t.traceObjective(k) = objective;
 t.traceScore(k) = score;
 t.archiveX(k,:) = x;
-if score > t.bestScore
+if isBetterCandidate(objective,score,t.bestObjective,t.bestScore)
+    t.bestObjective = objective;
     t.bestScore = score;
     t.bestX = x;
     t.bestResult = result;
 end
-t.traceBest(k) = t.bestScore;
+t.traceBestObjective(k) = t.bestObjective;
+t.traceBestScore(k) = t.bestScore;
 if options.verbose
-    fprintf('testbed eval %3d/%3d: objective=%10.4f, best=%10.4f\n', ...
-        k,t.maxEvaluations,score,t.bestScore);
+    fprintf('testbed eval %3d/%3d: objective=%10.4f, best=%10.4f, score=%10.4f\n', ...
+        k,t.maxEvaluations,objective,t.bestObjective,score);
 end
 end
 
@@ -190,6 +203,17 @@ function idx = tournamentIndex(scores,sizeT)
 choices = randi(numel(scores),max(2,sizeT),1);
 [~,local] = max(scores(choices));
 idx = choices(local);
+end
+
+function tf = isBetterCandidate(objective,score,bestObjective,bestScore)
+objectiveTol = 1e-10*max(1,abs(bestObjective));
+if objective > bestObjective + objectiveTol
+    tf = true;
+elseif abs(objective-bestObjective) <= objectiveTol && score > bestScore
+    tf = true;
+else
+    tf = false;
+end
 end
 
 function [c1,c2] = gaCrossover(p1,p2,rate)

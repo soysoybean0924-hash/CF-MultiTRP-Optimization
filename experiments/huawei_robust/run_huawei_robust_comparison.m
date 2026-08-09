@@ -92,15 +92,16 @@ searchResult.FixedX = bestX;
 searchResult.BestCandidate = candidate;
 searchResult.BestResult = result;
 searchResult.BestScore = result.Score;
-searchResult.BestObjective = result.Score;
+searchResult.BestObjective = result.Objective;
 searchResult.ObjectiveName = 'J_true_estimated_channel';
 searchResult.Evaluations = 1;
-searchResult.History = table(1,result.Score,result.Score, ...
-    'VariableNames',{'Evaluation','Objective','BestObjective'});
+searchResult.History = table(1,result.Objective,result.Score,result.Objective,result.Score, ...
+    'VariableNames',{'Evaluation','Objective','Score','BestObjective','BestScore'});
 searchResult.EvaluationX = bestX;
 searchResult.EvaluationScore = result.Score;
-searchResult.EvaluationObjective = result.Score;
+searchResult.EvaluationObjective = result.Objective;
 searchResult.FinalPopulation = bestX;
+searchResult.FinalObjectives = result.Objective;
 searchResult.FinalScores = result.Score;
 end
 
@@ -116,7 +117,8 @@ row.NumRxAntennas = cfg.numRxAntennas;
 row.InnerMaxIter = cfg.inner.maxIter;
 row.Evaluations = searchResult.Evaluations;
 row.RuntimeSeconds = runtimeSeconds;
-row.EstimatedObjective = result.Score;
+row.EstimatedObjective = result.Objective;
+row.EstimatedScore = result.Score;
 row.EstimatedEdgeExperienceRate5 = result.ExperienceRate.EdgeExperienceRate5;
 row.EstimatedMeanExperienceRate = result.ExperienceRate.MeanExperienceRate;
 row.TrueObjective = trueField(result,'SumRate');
@@ -177,12 +179,13 @@ fprintf(fid,'# Huawei Robust SRS Comparison\n\n');
 fprintf(fid,'Probe scale: DUs=%d, UEs=%d, RBGs=%d, MIMO=%dx%d.\n\n', ...
     cfg.numDUs,cfg.numUEs,cfg.numRBGs,cfg.numTxAntennas,cfg.numRxAntennas);
 fprintf(fid,'The scheduler uses `H_est`; robust validation is judged on `H_true` columns.\n\n');
-fprintf(fid,'| Variant | Method | EstObj | TrueObj | TrueEdgeP5 | TotalPower | ActiveLinks | Runtime |\n');
-fprintf(fid,'|---|---|---:|---:|---:|---:|---:|---:|\n');
+fprintf(fid,'| Variant | Method | EstObj | Score | TrueObj | TrueEdgeP5 | TotalPower | ActiveLinks | Runtime |\n');
+fprintf(fid,'|---|---|---:|---:|---:|---:|---:|---:|---:|\n');
 for i = 1:height(t)
-    fprintf(fid,'| %s | %s | %.6g | %.6g | %.6g | %.6g | %d | %.3f |\n', ...
-        t.Variant{i},t.Method{i},t.EstimatedObjective(i),t.TrueObjective(i), ...
-        t.TrueEdgeExperienceRate5(i),t.TotalPower(i),t.ActiveLinks(i),t.RuntimeSeconds(i));
+    fprintf(fid,'| %s | %s | %.6g | %.6g | %.6g | %.6g | %.6g | %d | %.3f |\n', ...
+        t.Variant{i},t.Method{i},t.EstimatedObjective(i),t.EstimatedScore(i), ...
+        t.TrueObjective(i),t.TrueEdgeExperienceRate5(i),t.TotalPower(i), ...
+        t.ActiveLinks(i),t.RuntimeSeconds(i));
 end
 fprintf(fid,'\n## Interpretation\n\n');
 fprintf(fid,'- `nonrobust` uses the same SRS-estimated channel without uncertainty-aware penalties.\n');

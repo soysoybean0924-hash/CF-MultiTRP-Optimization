@@ -111,13 +111,13 @@ cfg = cf_default_config('huawei');
 switch lower(scaleName)
     case 'probe'
         cfg.numUEs = 21; cfg.numRBGs = 4; cfg.numTxAntennas = 8; cfg.numRxAntennas = 2;
-        cfg.inner.maxIter = 1; cfg.search.maxEvaluations = 2; cfg.search.populationSize = 2;
+        cfg.search.maxEvaluations = 2; cfg.search.populationSize = 2;
     case 'medium'
         cfg.numUEs = 42; cfg.numRBGs = 8; cfg.numTxAntennas = 8; cfg.numRxAntennas = 2;
-        cfg.inner.maxIter = 1; cfg.search.maxEvaluations = 2; cfg.search.populationSize = 2;
+        cfg.search.maxEvaluations = 2; cfg.search.populationSize = 2;
     case 'full_lite'
         cfg.numUEs = 63; cfg.numRBGs = 12; cfg.numTxAntennas = 12; cfg.numRxAntennas = 2;
-        cfg.inner.maxIter = 1; cfg.search.maxEvaluations = 2; cfg.search.populationSize = 2;
+        cfg.search.maxEvaluations = 2; cfg.search.populationSize = 2;
     case 'final'
         % Keep cf_default_config('huawei') as the full acceptance scale.
     otherwise
@@ -206,15 +206,16 @@ searchResult.FixedX = bestX;
 searchResult.BestCandidate = candidate;
 searchResult.BestResult = result;
 searchResult.BestScore = result.Score;
-searchResult.BestObjective = result.Score;
+searchResult.BestObjective = result.Objective;
 searchResult.ObjectiveName = 'J_true_estimated_channel';
 searchResult.Evaluations = 1;
-searchResult.History = table(1,result.Score,result.Score, ...
-    'VariableNames',{'Evaluation','Objective','BestObjective'});
+searchResult.History = table(1,result.Objective,result.Score,result.Objective,result.Score, ...
+    'VariableNames',{'Evaluation','Objective','Score','BestObjective','BestScore'});
 searchResult.EvaluationX = bestX;
 searchResult.EvaluationScore = result.Score;
-searchResult.EvaluationObjective = result.Score;
+searchResult.EvaluationObjective = result.Objective;
 searchResult.FinalPopulation = bestX;
+searchResult.FinalObjectives = result.Objective;
 searchResult.FinalScores = result.Score;
 end
 
@@ -230,11 +231,15 @@ row.NumRBGs = cfg.numRBGs;
 row.NumTxAntennas = cfg.numTxAntennas;
 row.NumRxAntennas = cfg.numRxAntennas;
 row.InnerMaxIter = cfg.inner.maxIter;
+row.InnerIterations = result.history.iterations;
+row.InnerConverged = result.history.converged;
+row.InnerStopReason = {result.history.stopReason};
 row.PopulationSize = cfg.search.populationSize;
 row.MaxEvaluations = cfg.search.maxEvaluations;
 row.Evaluations = searchResult.Evaluations;
 row.RuntimeSeconds = runtimeSeconds;
-row.EstimatedObjective = result.Score;
+row.EstimatedObjective = result.Objective;
+row.EstimatedScore = result.Score;
 row.EstimatedMeanExperienceRate = result.ExperienceRate.MeanExperienceRate;
 row.EstimatedEdgeExperienceRate5 = result.ExperienceRate.EdgeExperienceRate5;
 row.TrueObjective = trueField(result,'SumRate');
@@ -354,9 +359,9 @@ writetable(cell2table(rows,'VariableNames',{'Parameter','Value'}),outFile);
 end
 
 function writeMetricsTable(result,outFile)
-metric = {'EstimatedObjective';'TrueObjective';'TrueMeanExperienceRate'; ...
+metric = {'EstimatedObjective';'EstimatedScore';'TrueObjective';'TrueMeanExperienceRate'; ...
     'TrueEdgeExperienceRate5';'TotalPower';'ActiveLinks';'TrueJain'};
-value = [result.Score; trueField(result,'SumRate'); ...
+value = [result.Objective; result.Score; trueField(result,'SumRate'); ...
     trueExperienceField(result,'MeanExperienceRate'); ...
     trueExperienceField(result,'EdgeExperienceRate5'); result.TotalPower; ...
     result.ActiveLinks; trueField(result,'Jain')];
@@ -404,7 +409,7 @@ end
 
 function lightResult = makeLightResult(result)
 lightResult = struct();
-fields = {'Candidate','Score','ScoreParts','SumRate','MeanRate','MinRate', ...
+fields = {'Candidate','Objective','Score','ScoreParts','SumRate','MeanRate','MinRate', ...
     'Rate5','Rate10','Jain','ActiveLinks','TotalPower','ActiveStreams', ...
     'ExperienceRate','Robust','Edge','TrueChannel','history'};
 for i = 1:numel(fields)
@@ -431,7 +436,7 @@ function lightSearchResult = makeLightSearchResult(searchResult)
 lightSearchResult = struct();
 fields = {'Method','BestX','BestReducedX','ActiveDimensions','FixedX', ...
     'BestCandidate','BestScore','BestObjective','ObjectiveName','Evaluations', ...
-    'History','EvaluationX','EvaluationScore','EvaluationObjective','FinalScores'};
+    'History','EvaluationX','EvaluationScore','EvaluationObjective','FinalObjectives','FinalScores'};
 for i = 1:numel(fields)
     name = fields{i};
     if isfield(searchResult,name)
@@ -447,12 +452,13 @@ fprintf(fid,'# Huawei Final Algorithm Comparison\n\n');
 fprintf(fid,'Created: %s\n\n',runInfo.CreatedAt);
 fprintf(fid,'Scale: `%s`.\n\n',runInfo.Scale);
 fprintf(fid,'Objective: %s.\n\n',runInfo.Objective);
-fprintf(fid,'| Edge | Robust | Method | TrueObj | TrueMeanExp | TrueEdgeP5 | Power | Links | Runtime | MeanLoss%% | PowerDrop%% |\n');
-fprintf(fid,'|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|\n');
+fprintf(fid,'| Edge | Robust | Method | EstObj | Score | TrueObj | TrueMeanExp | TrueEdgeP5 | Power | Links | Runtime | MeanLoss%% | PowerDrop%% |\n');
+fprintf(fid,'|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n');
 for i = 1:height(t)
-    fprintf(fid,'| %s | %s | %s | %.6g | %.6g | %.6g | %.6g | %d | %.3f | %.3f | %.3f |\n', ...
-        t.EdgeProfile{i},t.RobustProfile{i},t.Method{i},t.TrueObjective(i), ...
-        t.TrueMeanExperienceRate(i),t.TrueEdgeExperienceRate5(i), ...
+    fprintf(fid,'| %s | %s | %s | %.6g | %.6g | %.6g | %.6g | %.6g | %.6g | %d | %.3f | %.3f | %.3f |\n', ...
+        t.EdgeProfile{i},t.RobustProfile{i},t.Method{i},t.EstimatedObjective(i), ...
+        t.EstimatedScore(i),t.TrueObjective(i),t.TrueMeanExperienceRate(i), ...
+        t.TrueEdgeExperienceRate5(i), ...
         t.TotalPower(i),t.ActiveLinks(i),t.RuntimeSeconds(i), ...
         t.MeanExperienceLossPct(i),t.PowerReductionPct(i));
 end

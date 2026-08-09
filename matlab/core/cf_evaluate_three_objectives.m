@@ -3,7 +3,8 @@ function [metrics,nativeResult] = cf_evaluate_three_objectives(cfg,scenario,cand
 %
 % J_inner: final inner-loop objective recorded by cf_evaluate_candidate.
 %          It is WPS minus link and power penalties inside the beam loop.
-% J_outer: outer-search fitness, now aligned with J_true.
+% J_outer: outer-search objective, aligned with J_true.
+% Score  : weighted engineering evaluation score.
 % J_true : scheduled sum log2(1+SINR), recomputed from b and SLINR only.
 
 if nargin < 2 || isempty(scenario)
@@ -25,7 +26,7 @@ else
         candidate.rhoPower*nativeResult.TotalPower;
 end
 
-Jouter = nativeResult.Score;
+Jouter = nativeResult.Objective;
 innerIterations = numel(nativeResult.history.objective);
 if innerIterations > 0
     lastRelativeChange = nativeResult.history.relativeChange(end);
@@ -70,6 +71,7 @@ metrics = struct();
 metrics.J_inner = Jinner;
 metrics.J_outer = Jouter;
 metrics.J_true = Jtrue;
+metrics.score = nativeResult.Score;
 metrics.sumRate = nativeResult.SumRate;
 metrics.jain = nativeResult.Jain;
 metrics.rate5 = nativeResult.Rate5;

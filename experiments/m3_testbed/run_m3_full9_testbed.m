@@ -13,7 +13,7 @@ runId = getenvOrDefault('M3_TESTBED_RUN_ID', ...
 resultRoot = fullfile(projectRoot,'results','m3_testbed',runId);
 maxEvalCap = numericEnvOrDefault('M3_TESTBED_MAX_EVAL_CAP',16);
 populationSize = numericEnvOrDefault('M3_TESTBED_POPULATION_SIZE',8);
-innerIterCap = numericEnvOrDefault('M3_TESTBED_INNER_ITER_CAP',2);
+innerIterCap = numericEnvOrEmpty('M3_TESTBED_INNER_ITER_CAP');
 
 if ~exist(resultRoot,'dir')
     mkdir(resultRoot);
@@ -119,15 +119,16 @@ searchResult.FixedX = bestX;
 searchResult.BestCandidate = candidate;
 searchResult.BestResult = result;
 searchResult.BestScore = result.Score;
-searchResult.BestObjective = result.Score;
+searchResult.BestObjective = result.Objective;
 searchResult.ObjectiveName = 'J_true';
 searchResult.Evaluations = 1;
-searchResult.History = table(1,result.Score,result.Score, ...
-    'VariableNames',{'Evaluation','Objective','BestObjective'});
+searchResult.History = table(1,result.Objective,result.Score,result.Objective,result.Score, ...
+    'VariableNames',{'Evaluation','Objective','Score','BestObjective','BestScore'});
 searchResult.EvaluationX = bestX;
 searchResult.EvaluationScore = result.Score;
-searchResult.EvaluationObjective = result.Score;
+searchResult.EvaluationObjective = result.Objective;
 searchResult.FinalPopulation = bestX;
+searchResult.FinalObjectives = result.Objective;
 searchResult.FinalScores = result.Score;
 end
 
@@ -135,7 +136,9 @@ function cfg = applyBudgetCaps(cfg,maxEvalCap,populationSize,innerIterCap)
 cfg.search.maxEvaluations = max(1,round(min(cfg.search.maxEvaluations,maxEvalCap)));
 cfg.search.populationSize = max(1,round(min(populationSize,cfg.search.maxEvaluations)));
 cfg.search.eliteCount = min(cfg.search.eliteCount,max(0,cfg.search.populationSize-1));
-cfg.inner.maxIter = max(0,round(min(cfg.inner.maxIter,innerIterCap)));
+if ~isempty(innerIterCap)
+    cfg.inner.maxIter = max(0,round(min(cfg.inner.maxIter,innerIterCap)));
+end
 end
 
 function row = makeSummaryRow(method,cfg,searchResult,result,Jtrue,trueDetails,runtimeSeconds)
@@ -149,11 +152,15 @@ row.NumTxAntennas = cfg.numTxAntennas;
 row.NumRxAntennas = cfg.numRxAntennas;
 row.SearchDimensions = cfg.search.dimension;
 row.InnerMaxIter = cfg.inner.maxIter;
+row.InnerIterations = result.history.iterations;
+row.InnerConverged = result.history.converged;
+row.InnerStopReason = {result.history.stopReason};
 row.PopulationSize = cfg.search.populationSize;
 row.MaxEvaluations = cfg.search.maxEvaluations;
 row.Evaluations = searchResult.Evaluations;
 row.RuntimeSeconds = runtimeSeconds;
-row.Objective = searchResult.BestScore;
+row.Objective = searchResult.BestObjective;
+row.Score = searchResult.BestScore;
 row.J_true = Jtrue;
 row.SumRate = result.SumRate;
 row.MeanRate = result.MeanRate;
@@ -216,16 +223,16 @@ fprintf(fid,'Default candidate injection: enabled; cfg.defaultX is the first out
 fprintf(fid,'Budget: populationSize=%d, maxEvaluations=%d, innerMaxIter=%d.\n\n', ...
     runInfo.populationSize,summaryTable.MaxEvaluations(1),summaryTable.InnerMaxIter(1));
 fprintf(fid,'Optimization objective: maximize `J_true = scheduled sum log2(1+SINR)`.\n');
-fprintf(fid,'Jain, ActiveLinks, TotalPower, and Runtime are evaluation metrics only.\n\n');
+fprintf(fid,'Score, Jain, ActiveLinks, TotalPower, and Runtime are evaluation metrics only.\n\n');
 
 fprintf(fid,'## Algorithm Comparison\n\n');
-fprintf(fid,'| Method | Objective | J_true | Jain | ActiveLinks | TotalPower | RuntimeSeconds |\n');
-fprintf(fid,'|---|---:|---:|---:|---:|---:|---:|\n');
+fprintf(fid,'| Method | Objective | Score | J_true | Jain | ActiveLinks | TotalPower | RuntimeSeconds |\n');
+fprintf(fid,'|---|---:|---:|---:|---:|---:|---:|---:|\n');
 for i = 1:height(summaryTable)
-    fprintf(fid,'| %s | %.6g | %.6g | %.4f | %d | %.6g | %.3f |\n', ...
-        summaryTable.Method{i},summaryTable.Objective(i),summaryTable.J_true(i), ...
-        summaryTable.Jain(i),summaryTable.ActiveLinks(i),summaryTable.TotalPower(i), ...
-        summaryTable.RuntimeSeconds(i));
+    fprintf(fid,'| %s | %.6g | %.6g | %.6g | %.4f | %d | %.6g | %.3f |\n', ...
+        summaryTable.Method{i},summaryTable.Objective(i),summaryTable.Score(i), ...
+        summaryTable.J_true(i),summaryTable.Jain(i),summaryTable.ActiveLinks(i), ...
+        summaryTable.TotalPower(i),summaryTable.RuntimeSeconds(i));
 end
 
 fprintf(fid,'\n## Result Interpretation\n\n');
@@ -249,10 +256,10 @@ fprintf(fid,'Default candidate injected: %d\n',runInfo.defaultCandidateInjected)
 fprintf(fid,'Population size: %d\n',runInfo.populationSize);
 fprintf(fid,'Result root: %s\n\n',runInfo.resultRoot);
 for i = 1:height(summaryTable)
-    fprintf(fid,'%-6s Objective=% .6g J_true=% .6g Jain=%.4f ActiveLinks=%d TotalPower=%.6g Runtime=%.3fs\n', ...
-        summaryTable.Method{i},summaryTable.Objective(i),summaryTable.J_true(i), ...
-        summaryTable.Jain(i),summaryTable.ActiveLinks(i),summaryTable.TotalPower(i), ...
-        summaryTable.RuntimeSeconds(i));
+    fprintf(fid,'%-6s Objective=% .6g Score=% .6g J_true=% .6g Jain=%.4f ActiveLinks=%d TotalPower=%.6g Runtime=%.3fs\n', ...
+        summaryTable.Method{i},summaryTable.Objective(i),summaryTable.Score(i), ...
+        summaryTable.J_true(i),summaryTable.Jain(i),summaryTable.ActiveLinks(i), ...
+        summaryTable.TotalPower(i),summaryTable.RuntimeSeconds(i));
 end
 end
 
@@ -287,6 +294,18 @@ function value = numericEnvOrDefault(name,defaultValue)
 raw = getenv(name);
 if isempty(raw)
     value = defaultValue;
+else
+    value = str2double(raw);
+    if ~isfinite(value)
+        error('Environment variable %s must be numeric.',name);
+    end
+end
+end
+
+function value = numericEnvOrEmpty(name)
+raw = getenv(name);
+if isempty(raw)
+    value = [];
 else
     value = str2double(raw);
     if ~isfinite(value)

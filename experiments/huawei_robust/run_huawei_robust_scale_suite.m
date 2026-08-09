@@ -57,7 +57,7 @@ scales = struct([]);
 scales(1).Name = 'probe';
 scales(1).NumUEs = 21; scales(1).NumRBGs = 4;
 scales(1).NumTxAntennas = 8; scales(1).NumRxAntennas = 2;
-scales(1).InnerIter = 1; scales(1).MaxEval = 2; scales(1).Population = 2;
+scales(1).InnerIter = []; scales(1).MaxEval = 2; scales(1).Population = 2;
 scales(1).Methods = {'basic','inner','PSO+GA'};
 scales(1).RobustProfiles = {'nonrobust','default'};
 scales(1).Purpose = 'logic validation';
@@ -65,7 +65,7 @@ scales(1).Purpose = 'logic validation';
 scales(2).Name = 'medium';
 scales(2).NumUEs = 42; scales(2).NumRBGs = 8;
 scales(2).NumTxAntennas = 8; scales(2).NumRxAntennas = 2;
-scales(2).InnerIter = 1; scales(2).MaxEval = 2; scales(2).Population = 2;
+scales(2).InnerIter = []; scales(2).MaxEval = 2; scales(2).Population = 2;
 scales(2).Methods = {'basic','inner','PSO+GA','PGSAO'};
 scales(2).RobustProfiles = {'nonrobust','soft','default','aggressive'};
 scales(2).Purpose = 'robust parameter tuning and algorithm screening';
@@ -73,7 +73,7 @@ scales(2).Purpose = 'robust parameter tuning and algorithm screening';
 scales(3).Name = 'full_lite';
 scales(3).NumUEs = 63; scales(3).NumRBGs = 12;
 scales(3).NumTxAntennas = 12; scales(3).NumRxAntennas = 2;
-scales(3).InnerIter = 1; scales(3).MaxEval = 2; scales(3).Population = 2;
+scales(3).InnerIter = []; scales(3).MaxEval = 2; scales(3).Population = 2;
 scales(3).Methods = {'basic','inner','PSO+GA','PGSAO'};
 scales(3).RobustProfiles = {'nonrobust','default'};
 scales(3).Purpose = 'closer-to-Huawei low-budget confirmation';
@@ -86,7 +86,7 @@ cfg.numRBGs = numericEnvOrDefault(['HUAWEI_' upper(spec.Name) '_NUM_RBGS'],spec.
 cfg.numTxAntennas = numericEnvOrDefault(['HUAWEI_' upper(spec.Name) '_NUM_TX'],spec.NumTxAntennas);
 cfg.numRxAntennas = numericEnvOrDefault(['HUAWEI_' upper(spec.Name) '_NUM_RX'],spec.NumRxAntennas);
 cfg.maxRank = min(cfg.maxRank,cfg.numRxAntennas);
-cfg.inner.maxIter = numericEnvOrDefault(['HUAWEI_' upper(spec.Name) '_INNER_ITER'],spec.InnerIter);
+cfg.inner.maxIter = numericEnvOrDefault(['HUAWEI_' upper(spec.Name) '_INNER_ITER'],cfg.inner.maxIter);
 cfg.search.maxEvaluations = numericEnvOrDefault(['HUAWEI_' upper(spec.Name) '_MAX_EVAL'],spec.MaxEval);
 cfg.search.populationSize = min(numericEnvOrDefault(['HUAWEI_' upper(spec.Name) '_POPULATION'],spec.Population), ...
     cfg.search.maxEvaluations);
@@ -169,15 +169,16 @@ searchResult.FixedX = bestX;
 searchResult.BestCandidate = candidate;
 searchResult.BestResult = result;
 searchResult.BestScore = result.Score;
-searchResult.BestObjective = result.Score;
+searchResult.BestObjective = result.Objective;
 searchResult.ObjectiveName = 'J_true_estimated_channel';
 searchResult.Evaluations = 1;
-searchResult.History = table(1,result.Score,result.Score, ...
-    'VariableNames',{'Evaluation','Objective','BestObjective'});
+searchResult.History = table(1,result.Objective,result.Score,result.Objective,result.Score, ...
+    'VariableNames',{'Evaluation','Objective','Score','BestObjective','BestScore'});
 searchResult.EvaluationX = bestX;
 searchResult.EvaluationScore = result.Score;
-searchResult.EvaluationObjective = result.Score;
+searchResult.EvaluationObjective = result.Objective;
 searchResult.FinalPopulation = bestX;
+searchResult.FinalObjectives = result.Objective;
 searchResult.FinalScores = result.Score;
 end
 
@@ -192,9 +193,13 @@ row.NumRBGs = cfg.numRBGs;
 row.NumTxAntennas = cfg.numTxAntennas;
 row.NumRxAntennas = cfg.numRxAntennas;
 row.InnerMaxIter = cfg.inner.maxIter;
+row.InnerIterations = result.history.iterations;
+row.InnerConverged = result.history.converged;
+row.InnerStopReason = {result.history.stopReason};
 row.Evaluations = searchResult.Evaluations;
 row.RuntimeSeconds = runtimeSeconds;
-row.EstimatedObjective = result.Score;
+row.EstimatedObjective = result.Objective;
+row.EstimatedScore = result.Score;
 row.TrueObjective = trueField(result,'SumRate');
 row.TrueEdgeExperienceRate5 = trueExperienceField(result,'EdgeExperienceRate5');
 row.TrueMeanExperienceRate = trueExperienceField(result,'MeanExperienceRate');
@@ -288,12 +293,13 @@ fprintf(fid,'- These runs guide final Huawei full-scale settings but do not repl
 end
 
 function writeTable(fid,t)
-fprintf(fid,'| Scale | Profile | Method | TrueObj | TrueMeanExp | TrueEdgeP5 | Power | Links | Runtime |\n');
-fprintf(fid,'|---|---|---|---:|---:|---:|---:|---:|---:|\n');
+fprintf(fid,'| Scale | Profile | Method | EstObj | Score | TrueObj | TrueMeanExp | TrueEdgeP5 | Power | Links | Runtime |\n');
+fprintf(fid,'|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|\n');
 for i = 1:height(t)
-    fprintf(fid,'| %s | %s | %s | %.6g | %.6g | %.6g | %.6g | %d | %.3f |\n', ...
-        t.Scale{i},t.RobustProfile{i},t.Method{i},t.TrueObjective(i), ...
-        t.TrueMeanExperienceRate(i),t.TrueEdgeExperienceRate5(i), ...
+    fprintf(fid,'| %s | %s | %s | %.6g | %.6g | %.6g | %.6g | %.6g | %.6g | %d | %.3f |\n', ...
+        t.Scale{i},t.RobustProfile{i},t.Method{i},t.EstimatedObjective(i), ...
+        t.EstimatedScore(i),t.TrueObjective(i),t.TrueMeanExperienceRate(i), ...
+        t.TrueEdgeExperienceRate5(i), ...
         t.TotalPower(i),t.ActiveLinks(i),t.RuntimeSeconds(i));
 end
 end

@@ -123,12 +123,15 @@ searchResult.BestX = bestX;
 searchResult.BestCandidate = candidate;
 searchResult.BestResult = result;
 searchResult.BestScore = result.Score;
+searchResult.BestObjective = result.Objective;
 searchResult.Evaluations = 1;
-searchResult.History = table(1,result.Score,result.Score, ...
-    'VariableNames',{'Evaluation','Objective','BestObjective'});
+searchResult.History = table(1,result.Objective,result.Score,result.Objective,result.Score, ...
+    'VariableNames',{'Evaluation','Objective','Score','BestObjective','BestScore'});
 searchResult.EvaluationX = bestX;
 searchResult.EvaluationScore = result.Score;
+searchResult.EvaluationObjective = result.Objective;
 searchResult.FinalPopulation = bestX;
+searchResult.FinalObjectives = result.Objective;
 searchResult.FinalScores = result.Score;
 end
 
@@ -196,6 +199,9 @@ row.NumTxAntennas = cfg.numTxAntennas;
 row.NumRxAntennas = cfg.numRxAntennas;
 row.MaxRankCfg = cfg.maxRank;
 row.InnerMaxIter = cfg.inner.maxIter;
+row.InnerIterations = result.history.iterations;
+row.InnerConverged = result.history.converged;
+row.InnerStopReason = {result.history.stopReason};
 row.PopulationSize = cfg.search.populationSize;
 row.MaxEvaluations = cfg.search.maxEvaluations;
 row.Evaluations = searchResult.Evaluations;
@@ -248,18 +254,18 @@ for pi = 1:numel(profiles)
     profile = profiles{pi};
     idx = strcmp(summaryTable.Profile,profile);
     sub = summaryTable(idx,:);
-    [~,bestIdx] = max(sub.BestScore);
+    [~,bestIdx] = max(sub.BestObjective);
     fprintf(fid,'Profile %s\n',profile);
     fprintf(fid,'  Scale: DUs=%d, UEs=%d, RBGs=%d, MIMO=%dx%d, innerIter=%d, maxEval=%d\n', ...
         sub.NumDUs(1),sub.NumUEs(1),sub.NumRBGs(1), ...
         sub.NumRxAntennas(1),sub.NumTxAntennas(1),sub.InnerMaxIter(1),sub.MaxEvaluations(1));
-    fprintf(fid,'  Best by objective: %s, Objective=%.6g, J_true=%.6g, SumRate=%.6g, runtime=%.3fs\n', ...
-        sub.Method{bestIdx},sub.BestScore(bestIdx),sub.J_true(bestIdx), ...
-        sub.SumRate(bestIdx),sub.RuntimeSeconds(bestIdx));
+    fprintf(fid,'  Best by objective: %s, Objective=%.6g, Score=%.6g, J_true=%.6g, SumRate=%.6g, runtime=%.3fs\n', ...
+        sub.Method{bestIdx},sub.BestObjective(bestIdx),sub.BestScore(bestIdx), ...
+        sub.J_true(bestIdx),sub.SumRate(bestIdx),sub.RuntimeSeconds(bestIdx));
     for i = 1:height(sub)
-        fprintf(fid,'  - %-6s Objective=% .6g J_true=% .6g SumRate=% .6g Jain=%.4f ActiveLinks=%d Runtime=%.3fs\n', ...
-            sub.Method{i},sub.BestScore(i),sub.J_true(i),sub.SumRate(i), ...
-            sub.Jain(i),sub.ActiveLinks(i),sub.RuntimeSeconds(i));
+        fprintf(fid,'  - %-6s Objective=% .6g Score=% .6g J_true=% .6g SumRate=% .6g Jain=%.4f ActiveLinks=%d Runtime=%.3fs\n', ...
+            sub.Method{i},sub.BestObjective(i),sub.BestScore(i),sub.J_true(i), ...
+            sub.SumRate(i),sub.Jain(i),sub.ActiveLinks(i),sub.RuntimeSeconds(i));
     end
     fprintf(fid,'\n');
 end

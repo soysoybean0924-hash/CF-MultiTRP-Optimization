@@ -80,9 +80,12 @@ candidate = cf_decode_candidate(quickCfg.defaultX,quickCfg);
 basicResult = cf_evaluate_candidate(quickCfg,scenario,candidate,false);
 [basicTrue,basicDetails] = cf_compute_true_objective(basicResult);
 assert(isfinite(basicResult.Score));
+assert(isfinite(basicResult.Objective));
 assert(basicDetails.valueMatchesSumRate);
 assert(abs(basicTrue - basicResult.SumRate) <= 1e-8*max(1,abs(basicResult.SumRate)));
-assert(abs(basicResult.Score - basicTrue) <= 1e-8*max(1,abs(basicTrue)));
+assert(abs(basicResult.Objective - basicTrue) <= 1e-8*max(1,abs(basicTrue)));
+assert(abs(basicResult.Score - basicResult.ScoreParts.WeightedEvaluationScore) <= ...
+    1e-8*max(1,abs(basicResult.Score)));
 assert(isfield(basicResult,'ExperienceRate'));
 assert(numel(basicResult.ExperienceRate.UeExperienceRate) == quickCfg.numUEs);
 assert(all(basicResult.ExperienceRate.ThpTimeDl >= 0));
@@ -97,9 +100,12 @@ assert(all(burstExperience.ThpTimeDl <= sum(huaweiProbeScenario.traffic.NonEmpty
 innerResult = cf_evaluate_candidate(quickCfg,scenario,candidate,true);
 [innerTrue,innerDetails] = cf_compute_true_objective(innerResult);
 assert(isfinite(innerResult.Score));
+assert(isfinite(innerResult.Objective));
 assert(innerDetails.valueMatchesSumRate);
 assert(abs(innerTrue - innerResult.SumRate) <= 1e-8*max(1,abs(innerResult.SumRate)));
-assert(abs(innerResult.Score - innerTrue) <= 1e-8*max(1,abs(innerTrue)));
+assert(abs(innerResult.Objective - innerTrue) <= 1e-8*max(1,abs(innerTrue)));
+assert(abs(innerResult.Score - innerResult.ScoreParts.WeightedEvaluationScore) <= ...
+    1e-8*max(1,abs(innerResult.Score)));
 assert(isfield(innerResult.baseline,'ExperienceRate'));
 assert(isfinite(innerResult.ExperienceRate.MeanExperienceRate));
 assert(isfield(innerResult,'Robust'));

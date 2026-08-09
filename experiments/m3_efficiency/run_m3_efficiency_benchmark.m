@@ -133,15 +133,16 @@ searchResult.FixedX = bestX;
 searchResult.BestCandidate = candidate;
 searchResult.BestResult = result;
 searchResult.BestScore = result.Score;
-searchResult.BestObjective = result.Score;
+searchResult.BestObjective = result.Objective;
 searchResult.ObjectiveName = 'J_true';
 searchResult.Evaluations = 1;
-searchResult.History = table(1,result.Score,result.Score, ...
-    'VariableNames',{'Evaluation','Objective','BestObjective'});
+searchResult.History = table(1,result.Objective,result.Score,result.Objective,result.Score, ...
+    'VariableNames',{'Evaluation','Objective','Score','BestObjective','BestScore'});
 searchResult.EvaluationX = bestX;
 searchResult.EvaluationScore = result.Score;
-searchResult.EvaluationObjective = result.Score;
+searchResult.EvaluationObjective = result.Objective;
 searchResult.FinalPopulation = bestX;
+searchResult.FinalObjectives = result.Objective;
 searchResult.FinalScores = result.Score;
 end
 
@@ -163,7 +164,8 @@ row.Evaluations = searchResult.Evaluations;
 row.ScenarioSeconds = scenarioSeconds;
 row.RuntimeSeconds = runtimeSeconds;
 row.RuntimePerEvaluation = runtimeSeconds/max(1,searchResult.Evaluations);
-row.Objective = searchResult.BestScore;
+row.Objective = searchResult.BestObjective;
+row.Score = searchResult.BestScore;
 row.J_true = Jtrue;
 row.SumRate = result.SumRate;
 row.Jain = result.Jain;
