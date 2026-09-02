@@ -15,7 +15,8 @@ work/
 # =========================
 # 仿真结果（不上传）
 # =========================
-results/
+results/*
+!results/README.md
 outputs/
 logs/
 checkpoints/
