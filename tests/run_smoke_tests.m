@@ -14,6 +14,8 @@ assert(exist(fullfile(projectRoot,'experiments','huawei_robust','run_huawei_robu
 assert(exist('run_huawei_robust_scale_suite','file') == 2);
 assert(exist(fullfile(projectRoot,'experiments','huawei_robust','run_huawei_final_algorithm_comparison.m'),'file') == 2);
 assert(exist('run_huawei_final_algorithm_comparison','file') == 2);
+assert(exist(fullfile(projectRoot,'experiments','paper_ablation','run_controlled_outer_ablation.m'),'file') == 2);
+assert(exist('run_controlled_outer_ablation','file') == 2);
 assert(exist('cf_compute_experience_rate','file') == 2);
 assert(exist('cf_generate_burst_traffic','file') == 2);
 assert(exist('cf_apply_srs_measurement_model','file') == 2);
@@ -138,5 +140,13 @@ reducedSearch = cf_search('PSO',quickCfg,scenario,quickCfg.search);
 assert(reducedSearch.Evaluations == 2);
 assert(numel(reducedSearch.BestX) == quickCfg.search.dimension);
 assert(all(abs(reducedSearch.BestX(setdiff(1:9,[1 4])) - quickCfg.defaultX(setdiff(1:9,[1 4]))) < eps));
+assert(reducedSearch.InnerOptimizationEnabled);
+
+quickCfg.search.enableInnerOptimization = false;
+outerOnlySearch = cf_search('PSO',quickCfg,scenario,quickCfg.search);
+assert(outerOnlySearch.Evaluations == 2);
+assert(~outerOnlySearch.InnerOptimizationEnabled);
+assert(outerOnlySearch.BestResult.history.iterations == 0);
+assert(strcmp(outerOnlySearch.BestResult.history.stopReason,'not_run'));
 
 fprintf('Smoke tests passed: M3 config and quick evaluation pipeline are valid.\n');

@@ -6,3 +6,4 @@ addpath(fullfile(projectRoot,'experiments','m3_scale_comparison'));
 addpath(fullfile(projectRoot,'experiments','m3_testbed'));
 addpath(fullfile(projectRoot,'experiments','m3_efficiency'));
 addpath(fullfile(projectRoot,'experiments','huawei_robust'));
+addpath(fullfile(projectRoot,'experiments','paper_ablation'));

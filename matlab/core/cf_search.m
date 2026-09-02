@@ -1,5 +1,6 @@
 function output=cf_search(method,cfg,scenario,options)
 %CF_SEARCH GA, PSO, GA+PSO, PSO+GA, or PGSAO under one evaluation budget.
+% Set options.enableInnerOptimization=false for true outer-only ablations.
 if nargin<4 || isempty(options), options=cfg.search; end
 method=upper(strrep(char(method),' ','')); rng(cfg.seedSearch,'twister');
 [activeDimensions,fixedX,searchDimension]=searchSpace(options,cfg);
@@ -35,6 +36,7 @@ output.BestCandidate=cf_decode_candidate(output.BestX,cfg);
 output.BestResult=tracker.bestResult; output.BestScore=tracker.bestScore;
 output.BestObjective=tracker.bestObjective; output.ObjectiveName='J_true';
 output.Evaluations=count;
+output.InnerOptimizationEnabled=searchInnerEnabled(options);
 output.History=table((1:count)',tracker.traceObjective(1:count),tracker.traceScore(1:count), ...
     tracker.traceBestObjective(1:count),tracker.traceBestScore(1:count), ...
     'VariableNames',{'Evaluation','Objective','Score','BestObjective','BestScore'});
@@ -91,8 +93,11 @@ fullX=expandSearchVector(x,activeDimensions,fixedX);
 candidate=cf_decode_candidate(fullX,cfg);
 try
     % One outer-search evaluation means: decode x, run the inner candidate
-    % evaluation, then maximize the paper-style objective in result.Objective.
-    result=cf_evaluate_candidate(cfg,scenario,candidate,true); objective=result.Objective;
+    % evaluation when enabled, then maximize the paper-style objective in
+    % result.Objective. Disabling the inner loop gives a matched outer-only
+    % ablation: the same candidate decoder, scenario, objective, and budget.
+    result=cf_evaluate_candidate(cfg,scenario,candidate,searchInnerEnabled(options));
+    objective=result.Objective;
     if ~isfinite(objective), objective=-realmax; end
     score=result.Score;
     if ~isfinite(score), score=-realmax; end
@@ -109,6 +114,15 @@ t.traceBestObjective(k)=t.bestObjective; t.traceBestScore(k)=t.bestScore;
 if options.verbose
     fprintf('search eval %3d/%3d: objective=%10.4f, best=%10.4f, score=%10.4f\n', ...
         k,t.maxEvaluations,objective,t.bestObjective,score);
+end
+end
+
+function enabled=searchInnerEnabled(options)
+enabled=true;
+if isfield(options,'enableInnerOptimization')
+    enabled=logical(options.enableInnerOptimization);
+elseif isfield(options,'doOptimize')
+    enabled=logical(options.doOptimize);
 end
 end
 
