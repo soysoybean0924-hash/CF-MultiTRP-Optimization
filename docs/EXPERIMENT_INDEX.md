@@ -4,6 +4,20 @@ Status values: `PLANNED`, `SMOKE`, `RUNNING`, `COMPLETE`, `ARCHIVED`, `FAILED`.
 
 Snapshot date: 2026-09-02.
 
+## 中文说明
+
+这个文件是“实验地图”。以后找实验时优先看这里：入口脚本在哪、用了什么规模、
+seed 和 evaluation budget 是多少、结果目录在哪里、当前能不能当论文结果。
+
+状态含义：
+
+- `PLANNED`：计划要跑，但还没有正式结果。
+- `SMOKE`：只验证代码链路，不作为论文结论。
+- `RUNNING`：正在跑或预期可续跑。
+- `COMPLETE`：已有完整结果，但仍需看是否单 seed 或是否仅压力测试。
+- `ARCHIVED`：历史结果，保留参考，不作为当前主线证据。
+- `FAILED`：运行失败或结果不可用。
+
 | Experiment | Entry | Config / scale | TRP | UE | Tx | RBG | Seeds | Eval | Result directory | Status |
 |---|---|---|---:|---:|---:|---:|---|---:|---|---|
 | Controlled outer ablation smoke | `experiments/paper_ablation/run_controlled_outer_ablation.m` | S1 smoke overrides | 4 | 8 | 8 | 2 | 1 | 2 | `results/paper_ablation/smoke_codex/` | SMOKE |
@@ -25,6 +39,10 @@ Snapshot date: 2026-09-02.
 | Huawei full algorithm matrix | `experiments/huawei_robust/run_huawei_final_algorithm_comparison.m` | full Huawei | 21 | 315 | 64 | 273 | default single seed | 48 | `results/huawei_robust/<future_run>/` | PLANNED |
 
 ## Current Paper Matrix
+
+中文说明：当前论文主线的消融矩阵就是下面这 8 个方法。注意 `GA-only`、
+`PSO-only`、`PGSAO-only` 是不跑 inner 的真正 outer-only baseline；
+`GA+Inner`、`PSO+Inner`、`PGSAO+Inner` 是外层搜索每个 candidate 都调用 inner。
 
 The paper-focused experiment matrix is:
 

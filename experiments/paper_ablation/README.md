@@ -3,6 +3,19 @@
 This folder contains the controlled first-stage paper workflow for separating
 outer-only search from outer search with the inner iterative optimizer.
 
+## 中文说明
+
+这个文件夹是当前论文第一阶段最重要的实验入口。它的目的不是继续发明新算法，
+而是公平地区分：
+
+- 只跑默认策略的 `basic`；
+- 只跑内层优化的 `inner`；
+- 只跑外层搜索、不跑 inner 的 `GA-only`、`PSO-only`、`PGSAO-only`；
+- 外层搜索每个 candidate 都调用 inner 的 `GA+Inner`、`PSO+Inner`、`PGSAO+Inner`。
+
+当前 hybrid 方法先用已有的 `PGSAO`，避免为了结果临时创造新算法。正式论文结果
+应该使用 S1-S4、多 seed、统一 evaluation budget，而不是使用 tiny smoke 结果。
+
 ## Methods
 
 The default matrix is:

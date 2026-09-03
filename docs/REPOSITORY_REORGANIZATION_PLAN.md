@@ -5,6 +5,16 @@ Snapshot date: 2026-09-02.
 This plan records a safe cleanup strategy. No algorithm logic, historical
 results, or Git history should be changed just to make the tree prettier.
 
+## 中文摘要
+
+这个文件不是已经执行的移动记录，而是后续安全整理仓库的计划。当前最稳妥的策略是：
+先不要移动目录，不要删除历史结果，先通过 README、实验索引和结果索引让项目可读。
+
+原因是很多实验入口依赖 `setup_project_paths.m` 中的硬编码路径。直接移动
+`experiments/m3_*`、`experiments/huawei_robust` 或历史 `results/` 目录，
+可能破坏脚本、文档和论文图表引用。真正需要物理整理时，应使用 `git mv`，
+并同步更新路径、测试和文档。
+
 ## 1. Current Problems
 
 - `results/` contains many result generations with no root-level trust index.
@@ -22,6 +32,9 @@ results, or Git history should be changed just to make the tree prettier.
   tracked/ignored state is confusing but should not be fixed by deletion.
 
 ## 2. Recommended Target Structure
+
+中文说明：下面是未来目标结构，不是当前已经执行的结构。当前仓库仍保持原目录，
+只补充了索引文档。
 
 ```text
 experiments/
@@ -52,6 +65,9 @@ docs/
 ```
 
 ## 3. Recommended Moves
+
+中文说明：这些移动建议暂时不要执行。执行前需要确认 MATLAB path、结果引用和论文图表
+不会被破坏。
 
 Do not perform these moves until the scripts and any manuscript references are
 updated together.

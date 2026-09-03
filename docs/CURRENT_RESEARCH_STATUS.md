@@ -2,6 +2,17 @@
 
 Snapshot date: 2026-09-02.
 
+## 中文摘要
+
+当前项目已经完成了真正的 Outer-only 消融接口：`GA-only`、`PSO-only`、
+`PGSAO-only` 可以在不运行 inner 的情况下评价同一个 `J_true`。同时，
+`GA+Inner`、`PSO+Inner`、`PGSAO+Inner` 也已经存在。
+
+但现在还没有完成正式论文级实验。已有 `smoke_codex` 只是一个极小 S1 单 seed、
+2 次外层评价、1 次 inner 迭代的连通性验证，不能证明 PGSAO+Inner 稳定优于
+GA+Inner 或 PSO+Inner。下一步最重要的是跑 S1-S4、seed 1:10、统一 eval 32
+的 controlled ablation。
+
 ## Current Research Goal
 
 Show, on controlled small/medium Multi-TRP scales, whether inner iterative

@@ -3,6 +3,21 @@
 Cell-Free / Multi-TRP cooperative scheduling research code for studying
 inner iterative optimization plus outer search over scheduling parameters.
 
+## 中文速览
+
+这是一个用于 Multi-TRP / Cell-Free Massive MIMO 协同调度研究的 MATLAB
+项目。当前论文主线不是先冲完整 Huawei 大规模验收，而是在小/中等可控规模下，
+严格比较 `Basic`、`Inner-only`、`Outer-only`、`Single Outer + Inner`
+和 `Hybrid Outer + Inner`，验证“内层迭代优化 + 混合外层搜索”是否真的有互补收益。
+
+半年后重新打开项目时，建议先看这几个文件：
+
+- `docs/CURRENT_RESEARCH_STATUS.md`：当前研究到底做到哪一步。
+- `docs/EXPERIMENT_INDEX.md`：每个实验入口、规模、seed、预算和状态。
+- `results/README.md`：哪些结果是 smoke，哪些是 M3/Huawei 历史压力测试。
+- `experiments/paper_ablation/run_controlled_outer_ablation.m`：当前论文主线实验入口。
+- `matlab/core/cf_search.m` 和 `matlab/core/cf_evaluate_candidate.m`：外层搜索和内层优化核心逻辑。
+
 ## Research Question
 
 This repository studies whether a Multi-TRP scheduler can improve the true
@@ -25,6 +40,9 @@ Huawei-style runs are treated as engineering stress tests.
 
 ## Current Directory Map
 
+中文说明：当前不建议继续移动目录。`matlab/core/` 是核心算法；`experiments/`
+放不同阶段的实验入口；`results/` 放实验输出和可信度索引；`docs/` 放恢复记忆用的研究状态、实验索引和整理计划。
+
 ```text
 CF-MultiTRP-Optimization/
 |-- matlab/core/                 Core MATLAB model, objective, inner loop, search
@@ -45,6 +63,11 @@ CF-MultiTRP-Optimization/
 
 ## Core Algorithms
 
+中文说明：`Basic` 和 `Inner-only` 都用默认候选 `cfg.defaultX`。外层搜索算法
+在 9 维归一化参数空间里搜索 candidate。现在可以通过
+`options.enableInnerOptimization=false` 跑真正的 Outer-only 消融，也可以通过
+默认设置或 `true` 跑 Outer+Inner。
+
 - Basic baseline: `cf_evaluate_candidate(..., false)` on `cfg.defaultX`.
 - Inner-only: `cf_evaluate_candidate(..., true)` on `cfg.defaultX`.
 - Outer search: `cf_search(method, cfg, scenario, options)`.
@@ -57,6 +80,10 @@ sum rate: `sum log2(1 + SINR)` over scheduled streams. Engineering score,
 fairness, active links, total power, and runtime are reported as diagnostics.
 
 ## Config Profiles
+
+中文说明：`quick/standard/paper/m3/huawei` 是历史和压力测试配置；当前论文第一阶段
+更推荐使用 `paper_ablation` 里的 S1-S4 受控规模，因为它主要改变 TRP/UE 规模，
+尽量固定 Tx/RBG，结果更容易解释。
 
 Defined in `matlab/core/cf_default_config.m`:
 
@@ -122,6 +149,10 @@ run('experiments/huawei_robust/run_huawei_final_algorithm_comparison.m')
 ```
 
 ## Result Locations
+
+中文说明：不要把所有 `results/` 都当成论文结果。`smoke_codex` 只能说明代码跑通；
+M3 和 Huawei 结果更多是压力测试；真正论文级结果应该来自未来完整运行的
+`results/paper_ablation/<run_id>/`。
 
 - Current controlled ablation smoke:
   `results/paper_ablation/smoke_codex/`

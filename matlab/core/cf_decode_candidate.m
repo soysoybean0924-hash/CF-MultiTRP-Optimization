@@ -1,5 +1,5 @@
 function candidate = cf_decode_candidate(x,cfg)
-%CF_DECODE_CANDIDATE Map normalized x in [0,1]^9 to mixed parameters.
+%CF_DECODE_CANDIDATE Map normalized x in [0,1]^9 to mixed parameters.把搜索算法输出的归一化向量转成实际参数
 x=reshape(double(x),1,[]);
 if numel(x)~=cfg.search.dimension
     error('Candidate must contain %d normalized variables.',cfg.search.dimension);

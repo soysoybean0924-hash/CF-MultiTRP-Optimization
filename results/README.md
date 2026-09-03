@@ -6,6 +6,17 @@ be tracked because they were committed before the current ignore rules.
 
 Snapshot date: 2026-09-02.
 
+## 中文速览
+
+这个目录里不是所有结果都能直接写进论文。当前分类原则是：
+
+- `SMOKE`：只证明代码能跑通，例如 `paper_ablation/smoke_codex/`。
+- `COMPLETE historical`：历史单 seed 或旧配置结果，可以帮助恢复研究脉络。
+- `COMPLETE stress`：M3/Huawei 压力测试结果，能说明大规模行为，但不是当前第一阶段论文主证据。
+- `PLANNED`：计划中的正式论文结果，主要是未来的 `paper_ablation/<run_id>/`。
+
+目前真正缺的是 `paper_ablation` 下的正式 S1-S4、多 seed、统一搜索预算结果。
+
 ## Current Paper Track
 
 | Directory | Status | Use |
@@ -38,6 +49,10 @@ The formal paper run should produce:
 
 ## M3 Results
 
+中文说明：M3 结果很重要，但更像压力测试。已有结果显示在当前 `J_true` 定义下，
+`basic` 因为保留更多链路和功率，在 M3 上可能非常强，不能简单当作 proposed
+方法已经失败或成功的最终论文结论。
+
 | Directory | Status | Notes |
 |---|---|---|
 | `M3_scale_comparison/` | COMPLETE historical | quick/standard/paper/m3 single-seed profile comparison |
@@ -51,6 +66,9 @@ because it keeps many links and high power. M3 is therefore a stress-test
 track, not the first-stage paper proof.
 
 ## Huawei Results
+
+中文说明：Huawei 目录是工程启发式 stress test。full config 已经存在，
+但完整 21 TRP / 315 UE / 64 Tx / 273 RBG 的全算法矩阵还没完成。
 
 | Directory | Status | Notes |
 |---|---|---|

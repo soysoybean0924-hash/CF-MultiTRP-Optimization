@@ -5,6 +5,17 @@ moving, or overwriting research assets.
 
 Snapshot date: 2026-09-02.
 
+## 中文摘要
+
+这是当前仓库的“资产盘点表”。它回答三个问题：
+
+- 哪些是核心算法代码；
+- 哪些实验和结果属于当前论文主线；
+- 哪些只是历史、smoke、debug 或压力测试资产。
+
+本文件只做盘点，不代表这些文件都已经移动或归档。尤其是 `results/` 中很多内容
+被 `.gitignore` 忽略，但仍然是重要研究资产，不能随便删除。
+
 ## Git Snapshot
 
 - Branch: `main`
@@ -31,6 +42,10 @@ Untracked before this documentation pass:
 may still be tracked because they entered Git before the ignore rule.
 
 ## 01 Core Algorithm Code
+
+中文说明：核心算法集中在 `matlab/core/`。当前论文真正需要反复看的文件是
+`cf_evaluate_candidate.m`、`cf_search.m`、`cf_decode_candidate.m`、
+`cf_default_config.m` 和 `cf_compute_true_objective.m`。
 
 | File | Function | Still called | Called by | Paper track |
 |---|---|---|---|---|
@@ -87,6 +102,10 @@ Important behavior:
 | `experiments/local_sensitivity/*.m` | local parameter perturbation | quick/standard/paper | `results/local_sensitivity*` | Not rerun here | Historical support |
 
 ## 04 Experiment Results
+
+中文说明：这一节是判断结果可信度的重点。`SMOKE` 只表示链路跑通；
+`COMPLETE stress` 可以说明压力测试现象，但不一定能支撑论文主结论；
+当前真正缺的是 `paper_ablation` 的正式多 seed 结果。
 
 | Result directory | Category | Key source | Scale | Trust label | Paper usable |
 |---|---|---|---|---|---|
@@ -153,6 +172,9 @@ with the core algorithm paper until ownership is confirmed.
 No broad unit-test suite or statistical regression suite currently exists.
 
 ## 08 Temporary / Archive Candidates
+
+中文说明：这里列的是“以后可以考虑归档”的候选，不是本轮已经删除或移动的内容。
+默认不删除 `.m`、CSV、MAT、正式图、论文材料和历史实验。
 
 Do not delete in this pass. Candidates for later archival:
 
