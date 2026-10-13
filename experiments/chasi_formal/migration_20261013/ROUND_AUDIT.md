@@ -53,7 +53,7 @@ seed27整数为`20261027`。`scenario.generate`主RNG用`cfg.seed`生成拓扑/�
 
 ## 6. 38.901/CDL 与后续依赖
 
-参考源码真实位置见 `../source_manifest_20261012.json`：2023功率仓库 `D:\GitHubProjects\power-allocation-cell-free-main\WMMSE_ADMM_Func.py`（GPLv2）；隔离CDL适配 `C:\Users\sypxx\Documents\CF mMIMO TRP\chasi_tr38901_staging\chasi_formal_implementation\tr38901_cdl.py`，上游MIT，审计见同处`TR38901_ADAPTER_AUDIT.md`。隔离适配已有CDL-A/D链路形状、极化阵列、频时响应和seed测试；可复用链路级PDP、角度/极化/XPR/相关响应构件。独立PDP/角度/XPR统计对拍、全场景主分支接入、2口SRS到4口DL后验误差均未完成；不得判参考仓库不可用，也不得称标准一致性通过。因主项目 `config/scenario/run` 已变化，本轮未直接覆盖隔离副本或运行中的正式场景。
+参考源码真实位置见 `../source_manifest_20261012.json`：2023功率仓库 `D:\GitHubProjects\power-allocation-cell-free-main\WMMSE_ADMM_Func.py`（GPLv2）；隔离CDL适配 `C:\Users\sypxx\Documents\CF mMIMO TRP\chasi_tr38901_staging\chasi_formal_implementation\tr38901_cdl.py`，上游MIT，审计见同处`TR38901_ADAPTER_AUDIT.md`。隔离适配已有CDL-A/D链路形状、极化阵列、频时响应和seed测试；可复用链路级PDP、角度/极化/XPR/相关响应构件。本轮 `cdl_group_input.cdl_group_h` 接收**已构造**的链路对象和路径增益，输出中心RB的`H[K,L,4,64]`；`test_cdl_group_input.py`实际调用隔离MIT源的小例，验证形状、同输入复现、不同频时响应。该测试依赖上述本机隔离目录，未将其代码复制进Git。独立PDP/角度/XPR统计对拍、全场景主分支接入、2口SRS到4口DL后验误差均未完成；中心RB不能冒充逐RB物理速率；不得判参考仓库不可用，也不得称标准一致性通过。因主项目 `config/scenario/run` 已变化，本轮未直接覆盖隔离副本或运行中的正式场景。
 
 下一步依赖顺序：①保留原始burst事件并固定无样本/跨秒规则及ACKed RLC计数；②明确30%到达负载、系统SRS分母和50%PRB政策；③CDL链路统计对拍和2SRS/4DL端口条件后验；④在已有场景导出器上接正式210UE场景与MATLAB同场景对拍，加入PF与回溯；⑤调度/关联/rank候选和快慢层更新形成闭环；⑥sharing原型残差/交换数据/并行节点完善；⑦构造同口径理想集中与严格无协同基线，多seed检验相对提升80%、节能30%且体验损失<10%。
 
