@@ -23,7 +23,7 @@
 
 正式Python：`cf_run_chasi_formal.m`/`run_chasi_formal.m` 拼CLI → `chasi_formal_implementation.run.main` 调 `scenario.generate`（Python重新建网络、真/估H、资源调度/几何服务掩码）→ `solver.solve`：`_initial`/`_state`/`_quadratic_parts`/`_solve_v_admm` → `evaluate.py` 真信道/业务代理 → 可选 `time_evolution.py` 回放 → `summary.json`、逐UE项、`*_precoders.npz/.mat`。MATLAB CLI传seed、UE/小区、rank、服务TRP数、PRB比例、SRS/CSI模式、迭代容差等**标量配置**；不传复数`H_est/H_true`、逐组serve/schedule或显式功率预算。Python回传JSON和保存的复数`V/U/W`，MATLAB能读回复数V。桥接原因没有完整开发日志；作为工程推断，是为了先隔离验证Python复矩阵原型并保持旧MATLAB入口可调用。不能将CLI读回复数与“MATLAB向Python传实际复数信道”等同。
 
-现在的三个层次：①原2023固定方向实数标量功率 → 本项目多流复矩阵数学**重推**，实际借鉴WMMSE/ADMM思想而非照搬其`WMMSE_ADMM_Func.py`；②Python复矩阵公式 → 本轮独立MATLAB语言实现（小例对拍）；③旧/正式场景数据 → MATLAB求解器显式输入接口已有，但主场景自动导出/候选路径仍未接通。新求解器不能直接充当旧候选评价器。
+现在的三个层次：①原2023固定方向实数标量功率 → 本项目多流复矩阵数学**重推**，实际借鉴WMMSE/ADMM思想而非照搬其`WMMSE_ADMM_Func.py`；②Python复矩阵公式 → 本轮独立MATLAB语言实现（小例对拍）；③旧/正式场景数据 → MATLAB求解器显式输入接口及Python场景对象导出器 `export_scene_to_matlab.export_scene` 已有，同一小场景的H/C/serve/UE ID/RB/V MAT字段验证通过；正式210UE场景自动调用、PF/回溯和旧候选路径仍未接通。新求解器不能直接充当旧候选评价器。
 
 ## 3. 数组、seed与初始化
 
@@ -43,7 +43,7 @@ seed27整数为`20261027`。`scenario.generate`主RNG用`cfg.seed`生成拓扑/�
 & 'C:\Users\sypxx\py\python.exe' experiments/chasi_formal/migration_20261013/trp_sharing_admm_demo.py
 ```
 
-`matlab_fixture_input.mat`是相同的2TRP×2UE×2资源组×4Rx×4Tx×1流、16/17RB、0.11W输入；`matlab_fixture_output.mat`为MATLAB输出。`matlab_python_comparison.json`：三快照目标绝对差`1.39e-17/0/1.67e-16`，最大V元素差`6.11e-16`，功率差`8.33e-17W`，两次Python ADMM在29/17轮停。证明该小例状态、V更新、投影和外循环数值相同；**未验证**64Tx/4Rx/rank2、PF、统计误差、主场景自动输入或工程性能。另 `test_v_reference.py` 的独立SLSQP（Sequential Least Squares Programming）固定U/W小例：ADMM目标`-0.248503145836`与SLSQP`-0.248503146456`差`6.20e-10`，两TRP功率约0.11W，但严苛容差下600轮残差未达阈值；目标接近/约束可行与残差收敛必须分开。
+`matlab_fixture_input.mat`是相同的2TRP×2UE×2资源组×4Rx×4Tx×1流、16/17RB、0.11W输入；`matlab_fixture_output.mat`为MATLAB输出。`matlab_python_comparison.json`：三快照目标绝对差`1.39e-17/0/1.67e-16`，最大V元素差`6.11e-16`，功率差`8.33e-17W`，两次Python ADMM在29/17轮停。证明该小例状态、V更新、投影和外循环数值相同。`test_scene_export.py`用**调用方供应**的小场景验证MAT文件逐组保持H/C/serve/UE ID/RB/初始V；导出器不重生随机网络。**未验证**64Tx/4Rx/rank2、PF、正式210UE场景导出后MATLAB求解或工程性能。另 `test_v_reference.py` 的独立SLSQP（Sequential Least Squares Programming）固定U/W小例：ADMM目标`-0.248503145836`与SLSQP`-0.248503146456`差`6.20e-10`，两TRP功率约0.11W，但严苛容差下600轮残差未达阈值；目标接近/约束可行与残差收敛必须分开。
 
 当前正式Python `_solve_v_admm` 是集中式：X需要全H的相干Q作用，Z按TRP预算可分，dual按X=Z；`local.py`只是消息模拟。新`trp_sharing_admm_demo.py`提出**sharing分裂**：每TRP保留不同的物理`V_l`及本地`A_l V_l`（`A_l`由本地H列构造）；协调节点持有副本`z_l`和`Σ_l z_l`，求`min Σ_l [a d_l||V_l||²−2aRe⟨b_l,V_l⟩+I_{P_l}] + (Σ_l z_l)ᴴM(Σ_l z_l)`，约束`A_l V_l=z_l`。本地x更新只需本地H、b、误差对角及协调节点发回的z/对偶；U/W的接收端统计、M汇总仍需协调或可信汇聚。**不设置物理V_l相等**。本轮在单进程串行模拟3TRP/2UE，单TRP单向消息16个complex128=256字节/轮（未含M/U/W/控制），与集中式SLSQP目标差`9.81e-6`、功率均约0.11W；1200轮原/对偶残差`2.00e-6/7.43e-5`，未达到演示阈值`1e-7`，不叫收敛，不叫并行部署。结果见`trp_sharing_admm_result.json`。
 
@@ -55,7 +55,7 @@ seed27整数为`20261027`。`scenario.generate`主RNG用`cfg.seed`生成拓扑/�
 
 参考源码真实位置见 `../source_manifest_20261012.json`：2023功率仓库 `D:\GitHubProjects\power-allocation-cell-free-main\WMMSE_ADMM_Func.py`（GPLv2）；隔离CDL适配 `C:\Users\sypxx\Documents\CF mMIMO TRP\chasi_tr38901_staging\chasi_formal_implementation\tr38901_cdl.py`，上游MIT，审计见同处`TR38901_ADAPTER_AUDIT.md`。隔离适配已有CDL-A/D链路形状、极化阵列、频时响应和seed测试；可复用链路级PDP、角度/极化/XPR/相关响应构件。独立PDP/角度/XPR统计对拍、全场景主分支接入、2口SRS到4口DL后验误差均未完成；不得判参考仓库不可用，也不得称标准一致性通过。因主项目 `config/scenario/run` 已变化，本轮未直接覆盖隔离副本或运行中的正式场景。
 
-下一步依赖顺序：①保留原始burst事件并固定无样本/跨秒规则及ACKed RLC计数；②明确30%到达负载、系统SRS分母和50%PRB政策；③CDL链路统计对拍和2SRS/4DL端口条件后验；④把正式Python场景H/C/serve/rank/RB/预算**显式导出**供MATLAB及同场景对拍，加入PF与回溯；⑤调度/关联/rank候选和快慢层更新形成闭环；⑥sharing原型残差/交换数据/并行节点完善；⑦构造同口径理想集中与严格无协同基线，多seed检验相对提升80%、节能30%且体验损失<10%。
+下一步依赖顺序：①保留原始burst事件并固定无样本/跨秒规则及ACKed RLC计数；②明确30%到达负载、系统SRS分母和50%PRB政策；③CDL链路统计对拍和2SRS/4DL端口条件后验；④在已有场景导出器上接正式210UE场景与MATLAB同场景对拍，加入PF与回溯；⑤调度/关联/rank候选和快慢层更新形成闭环；⑥sharing原型残差/交换数据/并行节点完善；⑦构造同口径理想集中与严格无协同基线，多seed检验相对提升80%、节能30%且体验损失<10%。
 
 ## 5分钟看图汇报
 
