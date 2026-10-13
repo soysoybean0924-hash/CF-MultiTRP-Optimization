@@ -1,0 +1,18 @@
+{
+  "scope": "final saved two-TRP rank-one fixture state, no new optimizer run",
+  "per_resource": [
+    {
+      "U_max_abs": 9.639819490876587e-17,
+      "W_max_abs": 4.440892098500626e-16,
+      "rate_max_abs_bits_per_s_hz": 4.440892098500626e-16
+    },
+    {
+      "U_max_abs": 8.355534721610418e-17,
+      "W_max_abs": 8.881784197001252e-16,
+      "rate_max_abs_bits_per_s_hz": 8.881784197001252e-16
+    }
+  ],
+  "max_U_abs": 9.639819490876587e-17,
+  "max_W_abs": 8.881784197001252e-16,
+  "max_rate_abs_bits_per_s_hz": 8.881784197001252e-16
+}
