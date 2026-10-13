@@ -1,0 +1,35 @@
+{
+  "source_summary": "D:\\GitHubProjects\\CF-MultiTRP-Optimization\\results\\chasi_formal\\b3b_uniform_relative210_seed20261027_20261013\\summary.json",
+  "source_sha256": "1d046738442746c2a9413d024ce7c9b45033c3a02d2676a778591dd9fe0bf845",
+  "scene_manifest_sha256": "d184dd8b541d24306bc7f65d1846a0b4096ce1b22d89a91a965f3fca613a932a",
+  "source_code_sha256_at_run_start": {
+    "config.py": "63195fd20809e19dd6de375931de0694d72a98f1c21a1dcfac39e9fd018e6517",
+    "scenario.py": "2438526f4245d675882edbb77f1e543b42a6c19f4ada2de38574a186cd0e7fea",
+    "solver.py": "795add5d5393004c875daf6bd3bcdd6e4a44e35c5b23af21d72ab3c85af718e4",
+    "evaluate.py": "1abbfdc8ed5d8491eb1b42333f84d41840b766f9febb77e527d2ad74c9be8ae0",
+    "run.py": "92aac974295fb5db62294f7884531789e601d9ee6bdf2e47b203c3a6f01bddae",
+    "time_evolution.py": "2874a7b0a2b9ac68089e517af82e44c8495ad8218b8ad8fb2d360fa6067793e2",
+    "traffic_model.py": "3d6242833fed61f2d4621c0da6f516ee2519b8ce870081c068e10c027f3b0b13",
+    "second_metrics.py": "79833961b4555e9e25215c91ce406ad1e2a38290c3290a1c615f0418b3470ec3",
+    "burst_metrics.py": "52fa14e97e2aa127f495d177fab15c548b736444e32681f1cf9f171db113ca1b",
+    "srs_reuse.py": "7e78ca4a940bad996ba64e4acc30005d55b5832479977478eb2ac90f29dcb4cd",
+    "initializers.py": "bf0cab167bf0ac4beeea53c57937990b8682795ab0fa3b0fb069670ce3b419c8",
+    "uniform_error.py": "86e41a1a725a700fc991dcc98f7f0ae3ba942a6636ef96460abf34fafca80032"
+  },
+  "seed": 20261027,
+  "font": "Microsoft YaHei",
+  "rank": 2,
+  "budget_watt_per_trp": 20.0,
+  "static_observation_window_tti": 340,
+  "static_sample_count_per_branch": [
+    210,
+    210,
+    210
+  ],
+  "note": "Saved static 0.34-s capacity/traffic proxy; not formal UE-second RLC throughput",
+  "seed22_second_candidate": {
+    "valid": 138,
+    "missing": 72,
+    "not_queue_completed": 1589
+  }
+}
