@@ -1,0 +1,43 @@
+{
+  "TRPs": 3,
+  "UEs": 2,
+  "resource_rb": 16,
+  "budget_watt": 0.11,
+  "local_update_execution": "serial simulation, independent local x_l solves",
+  "coordinator_message": "one complex effective contribution tensor per TRP per iteration",
+  "complex_elements_per_TRP_one_way": 16,
+  "bytes_per_TRP_one_way_complex128": 256,
+  "iterations": 1200,
+  "distributed_objective": -0.1729151070188659,
+  "central_slsqp_objective": -0.17292491544160807,
+  "absolute_objective_gap": 9.808422742174638e-06,
+  "power_watt": [
+    0.10999999999999999,
+    0.11,
+    0.11000000000000001
+  ],
+  "consistency_primal": 1.99882244599365e-06,
+  "consistency_dual": 7.43299517031552e-05,
+  "trace": [
+    {
+      "iteration": 1,
+      "primal": 0.16949924490115173,
+      "dual": 0.09292639232722157
+    },
+    {
+      "iteration": 10,
+      "primal": 0.011839939777882058,
+      "dual": 0.03208855578325454
+    },
+    {
+      "iteration": 100,
+      "primal": 0.00014850138571497222,
+      "dual": 0.0015586041051754724
+    },
+    {
+      "iteration": 500,
+      "primal": 1.0870026541821706e-05,
+      "dual": 0.0002347138726942466
+    }
+  ]
+}

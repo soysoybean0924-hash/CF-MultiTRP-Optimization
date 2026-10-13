@@ -1,0 +1,33 @@
+{
+  "objective_absolute_errors": [
+    1.3877787807814457e-17,
+    0.0,
+    1.6653345369377348e-16
+  ],
+  "max_v_entry_absolute_error": 6.107803453188451e-16,
+  "power_absolute_error_watt": 8.326672684688674e-17,
+  "python_admm": [
+    {
+      "iterations": 29,
+      "converged": true,
+      "primal": 1.1438132898309527e-05,
+      "dual": 2.3679932389158576e-06
+    },
+    {
+      "iterations": 17,
+      "converged": true,
+      "primal": 6.074096235871315e-06,
+      "dual": 2.013132947889078e-06
+    }
+  ],
+  "matlab_objectives": [
+    0.09929798853924664,
+    0.1650862083221652,
+    0.17603137630431953
+  ],
+  "matlab_power_watt": [
+    0.10999999999994653,
+    0.10999999999995125
+  ],
+  "max_w_hermitian_error": 0.0
+}
