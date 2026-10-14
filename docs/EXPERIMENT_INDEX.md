@@ -1,3 +1,5 @@
+> **2026-10-14 茶思展示索引：**[七张最终展示图与逐图说明](../experiments/chasi_formal/final_figures_20261014/README.md)读取2026-10-13已有210UE配对静态运行与独立seed22回放，绘图脚本不运行求解器。source data、最终PNG/PDF/SVG和重建的TRP×资源组功率CSV同目录；[输入哈希](../experiments/chasi_formal/final_figures_20261014/final_figure_manifest.json)。这是保存结果的展示核查，**不是新的正式实验或验收通过记录**。
+>
 # Experiment Index
 
 Status values: `PLANNED`, `SMOKE`, `RUNNING`, `COMPLETE`, `ARCHIVED`, `FAILED`.
