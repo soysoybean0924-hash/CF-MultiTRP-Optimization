@@ -63,28 +63,26 @@ def fig1(summary):
     delta=np.diff(y)
     check(np.all(delta>0),'Log increment axis requires positive values; change representation if future data differ')
     check(summary['config']['pf_rate_floor_bits_per_s_hz']==.001,'PF floor changed')
-    fig=plt.figure(figsize=(13.2,7.8))
-    g=fig.add_gridspec(2,2,left=.09,right=.97,top=.85,bottom=.12,
-                      height_ratios=[1,.87],width_ratios=[1.15,1],hspace=.5,wspace=.27)
-    a=fig.add_subplot(g[0,0]); b=fig.add_subplot(g[0,1]); c=fig.add_subplot(g[1,:])
-    a.plot(x,y,'o-',color=COLORS[0],lw=2,ms=4)
-    a.set_xticks(np.arange(0,19,2));a.set_title('A  \u5b8c\u6574\u76ee\u6807\u8f68\u8ff9',loc='left',weight='bold')
-    grid(a,'\u6574\u6570\u72b6\u6001\u7f16\u53f7\uff1a0 \u4e3a\u521d\u59cb\u72b6\u6001','\u4f30\u8ba1\u4fe1\u9053 PF \u5bf9\u6570\u6548\u7528\uff08\u65e0\u91cf\u7eb2\uff09')
-    b.plot(x[12:],y[12:],'o-',color=COLORS[0],lw=2,ms=5)
-    b.set_xticks(x[12:]);b.set_ylim(1066.86,1067.49)
-    b.ticklabel_format(axis='y',style='plain',useOffset=False)
-    b.set_title('B  \u72b6\u6001 12\u201318 \u7684\u771f\u5b9e\u5c3e\u90e8\u653e\u5927',loc='left',weight='bold')
-    grid(b,'\u6574\u6570\u72b6\u6001\u7f16\u53f7','PF \u5bf9\u6570\u6548\u7528\uff08\u65e0\u91cf\u7eb2\uff09')
-    c.plot(np.arange(18),delta,'o-',color=COLORS[1],lw=1.8,ms=4)
-    c.set_yscale('log');c.set_xticks(np.arange(18));c.set_xlim(-.4,17.5)
-    c.set_title('C  \u6bcf\u6b21\u66f4\u65b0\u7684\u5b9e\u9645\u589e\u91cf \u0394F = F(\u66f4\u65b0\u540e) \u2212 F(\u66f4\u65b0\u524d)',loc='left',weight='bold')
-    grid(c,'V \u66f4\u65b0\u7f16\u53f7 t\uff08\u5bf9\u5e94\u72b6\u6001 t \u2192 t+1\uff09','\u76ee\u6807\u589e\u91cf \u0394F\uff08\u65e0\u91cf\u7eb2\uff0c\u5bf9\u6570\u8f74\uff09')
-    c.text(.985,.96,'\u672b\u4e94\u6b21\u66f4\u65b0\n'+'\n'.join(f'{t}\u2192{t+1}: +{delta[t]:.6f}' for t in range(13,18)),
-           transform=c.transAxes,ha='right',va='top',fontsize=8.5,
-           bbox={'boxstyle':'round,pad=.35','fc':'white','ec':'#cbd6dc'})
-    fig.suptitle('\u56fe 1\uff5c\u4f30\u8ba1\u4fe1\u9053 PF \u76ee\u6807\uff1a\u65e9\u671f\u5feb\u5347\uff0c\u540e\u671f\u4ecd\u6709\u9012\u51cf\u589e\u91cf',
-                 x=.09,ha='left',fontsize=15,weight='bold')
-    fig.text(.09,.045,'\u540c\u4e00\u8fd0\u884c\uff1a19 \u4e2a\u72b6\u6001\u5feb\u7167\u300118 \u6b21 V \u66f4\u65b0\uff1b\u6b64\u76ee\u6807\u4e0d\u662f Mbps \u6216\u534f\u8bae\u611f\u77e5\u901f\u7387\u3002',fontsize=8.5)
+    fig,ax=plt.subplots(figsize=(12.2,6.7))
+    fig.subplots_adjust(left=.11,right=.96,top=.84,bottom=.15)
+    ax.plot(x,y,'o-',color=COLORS[0],lw=2.2,ms=5)
+    ax.set_xticks(x);ax.set_xlim(-.4,18.4)
+    grid(ax,'\u72b6\u6001\u7f16\u53f7\uff080 \u4e3a\u521d\u59cb V\uff0c18 \u4e3a\u7b2c 18 \u6b21\u66f4\u65b0\u540e\uff09',
+         '\u4f30\u8ba1\u4fe1\u9053 PF \u5bf9\u6570\u6548\u7528\uff08\u65e0\u91cf\u7eb2\uff09')
+    ax.annotate(f'{y[0]:.3f}',xy=(0,y[0]),xytext=(.8,y[0]+25),
+                arrowprops={'arrowstyle':'-','color':COLORS[0]},color=COLORS[0])
+    ax.annotate(f'{y[-1]:.3f}',xy=(18,y[-1]),xytext=(15.0,y[-1]-40),
+                arrowprops={'arrowstyle':'-','color':COLORS[0]},color=COLORS[0])
+    inset=ax.inset_axes([.43,.18,.54,.48])
+    inset.plot(x[12:],y[12:],'o-',color=COLORS[1],lw=2,ms=4.5)
+    inset.set_xticks(x[12:]);inset.set_ylim(y[12]-.05,y[-1]+.05)
+    inset.ticklabel_format(axis='y',style='plain',useOffset=False)
+    inset.grid(axis='y',alpha=.2)
+    inset.set_title('\u540c\u56fe\u653e\u5927\uff1a\u72b6\u6001 12\u201318',loc='left',fontsize=10,weight='bold')
+    inset.set_xlabel('\u72b6\u6001\u7f16\u53f7',fontsize=9)
+    inset.tick_params(labelsize=8)
+    fig.suptitle('\u56fe 1\uff5c\u4f30\u8ba1\u4fe1\u9053 PF \u4f18\u5316\u76ee\u6807\uff1a\u7b2c 18 \u6b21\u66f4\u65b0\u540e\u89e6\u53d1\u505c\u6b62',
+                 x=.11,ha='left',fontsize=15,weight='bold')
     save(fig,'final01_pf_trajectory')
     return {'last_delta':float(delta[-1]),'last_relative_delta':float(delta[-1]/y[-2])}
 
@@ -104,7 +102,10 @@ def fig2(summary):
                 textcoords='offset points',fontsize=10,color=COLORS[0],
                 arrowprops={'arrowstyle':'-','color':COLORS[0]})
     grid(ax,'V \u66f4\u65b0\u7f16\u53f7 t\uff08\u56fe 1 \u7684\u72b6\u6001 t \u2192 t+1\uff09','\u9884\u7f16\u7801\u76f8\u5bf9\u53d8\u5316 $\\delta_V$')
-    ax.legend(loc='upper right')
+    ax.legend(loc='upper right',bbox_to_anchor=(1,1.02))
+    ax.text(.98,.75,r'$\delta_V=\|V_{t+1}-V_t\|_F/\max(1,\|V_t\|_F)$',
+            transform=ax.transAxes,ha='right',va='top',fontsize=10,
+            bbox={'boxstyle':'round,pad=.35','fc':'white','ec':'#cbd6dc'})
     fig.suptitle('\u56fe 2\uff5c\u6574\u5957\u590d\u6570\u9884\u7f16\u7801\u7684\u76f8\u90bb\u53d8\u5316\u9010\u6e10\u51cf\u5c0f',
                  x=.11,ha='left',fontsize=15,weight='bold')
     save(fig,'final02_v_change')
@@ -113,29 +114,39 @@ def fig2(summary):
 def fig3():
     data=rows('fig03_admm_end_residuals.csv')
     x=np.array([int(r['update_outer']) for r in data])
-    rp=np.array([float(r['primal'])/float(r['eps_primal']) for r in data])
-    rd=np.array([float(r['dual'])/float(r['eps_dual']) for r in data])
+    primal=np.array([float(r['primal']) for r in data])
+    epsp=np.array([float(r['eps_primal']) for r in data])
+    dual=np.array([float(r['dual']) for r in data])
+    epsd=np.array([float(r['eps_dual']) for r in data])
+    rp=primal/epsp; rd=dual/epsd
     n=np.array([int(r['admm_iterations']) for r in data])
     passed=np.array([r['admm_converged'].lower()=='true' for r in data])
     check(np.array_equal(x,np.arange(18)) and np.all(np.isfinite(rp+rd)),'ADMM data')
-    fig,ax=plt.subplots(1,2,figsize=(12.8,5.7),sharex=True,sharey=True)
-    fig.subplots_adjust(left=.09,right=.97,top=.81,bottom=.23,wspace=.2)
-    for a,v,color,title,label in ((ax[0],rp,COLORS[0],'A  \u539f\u59cb\uff1aX \u4e0e Z \u662f\u5426\u4e00\u81f4','\u539f\u59cb\u6b8b\u5dee / \u539f\u59cb\u9608\u503c'),
-                                   (ax[1],rd,COLORS[1],'B  \u5bf9\u5076\uff1aZ \u5728\u5185\u8f6e\u4e2d\u662f\u5426\u7a33\u5b9a','\u5bf9\u5076\u6b8b\u5dee / \u5bf9\u5076\u9608\u503c')):
-        a.plot(x,v,'o-',color=color,lw=1.8,ms=4)
-        a.axhline(1,ls='--',color='#b44b49',lw=1.5)
-        a.set_xticks(np.arange(18));a.set_xlim(-.4,17.4);a.set_ylim(0,1.29)
+    fig,ax=plt.subplots(1,2,figsize=(13.0,5.8),sharex=True)
+    fig.subplots_adjust(left=.09,right=.97,top=.82,bottom=.16,wspace=.21)
+    specs=((ax[0],primal,epsp,COLORS[0],
+            'A  \u539f\u59cb\uff1ar=\u2016X\u2212Z\u2016','r \u4e0e\u5176\u9608\u503c\uff08\u8303\u6570\uff09',rp),
+           (ax[1],dual,epsd,COLORS[1],
+            'B  \u5bf9\u5076\uff1as=\u03c1\u2016Z\u672c\u8f6e\u2212Z\u4e0a\u8f6e\u2016','s \u4e0e\u5176\u9608\u503c\uff08\u8303\u6570\uff09',rd))
+    for a,v,limit,color,title,label,ratio in specs:
+        a.plot(x,v,'o-',color=color,lw=2.1,ms=5,label='\u8f6e\u672b\u6b8b\u5dee')
+        a.plot(x,limit,'--',color='#b44b49',lw=1.8,label='\u5bf9\u5e94\u505c\u6b62\u9608\u503c')
+        a.fill_between(x,v,limit,where=v>limit,color='#b44b49',alpha=.16)
+        a.set_xticks(np.arange(0,18,2));a.set_xlim(-.3,17.4)
+        a.set_ylim(0,max(v.max(),limit.max())*1.22)
         a.set_title(title,loc='left',weight='bold')
-        grid(a,'V \u66f4\u65b0\u6240\u5728 WMMSE \u5916\u8f6e\u7f16\u53f7',label)
+        grid(a,'WMMSE \u5916\u8f6e\u7f16\u53f7\uff08\u6bcf\u70b9\u662f\u4e00\u6b21 ADMM \u7ec8\u503c\uff09',label)
+        a.legend(loc='upper right',fontsize=8.7)
+        a.text(.98,.08,f'\u672b\u8f6e\uff1a\u6b8b\u5dee/\u81ea\u5df1\u9608\u503c = {ratio[-1]:.3f}',
+               transform=a.transAxes,ha='right',va='bottom',fontsize=9,
+               bbox={'boxstyle':'round,pad=.3','fc':'white','ec':'#cbd6dc'})
     for j in np.flatnonzero(~passed):
-        ax[1].scatter(x[j],rd[j],s=110,facecolors='none',edgecolors='#b44b49',lw=2,zorder=5)
-    ax[1].annotate(f'\u5916\u8f6e 0\uff1a\u5bf9\u5076\u6bd4 {rd[0]:.3f} > 1\n\u5185\u5c42\u89e6\u53ca {n[0]} \u6b21\u4e0a\u9650',
-                   (0,rd[0]),xytext=(2.1,1.18),fontsize=9,
+        ax[1].scatter(x[j],dual[j],s=130,facecolors='none',edgecolors='#b44b49',lw=2,zorder=5)
+    ax[1].annotate(f'\u5916\u8f6e 0\uff1as/\u03b5={rd[0]:.3f}>1\n\u89e6\u53ca {n[0]} \u6b21\u4e0a\u9650',
+                   (0,dual[0]),xytext=(1.7,dual[0]*1.08),fontsize=9,
                    arrowprops={'arrowstyle':'->','color':'#b44b49'})
-    fig.suptitle('\u56fe 3\uff5c\u5404 WMMSE \u5916\u8f6e\u7ed3\u675f\u65f6\u7684 ADMM \u6b8b\u5dee\uff1b\u4e0d\u662f\u540c\u4e00\u6b21\u5185\u5c42\u8fde\u7eed\u8f68\u8ff9',
+    fig.suptitle('\u56fe 3\uff5c\u6bcf\u8f6e ADMM \u7ec8\u503c\u53ea\u548c\u672c\u9879\u9608\u503c\u6bd4\uff1b\u7b2c 0 \u8f6e\u5bf9\u5076\u9879\u672a\u8fc7',
                  x=.09,ha='left',fontsize=14,weight='bold')
-    fig.text(.09,.116,'\u539f\u59cb r=\u2016X\u2212Z\u2016\uff1a\u4e24\u4e2a\u526f\u672c\u662f\u5426\u4e00\u81f4\uff1b\u5bf9\u5076 s=\u03c1\u2016Z\u672c\u8f6e\u2212Z\u4e0a\u8f6e\u2016\uff1a\u6295\u5f71\u526f\u672c\u662f\u5426\u505c\u6b62\u53d8\u5316\u3002',fontsize=9)
-    fig.text(.09,.066,'\u7ea2\u7ebf 1 \u662f\u5404\u81ea\u7684\u505c\u6b62\u9608\u503c\uff1b\u5b8c\u6574\u5185\u5c42\u505c\u6b62\u8fd8\u68c0\u67e5 CG \u76f8\u5bf9\u6b8b\u5dee\u3002',fontsize=8.6)
     save(fig,'final03_admm_residuals')
     return {'not_converged_outer':x[~passed].tolist(),'last_primal_ratio':float(rp[-1]),
             'last_dual_ratio':float(rd[-1])}
@@ -167,7 +178,7 @@ def fig4(summary,manifest):
                 writer.writerow([l+1,g+1,counts[g],f'{raw[l,g]:.12g}',
                                  f'{contribution[l,g]:.12g}',f'{total[l]:.15f}',20])
     fig=plt.figure(figsize=(13.2,9))
-    grid_spec=fig.add_gridspec(2,1,left=.09,right=.89,top=.83,bottom=.13,
+    grid_spec=fig.add_gridspec(2,1,left=.09,right=.89,top=.84,bottom=.10,
                               height_ratios=[.65,2.3],hspace=.47)
     a=fig.add_subplot(grid_spec[0]);b=fig.add_subplot(grid_spec[1])
     a.bar(trp,total,color=COLORS[0],width=.74)
@@ -181,12 +192,10 @@ def fig4(summary,manifest):
     b.set_xticklabels([f'{g+1}\n({counts[g]})' for g in range(17)],fontsize=7.8)
     b.set_yticks(np.arange(0,21,2));b.set_yticklabels(np.arange(1,22,2))
     b.set(xlabel='\u8d44\u6e90\u7ec4\u7f16\u53f7\uff08\u62ec\u53f7\u4e3a\u8be5\u7ec4\u6fc0\u6d3b RB \u6570\uff09',ylabel='TRP \u7f16\u53f7')
-    b.set_title('B  \u5404\u7ec4\u5bf9\u8be5 TRP \u603b\u9884\u7b97\u7684\u52a0\u6743\u8d21\u732e',loc='left',weight='bold')
-    c=fig.colorbar(im,ax=b,fraction=.025,pad=.015);c.set_label('a_g P_lg\uff08W\uff09')
+    b.set_title('B  \u6bcf\u683c\u662f\u4e00\u7ec4\u8ba1\u5165\u8be5 TRP \u603b\u529f\u7387\u7684 W \u6570\uff1b\u6bcf\u884c\u76f8\u52a0\u7ea6 20 W',loc='left',weight='bold')
+    c=fig.colorbar(im,ax=b,fraction=.025,pad=.015);c.set_label('\u7ec4\u8d21\u732e $a_g P_{lg}$\uff08W\uff09')
     fig.suptitle('\u56fe 4\uff5c20 W \u7ea6\u675f\u6bcf TRP \u7684\u8de8\u8d44\u6e90\u7ec4\u52a0\u6743\u603b\u548c\uff0c\u800c\u975e\u6bcf\u7ec4\u5404 20 W',
                  x=.09,ha='left',fontsize=15,weight='bold')
-    fig.text(.09,.056,'P_lg=\u2016V_g[l]\u2016\u00b2\uff0ca_g=\u8be5\u7ec4\u6fc0\u6d3b RB/273\uff0cP_l=\u03a3_g a_g P_lg\u3002'
-             '\u70ed\u56fe\u7531\u5b58\u6863 complex64 V \u91cd\u5efa\uff1b\u4e0a\u56fe\u7528\u8fd0\u884c summary \u603b\u529f\u7387\u3002',fontsize=8.7)
     save(fig,'final04_power_and_groups')
     return {'active_groups':int(np.count_nonzero(counts)),'active_rb':int(counts.sum()),
             'saved_v_dtype':'complex64','max_summary_vs_saved_v_rounding_watt':gap,
@@ -228,8 +237,6 @@ def fig5(values,q):
                  x=.08,ha='left',fontsize=15,weight='bold')
     for i,(name,t,color) in enumerate(zip(NAMES,q,COLORS)):
         fig.text(.09+.29*i,.085,f'{name}  5% = {t:.6f} Mbps',color=color,fontsize=9.2,weight='bold')
-    fig.text(.08,.035,'\u5706\u70b9\u4e3a\u7ebf\u6027\u63d2\u503c 5% \u5206\u4f4d\u70b9\uff1b\u7ecf\u9a8c\u9636\u68af\u7b2c 11 \u4eba\u901f\u7387\u7565\u6709\u4e0d\u540c\u3002'
-             '\u4e09\u652f\u5404 n=210\uff1b\u975e\u6b63\u5f0f UE \u79d2\u611f\u77e5\u7387\u3002',fontsize=8.1)
     save(fig,'final05_static_cdf_left_tail')
     return {'q05_linear_mbps':q,'sample_count_each':210,'left_tail_xlim_mbps':[0,1.6]}
 
@@ -247,8 +254,6 @@ def fig6(q):
             bbox={'boxstyle':'round,pad=.35','fc':'white','ec':'#cbd6dc'})
     fig.suptitle('\u56fe 6\uff5c\u8fd9\u6b21\u9759\u6001\u5c3e\u90e8\u901f\u7387\u4ee3\u7406\uff1a\u540d\u4e49\u5206\u652f\u6700\u9ad8\uff0c\u8bef\u5dee\u5206\u652f\u672a\u83b7\u76ca',
                  x=.14,ha='left',fontsize=15,weight='bold')
-    fig.text(.14,.075,'\u6bcf\u652f 210 UE\uff1bNumPy \u7ebf\u6027\u63d2\u503c 5% \u5206\u4f4d\u6570\u3002'
-             '\u4e0d\u662f PF \u76ee\u6807\u503c\uff0c\u4e5f\u4e0d\u662f\u6700\u5dee 5% UE \u7684\u5e73\u5747\u901f\u7387\u3002',fontsize=8.7)
     save(fig,'final06_static_rate_q05')
     return {'hetero_minus_nominal_mbps':float(v[2]-v[0]),
             'hetero_minus_uniform_mbps':float(v[2]-v[1])}

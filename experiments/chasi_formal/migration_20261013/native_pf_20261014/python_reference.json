@@ -1,0 +1,292 @@
+{
+  "rank1_nominal": {
+    "0": {
+      "objective": 7.847907616314937,
+      "estimated_sum": 0.09940522563301891,
+      "power": [
+        0.03868131868131869,
+        0.03868131868131869
+      ],
+      "reason": "max_outer_iterations",
+      "trajectory": [
+        {
+          "outer": 0,
+          "objective": 7.847907616314937,
+          "accepted_step": null,
+          "admm_converged": null,
+          "primal": null,
+          "dual": null
+        }
+      ],
+      "true_sum": 0.10170769983095476
+    },
+    "2": {
+      "objective": 8.819888908174757,
+      "estimated_sum": 0.16273967046623172,
+      "power": [
+        0.10999999999962301,
+        0.10999999999987514
+      ],
+      "reason": "max_outer_iterations",
+      "trajectory": [
+        {
+          "outer": 0,
+          "objective": 7.847907616314937,
+          "accepted_step": 1.0,
+          "admm_converged": true,
+          "primal": 1.1624588475807818e-05,
+          "dual": 2.4068523396380362e-06
+        },
+        {
+          "outer": 1,
+          "objective": 8.81980905004954,
+          "accepted_step": 1.0,
+          "admm_converged": true,
+          "primal": 2.2944296661542617e-05,
+          "dual": 2.386259433740027e-07
+        },
+        {
+          "outer": 2,
+          "objective": 8.819888908174757,
+          "accepted_step": null,
+          "admm_converged": null,
+          "primal": 2.2944296661542617e-05,
+          "dual": 2.386259433740027e-07
+        }
+      ],
+      "true_sum": 0.16481463500187457
+    }
+  },
+  "rank2_nominal": {
+    "0": {
+      "objective": 8.007497720688104,
+      "estimated_sum": 0.10780351334307647,
+      "power": [
+        0.04487032967032968,
+        0.04487032967032968
+      ],
+      "reason": "max_outer_iterations",
+      "trajectory": [
+        {
+          "outer": 0,
+          "objective": 8.007497720688104,
+          "accepted_step": null,
+          "admm_converged": null,
+          "primal": null,
+          "dual": null
+        }
+      ],
+      "true_sum": 0.1101494355953875
+    },
+    "2": {
+      "objective": 8.819888724995923,
+      "estimated_sum": 0.1627391991122756,
+      "power": [
+        0.10999999999978527,
+        0.10999999999966234
+      ],
+      "reason": "max_outer_iterations",
+      "trajectory": [
+        {
+          "outer": 0,
+          "objective": 8.007497720688104,
+          "accepted_step": 1.0,
+          "admm_converged": true,
+          "primal": 1.2968182971417237e-05,
+          "dual": 2.3087815017008503e-06
+        },
+        {
+          "outer": 1,
+          "objective": 8.8198095215653,
+          "accepted_step": 1.0,
+          "admm_converged": true,
+          "primal": 2.577265660755745e-05,
+          "dual": 2.404134237886744e-07
+        },
+        {
+          "outer": 2,
+          "objective": 8.819888724995923,
+          "accepted_step": null,
+          "admm_converged": null,
+          "primal": 2.577265660755745e-05,
+          "dual": 2.404134237886744e-07
+        }
+      ],
+      "true_sum": 0.1648141648779265
+    }
+  },
+  "rank2_uniform": {
+    "0": {
+      "objective": 8.005179846802493,
+      "estimated_sum": 0.10767669775770211,
+      "power": [
+        0.04487032967032968,
+        0.04487032967032968
+      ],
+      "reason": "max_outer_iterations",
+      "trajectory": [
+        {
+          "outer": 0,
+          "objective": 8.005179846802493,
+          "accepted_step": null,
+          "admm_converged": null,
+          "primal": null,
+          "dual": null
+        }
+      ],
+      "true_sum": 0.1101494355953875
+    },
+    "2": {
+      "objective": 8.816507944952463,
+      "estimated_sum": 0.1624620518852506,
+      "power": [
+        0.10999999999952517,
+        0.10999999999912248
+      ],
+      "reason": "max_outer_iterations",
+      "trajectory": [
+        {
+          "outer": 0,
+          "objective": 8.005179846802493,
+          "accepted_step": 1.0,
+          "admm_converged": true,
+          "primal": 1.1519913333603408e-05,
+          "dual": 2.348439968451765e-06
+        },
+        {
+          "outer": 1,
+          "objective": 8.816429507226317,
+          "accepted_step": 1.0,
+          "admm_converged": true,
+          "primal": 1.808184839255596e-05,
+          "dual": 2.4049469008493262e-06
+        },
+        {
+          "outer": 2,
+          "objective": 8.816507944952463,
+          "accepted_step": null,
+          "admm_converged": null,
+          "primal": 1.808184839255596e-05,
+          "dual": 2.4049469008493262e-06
+        }
+      ],
+      "true_sum": 0.16481428303694762
+    }
+  },
+  "rank2_relative": {
+    "0": {
+      "objective": 8.00519217291317,
+      "estimated_sum": 0.1076765322771153,
+      "power": [
+        0.04487032967032968,
+        0.04487032967032968
+      ],
+      "reason": "max_outer_iterations",
+      "trajectory": [
+        {
+          "outer": 0,
+          "objective": 8.00519217291317,
+          "accepted_step": null,
+          "admm_converged": null,
+          "primal": null,
+          "dual": null
+        }
+      ],
+      "true_sum": 0.1101494355953875
+    },
+    "2": {
+      "objective": 8.816533507880017,
+      "estimated_sum": 0.1624617328223318,
+      "power": [
+        0.10999999999954362,
+        0.10999999999945972
+      ],
+      "reason": "max_outer_iterations",
+      "trajectory": [
+        {
+          "outer": 0,
+          "objective": 8.00519217291317,
+          "accepted_step": 1.0,
+          "admm_converged": true,
+          "primal": 1.1524174756222488e-05,
+          "dual": 2.3489475902071386e-06
+        },
+        {
+          "outer": 1,
+          "objective": 8.816454755028285,
+          "accepted_step": 1.0,
+          "admm_converged": true,
+          "primal": 1.8082905809513074e-05,
+          "dual": 2.4052984269401444e-06
+        },
+        {
+          "outer": 2,
+          "objective": 8.816533507880017,
+          "accepted_step": null,
+          "admm_converged": null,
+          "primal": 1.8082905809513074e-05,
+          "dual": 2.4052984269401444e-06
+        }
+      ],
+      "true_sum": 0.16481338152450564
+    }
+  },
+  "rank2_statistical": {
+    "0": {
+      "objective": 8.005183685467518,
+      "estimated_sum": 0.10767664577765723,
+      "power": [
+        0.04487032967032968,
+        0.04487032967032968
+      ],
+      "reason": "max_outer_iterations",
+      "trajectory": [
+        {
+          "outer": 0,
+          "objective": 8.005183685467518,
+          "accepted_step": null,
+          "admm_converged": null,
+          "primal": null,
+          "dual": null
+        }
+      ],
+      "true_sum": 0.1101494355953875
+    },
+    "2": {
+      "objective": 8.816515904679566,
+      "estimated_sum": 0.1624619502632504,
+      "power": [
+        0.1099999999998107,
+        0.10999999999888417
+      ],
+      "reason": "max_outer_iterations",
+      "trajectory": [
+        {
+          "outer": 0,
+          "objective": 8.005183685467518,
+          "accepted_step": 1.0,
+          "admm_converged": true,
+          "primal": 1.152301414709645e-05,
+          "dual": 2.3488581096107684e-06
+        },
+        {
+          "outer": 1,
+          "objective": 8.816437368767179,
+          "accepted_step": 1.0,
+          "admm_converged": true,
+          "primal": 1.808148148112218e-05,
+          "dual": 2.4050864006635634e-06
+        },
+        {
+          "outer": 2,
+          "objective": 8.816515904679566,
+          "accepted_step": null,
+          "admm_converged": null,
+          "primal": 1.808148148112218e-05,
+          "dual": 2.4050864006635634e-06
+        }
+      ],
+      "true_sum": 0.1648140019881483
+    }
+  }
+}

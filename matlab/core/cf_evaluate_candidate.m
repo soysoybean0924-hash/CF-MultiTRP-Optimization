@@ -1,6 +1,10 @@
 function result=cf_evaluate_candidate(cfg,scenario,candidate,doOptimize)
 %CF_EVALUATE_CANDIDATE Evaluate one b/p/r/W policy in a fixed H scenario.
 if nargin<4, doOptimize=true; end
+if isfield(cfg,'chasiNative') && isfield(cfg.chasiNative,'enabled') && cfg.chasiNative.enabled
+    result=cf_evaluate_chasi_native_candidate(cfg,scenario,candidate,doOptimize);
+    return
+end
 
 % Build the deterministic initial policy: top-gain DU associations bInit,
 % stream rank r, receive subspace Q, and matched-filter-like W baseline.

@@ -1,3 +1,5 @@
+> **2026-10-14 MATLAB native PF smoke:** [implementation, five same-input comparisons, and remaining formal-scale gate](../experiments/chasi_formal/migration_20261013/native_pf_20261014/README.md). Small cases only: 2 TRP/2 UE/2 groups for Python–MATLAB parity; 4 TRP/2 scheduled UE/3 groups for optional `cf_evaluate_candidate` and two-evaluation `cf_search` smoke. No 210 UE native run or acceptance decision. The original search backend retains its historical `J_true` semantics; the new backend reports estimated PF log utility separately.
+
 > **2026-10-14 茶思展示索引：**[七张最终展示图与逐图说明](../experiments/chasi_formal/final_figures_20261014/README.md)读取2026-10-13已有210UE配对静态运行与独立seed22回放，绘图脚本不运行求解器。source data、最终PNG/PDF/SVG和重建的TRP×资源组功率CSV同目录；[输入哈希](../experiments/chasi_formal/final_figures_20261014/final_figure_manifest.json)。这是保存结果的展示核查，**不是新的正式实验或验收通过记录**。
 >
 # Experiment Index

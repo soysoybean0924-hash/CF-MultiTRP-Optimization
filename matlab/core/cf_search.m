@@ -35,6 +35,10 @@ output.BestX=expandSearchVector(tracker.bestX,activeDimensions,fixedX);
 output.BestCandidate=cf_decode_candidate(output.BestX,cfg);
 output.BestResult=tracker.bestResult; output.BestScore=tracker.bestScore;
 output.BestObjective=tracker.bestObjective; output.ObjectiveName='J_true';
+if isfield(cfg,'chasiNative') && isfield(cfg.chasiNative,'enabled') && cfg.chasiNative.enabled
+    output.ObjectiveName='estimated_PF_log1p_aggregate_rate_over_floor';
+    output.Backend='chasi_native_pf';
+end
 output.Evaluations=count;
 output.InnerOptimizationEnabled=searchInnerEnabled(options);
 output.History=table((1:count)',tracker.traceObjective(1:count),tracker.traceScore(1:count), ...
