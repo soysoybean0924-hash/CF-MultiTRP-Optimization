@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1080" viewBox="0 0 1900 1080">
+<rect width="1900" height="1080" fill="#f8fafc"/>
+<text x="50" y="68" font-family="Microsoft YaHei" font-size="37" fill="#203344">MathWorks 连接拓扑：示意，非随机坐标</text>
+<text x="50" y="110" font-family="Microsoft YaHei" font-size="19" fill="#28649b">O: 当前页脚本 20 AP/4 UE，每 UE 最近 2 AP；本图仅选 3 AP/2 UE 解释重叠服务。</text>
+<line x1="760" y1="194" x2="440" y2="484" stroke="#7353a5" stroke-width="4" marker-end="url(#arr)"/>
+<line x1="920" y1="248" x2="920" y2="430" stroke="#7353a5" stroke-width="4" marker-end="url(#arr)"/>
+<line x1="1080" y1="194" x2="1400" y2="484" stroke="#7353a5" stroke-width="4" marker-end="url(#arr)"/>
+<line x1="280" y1="538" x2="600" y2="800" stroke="#13826e" stroke-width="4" marker-end="url(#arr)"/>
+<line x1="920" y1="538" x2="600" y2="800" stroke="#13826e" stroke-width="4" marker-end="url(#arr)"/>
+<line x1="920" y1="538" x2="1240" y2="800" stroke="#13826e" stroke-width="4" marker-end="url(#arr)"/>
+<line x1="1560" y1="538" x2="1240" y2="800" stroke="#13826e" stroke-width="4" marker-end="url(#arr)"/>
+<line x1="1400" y1="484" x2="760" y2="854" stroke="#c34d40" stroke-width="4" marker-end="url(#arr)" stroke-dasharray="11 8"/>
+<rect x="760" y="140" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="774" y="179" font-family="Microsoft YaHei" font-size="25" fill="#203344">CPU</text>
+<text x="774" y="218" font-family="Microsoft YaHei" font-size="19" fill="#28649b">计算/调度；非无线发射</text>
+<rect x="120" y="430" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="134" y="469" font-family="Microsoft YaHei" font-size="25" fill="#203344">AP A</text>
+<text x="134" y="508" font-family="Microsoft YaHei" font-size="19" fill="#28649b">示意服务 UE k</text>
+<rect x="760" y="430" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="774" y="469" font-family="Microsoft YaHei" font-size="25" fill="#203344">AP B</text>
+<text x="774" y="508" font-family="Microsoft YaHei" font-size="19" fill="#28649b">示意共享 AP</text>
+<rect x="1400" y="430" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="1414" y="469" font-family="Microsoft YaHei" font-size="25" fill="#203344">AP C</text>
+<text x="1414" y="508" font-family="Microsoft YaHei" font-size="19" fill="#28649b">示意服务 UE j</text>
+<rect x="440" y="800" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="454" y="839" font-family="Microsoft YaHei" font-size="25" fill="#203344">UE k</text>
+<text x="454" y="878" font-family="Microsoft YaHei" font-size="19" fill="#28649b">服务集 {A,B}</text>
+<rect x="1080" y="800" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="1094" y="839" font-family="Microsoft YaHei" font-size="25" fill="#203344">UE j</text>
+<text x="1094" y="878" font-family="Microsoft YaHei" font-size="19" fill="#28649b">服务集 {B,C}</text>
+<rect x="335" y="257" width="200" height="30" fill="white" fill-opacity="0.95"/>
+<text x="340" y="280" font-family="Microsoft YaHei" font-size="18" fill="#7353a5">M01 前传/控制</text>
+<rect x="895" y="297" width="200" height="30" fill="white" fill-opacity="0.95"/>
+<text x="900" y="320" font-family="Microsoft YaHei" font-size="18" fill="#7353a5">M03 W/波形或 TB</text>
+<rect x="1365" y="257" width="200" height="30" fill="white" fill-opacity="0.95"/>
+<text x="1370" y="280" font-family="Microsoft YaHei" font-size="18" fill="#7353a5">M01 前传/控制</text>
+<rect x="265" y="627" width="200" height="30" fill="white" fill-opacity="0.95"/>
+<text x="270" y="650" font-family="Microsoft YaHei" font-size="18" fill="#13826e">M04 PDSCH 服务</text>
+<rect x="715" y="617" width="200" height="30" fill="white" fill-opacity="0.95"/>
+<text x="720" y="640" font-family="Microsoft YaHei" font-size="18" fill="#13826e">M04 PDSCH 服务</text>
+<rect x="1045" y="637" width="200" height="30" fill="white" fill-opacity="0.95"/>
+<text x="1050" y="660" font-family="Microsoft YaHei" font-size="18" fill="#13826e">M04 PDSCH 服务</text>
+<rect x="1475" y="627" width="200" height="30" fill="white" fill-opacity="0.95"/>
+<text x="1480" y="650" font-family="Microsoft YaHei" font-size="18" fill="#13826e">M04 PDSCH 服务</text>
+<rect x="1105" y="747" width="200" height="30" fill="white" fill-opacity="0.95"/>
+<text x="1110" y="770" font-family="Microsoft YaHei" font-size="18" fill="#c34d40">M05 非服务干扰（理论）</text>
+<defs><marker id="arr" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M1,1 L10,6 L1,11" fill="none" stroke="#334b5e" stroke-width="2"/></marker></defs>
+<rect x="45" y="982" width="1810" height="68" rx="10" fill="#e6edf6"/><text x="60" y="1024" font-family="Microsoft YaHei" font-size="19" fill="#203344">O01 M_k=nearest2(d_mk) [页面:128-149]；O02 Hhat_k=stack_m H_mk；O05 X_m=sum_{k:m in M_k}X_mk</text></svg>

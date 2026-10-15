@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1080" viewBox="0 0 1900 1080">
+<rect width="1900" height="1080" fill="#f8fafc"/>
+<text x="50" y="68" font-family="Microsoft YaHei" font-size="37" fill="#203344">从最终 V 到物理 SE 和体验代理</text>
+<text x="50" y="110" font-family="Microsoft YaHei" font-size="19" fill="#28649b">S: solver.rates/evaluate/protocol_contract；无 ACKed RLC、BLER 或正式验收判定。</text>
+<line x1="420" y1="354" x2="550" y2="354" stroke="#28649b" stroke-width="4" marker-end="url(#arr)"/>
+<line x1="420" y1="664" x2="550" y2="354" stroke="#28649b" stroke-width="4" marker-end="url(#arr)"/>
+<line x1="870" y1="354" x2="1000" y2="354" stroke="#28649b" stroke-width="4" marker-end="url(#arr)"/>
+<line x1="1320" y1="354" x2="1450" y2="354" stroke="#28649b" stroke-width="4" marker-end="url(#arr)"/>
+<line x1="1320" y1="664" x2="1450" y2="354" stroke="#28649b" stroke-width="4" marker-end="url(#arr)"/>
+<line x1="1610" y1="408" x2="1610" y2="610" stroke="#28649b" stroke-width="4" marker-end="url(#arr)"/>
+<rect x="100" y="300" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="114" y="339" font-family="Microsoft YaHei" font-size="25" fill="#203344">最终 V_g</text>
+<text x="114" y="378" font-family="Microsoft YaHei" font-size="19" fill="#28649b">[L,K_g,64,d]</text>
+<rect x="100" y="610" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="114" y="649" font-family="Microsoft YaHei" font-size="25" fill="#203344">H_true</text>
+<text x="114" y="688" font-family="Microsoft YaHei" font-size="19" fill="#28649b">[K_g,L,4,64]</text>
+<rect x="550" y="300" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="564" y="339" font-family="Microsoft YaHei" font-size="25" fill="#203344">G_ki=sum_l H_kl V_li</text>
+<text x="564" y="378" font-family="Microsoft YaHei" font-size="19" fill="#28649b">[4,d] 相干和</text>
+<rect x="1000" y="300" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="1014" y="339" font-family="Microsoft YaHei" font-size="25" fill="#203344">真组 SE / UE SE</text>
+<text x="1014" y="378" font-family="Microsoft YaHei" font-size="19" fill="#28649b">logdet 差；sum_g a_g</text>
+<rect x="1000" y="610" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="1014" y="649" font-family="Microsoft YaHei" font-size="25" fill="#203344">busy/tail/terminal</text>
+<text x="1014" y="688" font-family="Microsoft YaHei" font-size="19" fill="#28649b">[N,TTI] 业务样本</text>
+<rect x="1450" y="300" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="1464" y="339" font-family="Microsoft YaHei" font-size="25" fill="#203344">体验率/分位数</text>
+<text x="1464" y="378" font-family="Microsoft YaHei" font-size="19" fill="#28649b">volume/valid_time</text>
+<rect x="1450" y="610" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="1464" y="649" font-family="Microsoft YaHei" font-size="25" fill="#203344">summary/图</text>
+<text x="1464" y="688" font-family="Microsoft YaHei" font-size="19" fill="#28649b">run.py + 独立绘图</text>
+<rect x="480.0" y="247" width="200" height="30" fill="white" fill-opacity="0.95"/>
+<text x="485.0" y="270" font-family="Microsoft YaHei" font-size="18" fill="#28649b">F13 V</text>
+<rect x="480.0" y="247" width="200" height="30" fill="white" fill-opacity="0.95"/>
+<text x="485.0" y="270" font-family="Microsoft YaHei" font-size="18" fill="#28649b">F13 H_true</text>
+<rect x="930.0" y="247" width="324" height="30" fill="white" fill-opacity="0.95"/>
+<text x="935.0" y="270" font-family="Microsoft YaHei" font-size="18" fill="#28649b">F13 logdet(all)-logdet(int)</text>
+<rect x="1380.0" y="247" width="228" height="30" fill="white" fill-opacity="0.95"/>
+<text x="1385.0" y="270" font-family="Microsoft YaHei" font-size="18" fill="#28649b">F13 RB*12*30kHz*TTI</text>
+<rect x="1380.0" y="247" width="200" height="30" fill="white" fill-opacity="0.95"/>
+<text x="1385.0" y="270" font-family="Microsoft YaHei" font-size="18" fill="#28649b">F13 有效样本/需求门控</text>
+<rect x="1605.0" y="247" width="200" height="30" fill="white" fill-opacity="0.95"/>
+<text x="1610.0" y="270" font-family="Microsoft YaHei" font-size="18" fill="#28649b">F13 JSON/CSV/图</text>
+<defs><marker id="arr" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M1,1 L10,6 L1,11" fill="none" stroke="#334b5e" stroke-width="2"/></marker></defs>
+<rect x="45" y="982" width="1810" height="68" rx="10" fill="#e6edf6"/><text x="60" y="1024" font-family="Microsoft YaHei" font-size="19" fill="#203344">r_true=log2det(I+sum_i G_kiG_ki^H)-log2det(I+sum_{i!=k}G_kiG_ki^H)；capacity bit!=ACKed RLC</text></svg>

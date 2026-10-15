@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1080" viewBox="0 0 1900 1080">
+<rect width="1900" height="1080" fill="#f8fafc"/>
+<text x="50" y="68" font-family="Microsoft YaHei" font-size="37" fill="#203344">MathWorks 分布式：UE / AP / CPU</text>
+<text x="50" y="110" font-family="Microsoft YaHei" font-size="19" fill="#28649b">O: 当前页 49-78；CPU 仍算 W，AP 应用 W_mk 并上送 UL LLR；不是分布式 ADMM。</text>
+<line x1="420" y1="299" x2="760" y2="299" stroke="#ad681e" stroke-width="4" marker-end="url(#arr)" stroke-dasharray="11 8"/>
+<line x1="1080" y1="299" x2="1420" y2="299" stroke="#7353a5" stroke-width="4" marker-end="url(#arr)"/>
+<line x1="1420" y1="619" x2="1080" y2="619" stroke="#7353a5" stroke-width="4" marker-end="url(#arr)"/>
+<line x1="760" y1="619" x2="420" y2="619" stroke="#13826e" stroke-width="4" marker-end="url(#arr)"/>
+<line x1="420" y1="894" x2="760" y2="894" stroke="#ad681e" stroke-width="4" marker-end="url(#arr)" stroke-dasharray="11 8"/>
+<line x1="1080" y1="894" x2="1420" y2="894" stroke="#7353a5" stroke-width="4" marker-end="url(#arr)"/>
+<rect x="100" y="245" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="114" y="284" font-family="Microsoft YaHei" font-size="25" fill="#203344">UE：SRS</text>
+<text x="114" y="323" font-family="Microsoft YaHei" font-size="19" fill="#28649b">无线探测</text>
+<rect x="760" y="245" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="774" y="284" font-family="Microsoft YaHei" font-size="25" fill="#203344">AP：本地 CSI</text>
+<text x="774" y="323" font-family="Microsoft YaHei" font-size="19" fill="#28649b">H_mk^ul</text>
+<rect x="1420" y="245" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="1434" y="284" font-family="Microsoft YaHei" font-size="25" fill="#203344">CPU：拼接并算 W</text>
+<text x="1434" y="323" font-family="Microsoft YaHei" font-size="19" fill="#28649b">O02/O03</text>
+<rect x="100" y="565" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="114" y="604" font-family="Microsoft YaHei" font-size="25" fill="#203344">UE：PDSCH</text>
+<text x="114" y="643" font-family="Microsoft YaHei" font-size="19" fill="#28649b">下行接收</text>
+<rect x="760" y="565" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="774" y="604" font-family="Microsoft YaHei" font-size="25" fill="#203344">AP：应用 W_mk</text>
+<text x="774" y="643" font-family="Microsoft YaHei" font-size="19" fill="#28649b">O04/O05</text>
+<rect x="1420" y="565" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="1434" y="604" font-family="Microsoft YaHei" font-size="25" fill="#203344">CPU：编码 TB</text>
+<text x="1434" y="643" font-family="Microsoft YaHei" font-size="19" fill="#28649b">下发 TB + W_mk</text>
+<rect x="100" y="840" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="114" y="879" font-family="Microsoft YaHei" font-size="25" fill="#203344">UE：PUSCH</text>
+<text x="114" y="918" font-family="Microsoft YaHei" font-size="19" fill="#28649b">UL TPMI</text>
+<rect x="760" y="840" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="774" y="879" font-family="Microsoft YaHei" font-size="25" fill="#203344">AP：均衡/LLR</text>
+<text x="774" y="918" font-family="Microsoft YaHei" font-size="19" fill="#28649b">本地 UL PHY</text>
+<rect x="1420" y="840" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="1434" y="879" font-family="Microsoft YaHei" font-size="25" fill="#203344">CPU：LLR 合并</text>
+<text x="1434" y="918" font-family="Microsoft YaHei" font-size="19" fill="#28649b">O06 最终 TB 检测</text>
+<rect x="470" y="172" width="200" height="30" fill="white" fill-opacity="0.95"/>
+<text x="475" y="195" font-family="Microsoft YaHei" font-size="18" fill="#ad681e">M02 SRS 无线</text>
+<rect x="1110" y="172" width="200" height="30" fill="white" fill-opacity="0.95"/>
+<text x="1115" y="195" font-family="Microsoft YaHei" font-size="18" fill="#7353a5">M11 局部 CSI</text>
+<rect x="1110" y="492" width="200" height="30" fill="white" fill-opacity="0.95"/>
+<text x="1115" y="515" font-family="Microsoft YaHei" font-size="18" fill="#7353a5">M12 TB + W_mk</text>
+<rect x="515" y="492" width="200" height="30" fill="white" fill-opacity="0.95"/>
+<text x="520" y="515" font-family="Microsoft YaHei" font-size="18" fill="#13826e">M08 PDSCH</text>
+<rect x="460" y="762" width="200" height="30" fill="white" fill-opacity="0.95"/>
+<text x="465" y="785" font-family="Microsoft YaHei" font-size="18" fill="#ad681e">M09 PUSCH + TPMI</text>
+<rect x="1115" y="762" width="200" height="30" fill="white" fill-opacity="0.95"/>
+<text x="1120" y="785" font-family="Microsoft YaHei" font-size="18" fill="#7353a5">M13 LLR_mk</text>
+<defs><marker id="arr" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M1,1 L10,6 L1,11" fill="none" stroke="#334b5e" stroke-width="2"/></marker></defs>
+<rect x="45" y="982" width="1810" height="68" rx="10" fill="#e6edf6"/><text x="60" y="1024" font-family="Microsoft YaHei" font-size="19" fill="#203344">O04 W_k=stack_m W_mk；O05 X_m=sum_k X_mk；O06 LLR_k=sum_m LLR_mk；W 在 CPU 计算，AP 应用</text></svg>

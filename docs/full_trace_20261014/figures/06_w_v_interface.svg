@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="1080" viewBox="0 0 1900 1080">
+<rect width="1900" height="1080" fill="#f8fafc"/>
+<text x="50" y="68" font-family="Microsoft YaHei" font-size="37" fill="#203344">旧 W、新 V、官方 W_k：接口与去向</text>
+<text x="50" y="110" font-family="Microsoft YaHei" font-size="19" fill="#28649b">S/O: 实线是已执行传递，红色虚线表示未发现的默认转换/源码继承。</text>
+<line x1="440" y1="304" x2="780" y2="304" stroke="#28649b" stroke-width="4" marker-end="url(#arr)"/>
+<line x1="1100" y1="304" x2="1440" y2="304" stroke="#28649b" stroke-width="4" marker-end="url(#arr)"/>
+<line x1="440" y1="634" x2="780" y2="634" stroke="#28649b" stroke-width="4" marker-end="url(#arr)"/>
+<line x1="1100" y1="634" x2="1440" y2="634" stroke="#28649b" stroke-width="4" marker-end="url(#arr)"/>
+<line x1="940" y1="358" x2="940" y2="580" stroke="#c34d40" stroke-width="4" marker-end="url(#arr)" stroke-dasharray="11 8"/>
+<line x1="940" y1="845" x2="940" y2="688" stroke="#c34d40" stroke-width="4" marker-end="url(#arr)" stroke-dasharray="11 8"/>
+<rect x="120" y="250" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="134" y="289" font-family="Microsoft YaHei" font-size="25" fill="#203344">旧 H_est,Q</text>
+<text x="134" y="328" font-family="Microsoft YaHei" font-size="19" fill="#28649b">[Nr,M,R,U,G]</text>
+<rect x="780" y="250" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="794" y="289" font-family="Microsoft YaHei" font-size="25" fill="#203344">旧 W 波束</text>
+<text x="794" y="328" font-family="Microsoft YaHei" font-size="19" fill="#28649b">[M,S,R,U,G]；含功率</text>
+<rect x="1440" y="250" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="1454" y="289" font-family="Microsoft YaHei" font-size="25" fill="#203344">旧指标</text>
+<text x="1454" y="328" font-family="Microsoft YaHei" font-size="19" fill="#28649b">b/p/SLINR/J_true</text>
+<rect x="120" y="580" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="134" y="619" font-family="Microsoft YaHei" font-size="25" fill="#203344">CHASI H_est,C</text>
+<text x="134" y="658" font-family="Microsoft YaHei" font-size="19" fill="#28649b">[K,L,4,64]</text>
+<rect x="780" y="580" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="794" y="619" font-family="Microsoft YaHei" font-size="25" fill="#203344">新 V 预编码</text>
+<text x="794" y="658" font-family="Microsoft YaHei" font-size="19" fill="#28649b">[L,K,64,d]；自由复矩阵</text>
+<rect x="1440" y="580" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="1454" y="619" font-family="Microsoft YaHei" font-size="25" fill="#203344">新指标</text>
+<text x="1454" y="658" font-family="Microsoft YaHei" font-size="19" fill="#28649b">U/E/W_mse 与 KPI</text>
+<rect x="780" y="845" width="320" height="108" rx="15" fill="white" stroke="#28649b" stroke-width="3"/>
+<text x="794" y="884" font-family="Microsoft YaHei" font-size="25" fill="#203344">官方 W_k</text>
+<text x="794" y="923" font-family="Microsoft YaHei" font-size="19" fill="#28649b">CPU ZF，按 AP 分块</text>
+<rect x="605.0" y="197" width="200" height="30" fill="white" fill-opacity="0.95"/>
+<text x="610.0" y="220" font-family="Microsoft YaHei" font-size="18" fill="#28649b">L05 MRT样式→旧内层</text>
+<rect x="1265.0" y="197" width="200" height="30" fill="white" fill-opacity="0.95"/>
+<text x="1270.0" y="220" font-family="Microsoft YaHei" font-size="18" fill="#28649b">L06 p=||W||²</text>
+<rect x="605.0" y="527" width="200" height="30" fill="white" fill-opacity="0.95"/>
+<text x="610.0" y="550" font-family="Microsoft YaHei" font-size="18" fill="#28649b">F07 SVD→F12 ADMM</text>
+<rect x="1265.0" y="527" width="200" height="30" fill="white" fill-opacity="0.95"/>
+<text x="1270.0" y="550" font-family="Microsoft YaHei" font-size="18" fill="#28649b">F08-F13 HV→KPI</text>
+<rect x="775" y="447" width="200" height="30" fill="white" fill-opacity="0.95"/>
+<text x="780" y="470" font-family="Microsoft YaHei" font-size="18" fill="#c34d40">X01 默认无 W→V 导入</text>
+<rect x="795" y="767" width="200" height="30" fill="white" fill-opacity="0.95"/>
+<text x="800" y="790" font-family="Microsoft YaHei" font-size="18" fill="#c34d40">X02 无已证源码继承</text>
+<defs><marker id="arr" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M1,1 L10,6 L1,11" fill="none" stroke="#334b5e" stroke-width="2"/></marker></defs>
+<rect x="45" y="982" width="1810" height="68" rx="10" fill="#e6edf6"/><text x="60" y="1024" font-family="Microsoft YaHei" font-size="19" fill="#203344">旧 p=sum_s||W||²；新 P_l=sum_g a_g||V_gl||²；新 W_mse=E^-1；参考论文 v_k=标量接收器</text></svg>
