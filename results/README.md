@@ -1,5 +1,11 @@
 # Results Index
 
+2026-10-15 navigation note: for CHASI saved results, read the per-run
+`summary.json` configuration, source hashes, branch status, and scene manifest
+before comparing metrics. The [source reading navigator](../docs/full_trace_20261014/README.md)
+separates the Python formal chain from old MATLAB `J_true` outputs and native
+MATLAB small-case parity evidence. This note does not change any result label.
+
 This folder contains generated experiment outputs. Most new result files are
 ignored by Git to keep the repository manageable. Older result files may still
 be tracked because they were committed before the current ignore rules.

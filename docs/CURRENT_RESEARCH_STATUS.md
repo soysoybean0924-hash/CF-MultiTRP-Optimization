@@ -2,6 +2,12 @@
 
 Snapshot date: 2026-09-02.
 
+2026-10-15 reading update: this snapshot describes the older MATLAB `J_true`
+ablation track. The later CHASI Python formal entry, MATLAB-to-Python bridge,
+and conditional native MATLAB PF adapter are mapped from current source in
+[the code reading navigator](full_trace_20261014/README.md). The native adapter
+has small fixture parity and smoke evidence, not a 210-UE end-to-end parity run.
+
 ## 中文摘要
 
 当前项目已经完成了真正的 Outer-only 消融接口：`GA-only`、`PSO-only`、
