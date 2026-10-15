@@ -2,11 +2,11 @@
 
 ## 下午先从这里读
 
-**整体做什么。** 仓库有旧 MATLAB `b/p/r/W` 候选评价＋GA/PSO/SRACOS 搜索，以及 CHASI 固定调度/服务集合/rank 后的复矩阵 WMMSE＋集中式 ADMM 求解。两链的目标、信道和功率约束不同。**真实运行主线**是 [`run_chasi_formal.m`](../../experiments/chasi_formal/run_chasi_formal.m) → [`cf_run_chasi_formal.m`](../../matlab/core/cf_run_chasi_formal.m) 的 `system()` → Python [`run.main`](../../chasi_formal_implementation/run.py) → `scenario.generate` → `solver.solve` → `evaluate.evaluate` → JSON/NPZ/MAT。MATLAB 只拼 CLI 标量并读回结果，复数 H 在 Python 生成。
+**整体做什么。** 仓库最初、且旧论文消融仍调用的主代码是 MATLAB：场景/信道 → SRS 估计 → `b/p/r/W` 候选评价 → 可选内层波束更新 → GA/PSO/SRACOS 外层 → 指标。晚近 CHASI 多流 WMMSE＋ADMM 有另一条 Python 求解链和一个条件启用的 MATLAB 原生迁移模块。三者不能当成同一个算法。**按本项目的来历读代码，应先读原始 MATLAB 主线。**
 
-**下午打开顺序**：[chasi_formal_implementation/config.py:7](../../chasi_formal_implementation/config.py) → [chasi_formal_implementation/run.py:34](../../chasi_formal_implementation/run.py) → [chasi_formal_implementation/scenario.py:87,155](../../chasi_formal_implementation/scenario.py) → [chasi_formal_implementation/solver.py:75,94,227,291](../../chasi_formal_implementation/solver.py) → [chasi_formal_implementation/evaluate.py:91](../../chasi_formal_implementation/evaluate.py)。这里的 `config.py` 是 **`chasi_formal_implementation/` 包内的文件**，不是仓库根目录那个空的 `config/` 文件夹。先画一组的 `H[K_g,21,4,64]`、`V[21,K_g,64,d]`、`U[K_g,4,d]`、`W[K_g,d,d]`，再读循环。**第一遍跳过** `time_evolution.py` 可选回放、`ellipsoid.py` 限定子问题检查、`compare_*/audit_*/diagnose_*` 后处理、绘图脚本和旧 GA/PSO 算子；读完 CHASI 主线后再看旧链。
+**下午打开顺序（MATLAB 第一遍）**：[run_controlled_outer_ablation.m:1](../../experiments/paper_ablation/run_controlled_outer_ablation.m) → [cf_default_config.m:1](../../matlab/core/cf_default_config.m) → [cf_generate_scenario.m:1](../../matlab/core/cf_generate_scenario.m) → [cf_apply_srs_measurement_model.m:1](../../matlab/core/cf_apply_srs_measurement_model.m) → [cf_decode_candidate.m:1](../../matlab/core/cf_decode_candidate.m) → [cf_evaluate_candidate.m:1](../../matlab/core/cf_evaluate_candidate.m) → [cf_search.m:1](../../matlab/core/cf_search.m)。先画旧链 `H[Nr,M,R,U,G]`、`b/p[R,U,G]`、`r[U,G]`、波束 `W[M,S,R,U,G]`。**第一遍跳过** `cf_search.m` 内部 GA/PSO 算子、历史批次、Python 后处理与绘图；先弄懂一次候选评价。Python 链随后用来读 CHASI WMMSE＋ADMM，不能把旧 MATLAB 内层误称为同一套 WMMSE＋ADMM。
 
-这里的“正式”指仓库 CHASI 可执行入口，不等于华为验收。行号来自本轮工作树；晚近未提交源码可能改变行号。细节接续：[01 实际框架](01_真实框架.md) → [02 符号字典](02_符号字典.md) → [03 公式索引](03_公式索引.md) → [04 预编码全程](04_预编码全程.md) → [06 三方来源](06_三方来源对照.md)。旧状态文件的 2026-09-02 快照不能代替本轮源码核查。
+本页的旧 MATLAB 消融入口与 CHASI 可执行入口分别称“旧论文轨道”和“CHASI 轨道”；任何一个都不等于华为验收。行号来自本轮工作树；晚近未提交源码可能改变行号。细节接续：[01 实际框架](01_真实框架.md) → [02 符号字典](02_符号字典.md) → [03 公式索引](03_公式索引.md) → [04 预编码全程](04_预编码全程.md) → [06 三方来源](06_三方来源对照.md)。旧状态文件的 2026-09-02 快照不能代替本轮源码核查。
 
 **Git 可用性边界：** 本轮工作树中的 `chasi_formal_implementation/`、`experiments/chasi_formal/run_chasi_formal.m` 和原生迁移夹具仍未跟踪；本导航按本地真实源码核查，相关相对链接在当前本地仓库可打开，在仅检出本次文档提交的远端仓库暂不能打开。本轮没有擅自提交这些既有未提交资产。
 
@@ -20,9 +20,25 @@
 | 旧外层 | `paper_ablation/run_controlled_outer_ablation.m:1-129` → `cf_search.m:134-171` → `cf_decode_candidate.m:1-39` → `cf_evaluate_candidate.m:1-188` | 默认旧后端连通，目标是旧 `J_true`/scheduled sum rate。SRACOS 在 `cf_sracos_guided_adaptive_gapso_search.m`，不是 Python `run.py` 外层。原生条件后端目标改估计 PF，仅 `numConnections,maxRank` 两维进求解；其余七维偏离默认时报错。 |
 | 独立工具 | `native_pf_20261014/prepare_compare.py`、`run_matlab_compare.m`、`verify_compare.py`、`verify_operator.py`、`test_formal.py`、`final_figures_20261014/plot_final.py` | 夹具、局部验证、保存数据绘图分别运行，不是正式规模验证。`export_scene_to_matlab.py` 不被当前原生适配器调用。 |
 
-**推荐阅读 Python CHASI 链。** 它完整覆盖今天要追的场景→信道→SRS→WMMSE/ADMM→指标。原生 MATLAB 模块最后读：它迁移了矩阵求解小例，还未迁移正式 CHASI 场景、SRS、业务协议。旧 MATLAB `W` 是波束，新 Python `w` 是 MSE 权重，先读旧链容易混淆。
+**推荐先读 MATLAB 原始链，再按需转入 CHASI。** 原始 MATLAB 的内层在 `cf_evaluate_candidate.m:19-122,257-287` 使用 WPS/二次变换辅助量、闭式波束更新和每 DU/RBG 功率归一，**不是**后来的矩阵 WMMSE＋ADMM。要追 `U/E/W` 与 ADMM，第二遍转入下面的 Python 链；条件 MATLAB 原生模块最后对拍。旧 MATLAB 的 `W` 是波束，新链的 `W` 是 MSE 权重。
 
-## 逐文件路线
+### 第一遍：原始 MATLAB 代码
+
+| 顺序 | 文件与函数 | 先读行号 | 解决什么问题 | 输入→输出、轴 | 公式 | 接下来 |
+|---|---|---|---|---|---|---|
+| 1 | [`run_controlled_outer_ablation.m`](../../experiments/paper_ablation/run_controlled_outer_ablation.m) 主脚本、`runAblationMethod` | 1-86、170-188 | 旧消融真正调用谁，基本/内层/外层如何分支 | 配置与 seed → `cfg,scenario,result,Jtrue` | L15,L17 | 2 |
+| 2 | [`cf_default_config.m`](../../matlab/core/cf_default_config.m) | 1-95 | DU/UE/Tx/Rx/RBG/rank、功率/噪声与 SRS 参数 | profile → `cfg` 标量/结构体 | L01-L03 | 3 |
+| 3 | [`cf_generate_scenario.m`](../../matlab/core/cf_generate_scenario.m) | 1-52、54-105 | 坐标、真实信道和各轴 | `cfg` → `H_true[Nr,M,R,U,G]`、位置/距离 | L01 | 4 |
+| 4 | [`cf_apply_srs_measurement_model.m`](../../matlab/core/cf_apply_srs_measurement_model.m) | 1-45、62-122 | 估计信道、Presinr、误差与缺测 | `H_true,distance` → `H_est` 同轴、`ErrorVariance[R,U,G]` | L02 | 5 |
+| 5 | [`cf_decode_candidate.m`](../../matlab/core/cf_decode_candidate.m)、[`cf_evaluate_candidate.m` `buildInitialState`](../../matlab/core/cf_evaluate_candidate.m) | 1-39；189-256 | 9 维外层变量怎样决定服务、rank、接收子空间及初始波束 | `x[9],H_est` → `b[R,U,G],r[U,G],Q[Nr,U,G,S],W[M,S,R,U,G]` | L03-L05 | 6 |
+| 6 | [`cf_evaluate_candidate.m` `computeMetrics`](../../matlab/core/cf_evaluate_candidate.m) | 289-347 | 有用信号/干扰/SLINR/率/目标 | `H_est,Q,W,b` → `SLINR[S,U,G]`、UE 率、`SumRate` | L06-L07,L13 | 7 |
+| 7 | [`cf_evaluate_candidate.m` 主内层、`updateBeamformers`](../../matlab/core/cf_evaluate_candidate.m) | 19-122、257-287、358-381 | 旧 WPS 权重、`zeta/alpha/lambda/mu`、波束与功率更新/停止 | 当前 W/率 → 新 `W[M,S,R,U,G]`、`p[R,U,G]`、history | L08-L11 | 8 |
+| 8 | [`cf_evaluate_candidate.m` 结果、`cf_compute_true_objective.m`](../../matlab/core/cf_evaluate_candidate.m)、[`cf_compute_experience_rate.m`](../../matlab/core/cf_compute_experience_rate.m) | 124-188、517-573；1-39；1-101 | 最终 `b/p/r/W`、J_true、真信道和体验代理 | result → `Objective,Score,TrueChannel,ExperienceRate` | L12-L15 | 9 |
+| 9 | [`cf_search.m` `evaluateTracked`](../../matlab/core/cf_search.m) | 1-82、134-171 | 外层怎样把候选送进评价器并排名 | `x[9]` → `BestResult,History`；默认 `J_true` | L17 | CHASI 对照 |
+
+这 9 个停靠点是**旧 MATLAB 链**，下午先读 1–6、8，约 2–3 小时；7 和 9 的逐式深读再安排。MATLAB 原始链没有 `U/E/W` 矩阵 WMMSE 和 ADMM 状态 `X/Z/Y`，这些字母只能到晚近 CHASI 链查。
+
+### 第二遍：CHASI Python WMMSE＋ADMM 对照路线
 
 执行时 `scenario.generate` 先规则调度，再为各组生成 `H_true`、观测、`H_est` 和后验协方差；`run.main` 另取业务样本、逐分支 `solve`、真信道评价与保存。下面是便于理解的阅读顺序。`K_g` 为第 g 组排定 UE 数，`L=21,N_t=64,N_r=4,d=rank,N=21×users_per_cell`；Python 零基，MATLAB 一基。C 编号见[03](03_公式索引.md)。
 
@@ -42,7 +58,7 @@
 | 12 | [`evaluate.py` `evaluate,srs_observation_snr_diagnostic`](../../chasi_formal_implementation/evaluate.py)、[`protocol_contract.py` `cdf_candidates`](../../chasi_formal_implementation/protocol_contract.py) | 8-82、91-183；10-40 | 真信道率、业务有效时长、分位数 | `H_true,V,traffic`→UE bit/s/Hz、体验 Mbps、CDF、功率 | C32-C36 | 13 |
 | 13 | [`run.py` `main`](../../chasi_formal_implementation/run.py)、[`plot_final.py`](../../experiments/chasi_formal/final_figures_20261014/plot_final.py) | 191-315；1-40、58 起 | 日志/数组保存、图表来源 | `Solution,metrics`→summary/events/manifest、V/U/W；绘图读存档 | 输出 | 旧链对照 |
 
-下午主线约 **8 个 Python 文件的指定片段，2.5–4 小时**：先读 1–8、10–12。逐式深读 9、CG/ADMM、reuse、旧链和来源审计约再需 **1–2 天**，不能在一下午通读所有源码。
+Python 对照约 **8 个文件的指定片段，2.5–4 小时**；逐式深读 CG/ADMM、reuse、原生 MATLAB 模块与来源审计另需 **1–2 天**。这不是下午读旧 MATLAB 时必须完成的部分。Python `config.py` 在 `chasi_formal_implementation/` 包内，仓库根部的 `config/` 目录是空的。
 
 ## 精简目录与两张图
 
