@@ -4,7 +4,7 @@
 
 **整体做什么。** 仓库有旧 MATLAB `b/p/r/W` 候选评价＋GA/PSO/SRACOS 搜索，以及 CHASI 固定调度/服务集合/rank 后的复矩阵 WMMSE＋集中式 ADMM 求解。两链的目标、信道和功率约束不同。**真实运行主线**是 [`run_chasi_formal.m`](../../experiments/chasi_formal/run_chasi_formal.m) → [`cf_run_chasi_formal.m`](../../matlab/core/cf_run_chasi_formal.m) 的 `system()` → Python [`run.main`](../../chasi_formal_implementation/run.py) → `scenario.generate` → `solver.solve` → `evaluate.evaluate` → JSON/NPZ/MAT。MATLAB 只拼 CLI 标量并读回结果，复数 H 在 Python 生成。
 
-**下午打开顺序**：`config.py:7` → `run.py:34` → `scenario.py:87,155` → `solver.py:75,94,227,291` → `evaluate.py:91`。先画一组的 `H[K_g,21,4,64]`、`V[21,K_g,64,d]`、`U[K_g,4,d]`、`W[K_g,d,d]`，再读循环。**第一遍跳过** `time_evolution.py` 可选回放、`ellipsoid.py` 限定子问题检查、`compare_*/audit_*/diagnose_*` 后处理、绘图脚本和旧 GA/PSO 算子；读完 CHASI 主线后再看旧链。
+**下午打开顺序**：[chasi_formal_implementation/config.py:7](../../chasi_formal_implementation/config.py) → [chasi_formal_implementation/run.py:34](../../chasi_formal_implementation/run.py) → [chasi_formal_implementation/scenario.py:87,155](../../chasi_formal_implementation/scenario.py) → [chasi_formal_implementation/solver.py:75,94,227,291](../../chasi_formal_implementation/solver.py) → [chasi_formal_implementation/evaluate.py:91](../../chasi_formal_implementation/evaluate.py)。这里的 `config.py` 是 **`chasi_formal_implementation/` 包内的文件**，不是仓库根目录那个空的 `config/` 文件夹。先画一组的 `H[K_g,21,4,64]`、`V[21,K_g,64,d]`、`U[K_g,4,d]`、`W[K_g,d,d]`，再读循环。**第一遍跳过** `time_evolution.py` 可选回放、`ellipsoid.py` 限定子问题检查、`compare_*/audit_*/diagnose_*` 后处理、绘图脚本和旧 GA/PSO 算子；读完 CHASI 主线后再看旧链。
 
 这里的“正式”指仓库 CHASI 可执行入口，不等于华为验收。行号来自本轮工作树；晚近未提交源码可能改变行号。细节接续：[01 实际框架](01_真实框架.md) → [02 符号字典](02_符号字典.md) → [03 公式索引](03_公式索引.md) → [04 预编码全程](04_预编码全程.md) → [06 三方来源](06_三方来源对照.md)。旧状态文件的 2026-09-02 快照不能代替本轮源码核查。
 
