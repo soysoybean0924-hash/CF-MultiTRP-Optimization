@@ -3,7 +3,7 @@ function test_chasi_native_solver()
 root=fileparts(fileparts(mfilename('fullpath')));
 addpath(fullfile(root,'matlab','chasi'));
 resources=repmat(struct('H',[],'H_true',[],'C',[],'C_stat',[], ...
-    'servingMask',[],'ue_ids',[],'rb_count',[],'tx_rb_count',[], ...
+    'servingMask',[],'ueIds',[],'rb_count',[],'tx_rb_count',[], ...
     'prior_gain',[]),1,2);
 for g=1:2
     H=complex(zeros(2,2,4,4)); C=complex(zeros(2,2,4,4));
@@ -21,7 +21,7 @@ for g=1:2
     resources(g).H=H; resources(g).H_true=H;
     resources(g).C=C; resources(g).C_stat=C;
     resources(g).servingMask=logical([1 0;1 1]);
-    resources(g).ue_ids=[1 2];
+    resources(g).ueIds=[1 2];
     resources(g).rb_count=15+g; resources(g).tx_rb_count=15+g;
     resources(g).prior_gain=[.01 .01;1 1];
     resources(g).home_trp=[1;2];

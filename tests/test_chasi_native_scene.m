@@ -21,20 +21,21 @@ assert(~scene.resources(2).measured && scene.resources(2).age_ms==-1);
 checkedCsiPosterior=false;
 for g=1:17
     r=scene.resources(g);
-    k=numel(r.ue_ids);
+    k=numel(r.ueIds);
     assert(isequal(size(r.H),[k 21 4 64]));
     assert(isequal(size(r.H_true),[k 21 4 64]));
     assert(isequal(size(r.C),[k 21 4 4]));
     assert(isequal(size(r.servingMask),[21 k]));
-    assert(all(r.ue_ids>=1 & r.ue_ids<=cfg.users));
-    assert(isequal(find(scene.scheduleMask(:,g)),sort(r.ue_ids(:))));
-    assert(isequal(r.home_trp(:),scene.home(r.ue_ids(:))));
+    assert(all(r.ueIds>=1 & r.ueIds<=cfg.users));
+    assert(isequal(find(scene.scheduleMask(:,g)),sort(r.ueIds(:))));
+    assert(isequal(r.home_trp(:),scene.home(r.ueIds(:))));
+    assert(abs(r.resourceWeightNu-r.tx_rb_count/cfg.rbTotal)<1e-12);
     assert(all(sum(r.servingMask,1)>=1 & sum(r.servingMask,1)<=cfg.serviceTrps));
     assert(r.rb_start>=1 && r.rb_start+r.rb_count-1<=273);
     if k>0
-        assert(all(scene.home(r.ue_ids)>=1));
+        assert(all(scene.home(r.ueIds)>=1));
         for j=1:k
-            assert(r.servingMask(scene.home(r.ue_ids(j)),j));
+            assert(r.servingMask(scene.home(r.ueIds(j)),j));
         end
         modeled=r.omitted_gain==0;
         assert(all(isfinite(r.prior_gain(:)) & r.prior_gain(:)>0));
@@ -72,13 +73,13 @@ assert(isfield(scene.calibration,'status'));
 found=false;
 for g=1:numel(scene.resources)
     r=scene.resources(g);
-    if isempty(r.ue_ids), continue; end
+    if isempty(r.ueIds), continue; end
     assert(r.measured);
     if isempty(r.srs_diagnostic), continue; end
     for j=1:numel(r.srs_diagnostic)
         d=r.srs_diagnostic(j);
         if isempty(d.co_pilot_user_count), continue; end
-        assert(all(d.co_pilot_user_count==numel(r.ue_ids)-1));
+        assert(all(d.co_pilot_user_count==numel(r.ueIds)-1));
         assert(d.current_past_correlation>0 && d.current_past_correlation<=1);
         assert(all(d.signal_to_interference_plus_awgn_linear<=d.signal_to_awgn_linear+1e-10));
         found=true;

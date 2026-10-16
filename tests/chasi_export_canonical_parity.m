@@ -23,8 +23,9 @@ for j=1:numel(names)
     % Historical fixture schema used serve for the TRP-to-local-UE mask.
     for g=1:numel(input.resources)
         input.resources(g).servingMask=input.resources(g).serve;
+        input.resources(g).ueIds=input.resources(g).ue_ids;
     end
-    input.resources=rmfield(input.resources,'serve');
+    input.resources=rmfield(input.resources,{'serve','ue_ids'});
     for outer=[0 2]
         cfg=input.cfg;
         % Convert only the historical Python/MATLAB fixture option name.

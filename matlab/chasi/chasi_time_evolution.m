@@ -38,8 +38,8 @@ for g = 1:G
     est{g} = double(resource.H);
     cov{g} = double(resource.C);
     gain{g} = double(resource.prior_gain);
-    linkMask{g} = false(numel(resource.ue_ids),L);
-    for k = 1:numel(resource.ue_ids)
+    linkMask{g} = false(numel(resource.ueIds),L);
+    for k = 1:numel(resource.ueIds)
         for l = 1:L
             linkMask{g}(k,l) = any(reshape(abs(truth{g}(k,l,:,:)),[],1)>0);
         end
@@ -57,8 +57,8 @@ deliveredTti = zeros(cfg.users,windowTti);
 completedTti = false(cfg.users,windowTti);
 occupiedRbTti = 0; physicalSum = 0; maxViolation = 0;
 fd = (cfg.speedKmh/3.6)*cfg.frequencyGhz*1e9/299792458;
-alpha = besselj(0,2*pi*fd*20*cfg.ttiMs/1000);
-rx = 0.35.^abs((1:4)'-(1:4)); cholRx = chol(rx,'lower');
+timeCorrelation = besselj(0,2*pi*fd*20*cfg.ttiMs/1000);
+rxCorrelation = 0.35.^abs((1:4)'-(1:4)); cholRx = chol(rxCorrelation,'lower');
 events = repmat(struct('tti',0,'srs_group',0,'csi_rs',false, ...
     'fast_beam_update',false,'slow_association_review',false, ...
     'association_changes_deferred',0,'mean_displacement_m',0, ...
@@ -68,7 +68,7 @@ for t = 0:20:windowTti-20
     if t > 0
         oldXy = ueXy; ueXy = ueXy + velocity*(20*cfg.ttiMs/1000);
         for g = 1:G
-            ids = resources(g).ue_ids(:);
+            ids = resources(g).ueIds(:);
             for k = 1:numel(ids)
                 u = ids(k);
                 for l = find(linkMask{g}(k,:))
@@ -78,12 +78,12 @@ for t = 0:20:windowTti-20
                     drift = sqrt(newGain/max(gain{g}(k,l),1e-30));
                     z = (randn(stream,4,64)+1i*randn(stream,4,64))/sqrt(2);
                     innovation = sqrt(newGain)*cholRx*z;
-                    truth{g}(k,l,:,:) = reshape(alpha*drift*reshape(truth{g}(k,l,:,:),4,64) + ...
-                        sqrt(max(0,1-alpha^2))*innovation,1,1,4,64);
-                    est{g}(k,l,:,:) = alpha*drift*est{g}(k,l,:,:);
+                    truth{g}(k,l,:,:) = reshape(timeCorrelation*drift*reshape(truth{g}(k,l,:,:),4,64) + ...
+                        sqrt(max(0,1-timeCorrelation^2))*innovation,1,1,4,64);
+                    est{g}(k,l,:,:) = timeCorrelation*drift*est{g}(k,l,:,:);
                     priorCov = reshape(cov{g}(k,l,:,:),4,4);
-                    cov{g}(k,l,:,:) = reshape((alpha*drift)^2*priorCov + ...
-                        (1-alpha^2)*newGain*rx,1,1,4,4);
+                    cov{g}(k,l,:,:) = reshape((timeCorrelation*drift)^2*priorCov + ...
+                        (1-timeCorrelation^2)*newGain*rxCorrelation,1,1,4,4);
                     gain{g}(k,l) = newGain;
                 end
             end
@@ -94,7 +94,7 @@ for t = 0:20:windowTti-20
     if t > 0
         for g = 1:G
             if ~csiEvent && g ~= srsGroup, continue; end
-            K = numel(resources(g).ue_ids);
+            K = numel(resources(g).ueIds);
             for k = 1:K
                 for l = find(linkMask{g}(k,:))
                     base = gain{g}(k,l);
@@ -123,7 +123,7 @@ for t = 0:20:windowTti-20
     changes = 0;
     if slow
         for g = 1:G
-            resource = resources(g); ids = resource.ue_ids(:);
+            resource = resources(g); ids = resource.ueIds(:);
             for k = 1:numel(ids)
                 u = ids(k); old = find(resource.servingMask(:,k));
                 active = unique(scene.home(ids));
@@ -137,7 +137,7 @@ for t = 0:20:windowTti-20
     end
     capacity = zeros(cfg.users,1);
     for g = 1:G
-        ids = resources(g).ue_ids(:); K = numel(ids);
+        ids = resources(g).ueIds(:); K = numel(ids);
         if K == 0, continue; end
         rbWeight = rb_weight(resources(g)); rb = 273*rbWeight;
         rr = true_rates(truth{g},precoder{g});
@@ -196,7 +196,7 @@ result.offered_mbps_per_active_ue = offeredMbps;
 result.fast_period_tti = fastPeriod; result.slow_period_tti = slowPeriod;
 result.configured_srs_snr_db = cfg.pilotSnrDb;
 result.srs_condition_below_minus10_db = cfg.pilotSnrDb < -10;
-result.doppler_hz = fd; result.twenty_tti_fading_correlation = alpha;
+result.doppler_hz = fd; result.twenty_tti_fading_correlation = timeCorrelation;
 result.srs_events = numel(events); result.csi_rs_events = nnz([events.csi_rs]);
 result.fast_updates = nnz([events.fast_beam_update]);
 result.slow_reviews = nnz([events.slow_association_review]);
@@ -243,7 +243,7 @@ G = numel(resources); L = size(precoder{1},1);
 updatedPrecoder = cell(G,1);
 for g = 1:G
     updatedPrecoder{g} = zeros(size(precoder{g}),'like',precoder{g});
-    K = numel(resources(g).ue_ids);
+    K = numel(resources(g).ueIds);
     numStreams = size(precoder{g},4); Nt = size(precoder{g},3);
     for l = 1:L
         for k = 1:K
@@ -298,7 +298,9 @@ end
 end
 
 function rbWeight = rb_weight(resource)
-if isfield(resource,'tx_rb_count') && ~isempty(resource.tx_rb_count)
+if isfield(resource,'resourceWeightNu') && ~isempty(resource.resourceWeightNu)
+    rbWeight = resource.resourceWeightNu;
+elseif isfield(resource,'tx_rb_count') && ~isempty(resource.tx_rb_count)
     rbWeight = resource.tx_rb_count/273;
 else
     rbWeight = resource.rb_count/273;

@@ -13,7 +13,11 @@ if ischar(scene) || isstring(scene)
             error('CHASI:TopologyGroup','Invalid manifest group index');
         end
         group=manifest.groups(groupIndex);
-        ids=double(group.ue_ids(:));
+        if isfield(group,'ueIds')
+            ids=double(group.ueIds(:));
+        else
+            ids=double(group.ue_ids(:)); % Historical v2 manifest conversion.
+        end
         mask=false(size(manifest.trp_xy_m,1),numel(ids));
         for k=1:numel(ids)
             if iscell(group.serving_trps_by_user)
@@ -23,7 +27,7 @@ if ischar(scene) || isstring(scene)
             end
             mask(double(links),k)=true;
         end
-        resource=struct('ue_ids',ids,'servingMask',mask);
+        resource=struct('ueIds',ids,'servingMask',mask);
         scene=struct('trp_xy',manifest.trp_xy_m,...
             'ue_xy',manifest.ue_xy_m,...
             'resources',repmat(resource,1,groupIndex));
@@ -49,9 +53,12 @@ numSites=size(sites,1);
 fig=figure('Visible','off','Color','w','Position',[100 100 1150 900]);
 ax=axes(fig); hold(ax,'on'); axis(ax,'equal'); grid(ax,'on');
 scatter(ax,scene.ue_xy(:,1),scene.ue_xy(:,2),12,[.72 .78 .85],'filled');
-colors=lines(max(1,numel(resource.ue_ids)));
-for k=1:numel(resource.ue_ids)
-    u=resource.ue_ids(k);
+if ~isfield(resource,'ueIds')
+    resource.ueIds=resource.ue_ids; % Historical v2 MAT scene conversion.
+end
+colors=lines(max(1,numel(resource.ueIds)));
+for k=1:numel(resource.ueIds)
+    u=resource.ueIds(k);
     for l=find(servingMask(:,k)).'
         plot(ax,[scene.trp_xy(l,1),scene.ue_xy(u,1)],...
             [scene.trp_xy(l,2),scene.ue_xy(u,2)],'--',...
@@ -66,7 +73,7 @@ for siteId=1:numSites
         siteId,firstTrp,firstTrp+2),'FontSize',9,...
         'Color',[.06 .20 .38],'BackgroundColor','w');
 end
-ids=resource.ue_ids(:);
+ids=resource.ueIds(:);
 scatter(ax,scene.ue_xy(ids,1),scene.ue_xy(ids,2),30,colors(1:numel(ids),:),'filled');
 for k=1:numel(ids)
     text(ax,scene.ue_xy(ids(k),1)+3,scene.ue_xy(ids(k),2)+3,...

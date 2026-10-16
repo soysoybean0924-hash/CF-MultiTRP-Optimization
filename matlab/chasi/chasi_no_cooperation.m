@@ -17,8 +17,8 @@ for g=1:G
             ~isfield(resource,'home_trp') || numel(resource.home_trp)~=K
         error('CHASI:NoCooperationAxes','Invalid H, rank, or home_trp axes');
     end
-    if ~isfield(resource,'ue_ids') || numel(resource.ue_ids)~=K
-        error('CHASI:NoCooperationUsers','Each resource needs ue_ids');
+    if ~isfield(resource,'ueIds') || numel(resource.ueIds)~=K
+        error('CHASI:NoCooperationUsers','Each resource needs ueIds');
     end
     homes=double(resource.home_trp(:));
     if any(homes<1 | homes>L | homes~=floor(homes))
@@ -70,7 +70,9 @@ out.converged=true;
 end
 
 function weight=resourceWeight(resource)
-if isfield(resource,'tx_rb_count') && ~isempty(resource.tx_rb_count)
+if isfield(resource,'resourceWeightNu') && ~isempty(resource.resourceWeightNu)
+    weight=double(resource.resourceWeightNu);
+elseif isfield(resource,'tx_rb_count') && ~isempty(resource.tx_rb_count)
     weight=double(resource.tx_rb_count)/273;
 elseif isfield(resource,'rb_count') && ~isempty(resource.rb_count)
     weight=double(resource.rb_count)/273;

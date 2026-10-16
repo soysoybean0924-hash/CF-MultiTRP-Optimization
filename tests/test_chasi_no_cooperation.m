@@ -3,7 +3,7 @@ function test_chasi_no_cooperation()
 root=fileparts(fileparts(mfilename('fullpath')));
 addpath(fullfile(root,'matlab','chasi'));
 resources=repmat(struct('H',[],'H_true',[],'C',[],'C_stat',[], ...
-    'servingMask',[],'home_trp',[],'ue_ids',[],'rb_count',[], ...
+    'servingMask',[],'home_trp',[],'ueIds',[],'rb_count',[], ...
     'tx_rb_count',[],'prior_gain',[]),1,2);
 for g=1:2
     H=complex(zeros(2,2,4,4));
@@ -17,7 +17,7 @@ for g=1:2
     resources(g).C=complex(zeros(2,2,4,4));
     resources(g).C_stat=resources(g).C;
     resources(g).servingMask=true(2,2);
-    resources(g).home_trp=[1;2]; resources(g).ue_ids=[1;2];
+    resources(g).home_trp=[1;2]; resources(g).ueIds=[1;2];
     resources(g).rb_count=20; resources(g).tx_rb_count=20;
     resources(g).prior_gain=ones(2,2);
 end

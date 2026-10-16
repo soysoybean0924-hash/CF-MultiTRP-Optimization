@@ -9,8 +9,8 @@ rngTrue=RandStream('mt19937ar','Seed',cfg.seed+201);
 rngCsi=RandStream('mt19937ar','Seed',cfg.seed+202);
 rngSrs=RandStream('mt19937ar','Seed',cfg.seed+203);
 rngReuse=RandStream('mt19937ar','Seed',cfg.seed+204);
-rx=0.35.^abs((1:4)'-(1:4));
-rxChol=chol(rx,'lower');
+rxCorrelation=0.35.^abs((1:4)'-(1:4));
+rxChol=chol(rxCorrelation,'lower');
 [trp,ue,home]=geometry(cfg,rngGeometry);
 [usersByGroup,activeRatio,active,txCounts]=schedule(cfg,rngGeometry,home);
 gains=zeros(cfg.users,cfg.trps);
@@ -22,13 +22,14 @@ for u=1:cfg.users
 end
 homeGain=median(gains(sub2ind(size(gains),(1:cfg.users)',home)));
 if strcmp(cfg.srsMode,'awgn_independent')
-    calibration=calibrate(cfg,rx);
+    calibration=calibrate(cfg,rxCorrelation);
 else
     calibration=struct('status','not applicable: pilot reuse', ...
         'model','synthetic equal-power pilot reuse with Gaussian current/past correlation');
 end
 template=struct('H',[],'H_true',[],'C',[],'C_stat',[],'servingMask',[], ...
-    'ue_ids',[],'home_trp',[],'rb_start',0,'rb_count',0,'tx_rb_count',0, ...
+    'ueIds',[],'home_trp',[],'rb_start',0,'rb_count',0,'tx_rb_count',0, ...
+    'resourceWeightNu',0, ...
     'prior_gain',[],'omitted_gain',[],'age_ms',0,'measured',false, ...
     'srs_diagnostic',[]);
 resources=repmat(template,1,cfg.srsHops);
@@ -49,21 +50,21 @@ for g=1:cfg.srsHops
         age=-1;
     end
     csiAge=mod(cfg.decisionTti,cfg.csiRsPeriodTti)*cfg.ttiMs;
-    for ki=1:k
-        u=ids(ki);
-        distances=sqrt(sum((trp-ue(u,:)).^2,2));
+    for localUeIdx=1:k
+        globalUeId=ids(localUeIdx);
+        distances=sqrt(sum((trp-ue(globalUeId,:)).^2,2));
         [~,nearest]=sort(distances);
-        candidates=[home(u);nearest(nearest~=home(u) & active(nearest,g))];
-        serve(candidates(1:min(cfg.serviceTrps,numel(candidates))),ki)=true;
+        candidates=[home(globalUeId);nearest(nearest~=home(globalUeId) & active(nearest,g))];
+        serve(candidates(1:min(cfg.serviceTrps,numel(candidates))),localUeIdx)=true;
         for l=1:cfg.trps
-            if distances(l)>cfg.maxInterferenceDistanceM && ~serve(l,ki)
-                omitted(ki,l)=gains(u,l);
+            if distances(l)>cfg.maxInterferenceDistanceM && ~serve(l,localUeIdx)
+                omitted(localUeIdx,l)=gains(globalUeId,l);
                 continue
             end
-            gain=gains(u,l);
+            gain=gains(globalUeId,l);
             truth=sqrt(gain)*rxChol*complex_normal(rngTrue,4,64);
             nc=gain/10^(cfg.csiRsSnrDb/10)*exp(2*csiAge/cfg.ageCoherenceMs);
-            prior=gain*rx;
+            prior=gain*rxCorrelation;
             precision=prior\eye(4)+eye(4)/nc;
             yc=truth+sqrt(nc)*complex_normal(rngCsi,4,64);
             rhs=yc/nc;
@@ -78,9 +79,9 @@ for g=1:cfg.srsHops
                 rhs(rows,:)=rhs(rows,:)+ys/ns;
             end
             posterior=precision\eye(4);
-            H(ki,l,:,:)=reshape(single(posterior*rhs),1,1,4,64);
-            Htrue(ki,l,:,:)=reshape(single(truth),1,1,4,64);
-            C(ki,l,:,:)=reshape(single(posterior),1,1,4,4);
+            H(localUeIdx,l,:,:)=reshape(single(posterior*rhs),1,1,4,64);
+            Htrue(localUeIdx,l,:,:)=reshape(single(truth),1,1,4,64);
+            C(localUeIdx,l,:,:)=reshape(single(posterior),1,1,4,4);
         end
     end
     diagnostics=struct([]);
@@ -94,7 +95,8 @@ for g=1:cfg.srsHops
             truth=reshape(Htrue(:,l,:,:),k,4,64);
             cov=reshape(C(:,l,:,:),k,4,4);
             [means,cov,diag]=reuse_update(means,cov,truth,gains(ids,l), ...
-                modeled,pilotIds,noise,cfg.srsRxRows,age,cfg.ageCoherenceMs,rx,rxChol,rngReuse);
+                modeled,pilotIds,noise,cfg.srsRxRows,age,cfg.ageCoherenceMs,...
+                rxCorrelation,rxChol,rngReuse);
             H(:,l,:,:)=reshape(single(means),k,1,4,64);
             C(:,l,:,:)=reshape(single(cov),k,1,4,4);
             diag.trp_id=l;
@@ -107,9 +109,10 @@ for g=1:cfg.srsHops
     end
     r=template;
     r.H=H; r.H_true=Htrue; r.C=C; r.C_stat=C;
-    r.servingMask=serve; r.ue_ids=ids(:); r.home_trp=home(ids(:));
+    r.servingMask=serve; r.ueIds=ids(:); r.home_trp=home(ids(:));
     r.rb_start=cfg.rbGroups(g).start;
     r.rb_count=cfg.rbGroups(g).count; r.tx_rb_count=txCounts(g);
+    r.resourceWeightNu=double(txCounts(g))/cfg.rbTotal;
     r.prior_gain=single(gains(ids,:)); r.omitted_gain=omitted;
     r.age_ms=age; r.measured=measured; r.srs_diagnostic=diagnostics;
     resources(g)=r;
@@ -123,7 +126,7 @@ for t=0:cfg.durationTti
 end
 scheduleMask=false(cfg.users,cfg.srsHops);
 for g=1:cfg.srsHops
-    scheduleMask(resources(g).ue_ids,g)=true;
+    scheduleMask(resources(g).ueIds,g)=true;
 end
 scene=struct('config',cfg,'trp_xy',trp,'ue_xy',ue,'home',home, ...
     'scheduleMask',scheduleMask, ...
@@ -139,8 +142,10 @@ trp=repelem(site,cfg.sectorsPerSite,1);
 home=repelem((1:cfg.trps)',cfg.usersPerCell);
 ue=zeros(cfg.users,2);
 for l=1:cfg.trps
-    a=mod(l-1,3)*2*pi/3+(rand(stream,cfg.usersPerCell,1)-0.5)*2*pi/3;
-    radius=25+125*sqrt(rand(stream,cfg.usersPerCell,1));
+    randUniformAngle=rand(stream,cfg.usersPerCell,1);
+    randUniformRadius=rand(stream,cfg.usersPerCell,1);
+    a=mod(l-1,3)*2*pi/3+(randUniformAngle-0.5)*2*pi/3;
+    radius=25+125*sqrt(randUniformRadius);
     idx=(l-1)*cfg.usersPerCell+(1:cfg.usersPerCell);
     ue(idx,:)=trp(l,:)+radius.*[cos(a) sin(a)];
 end
@@ -243,11 +248,11 @@ function z=complex_normal(stream,m,n)
 z=(randn(stream,m,n)+1i*randn(stream,m,n))/sqrt(2);
 end
 
-function cal=calibrate(cfg,rx)
+function cal=calibrate(cfg,rxCorrelation)
 gain=0.05;
 ns=gain/10^(cfg.pilotSnrDb/10);
 nc=gain/10^(cfg.csiRsSnrDb/10);
-prior=gain*rx;
+prior=gain*rxCorrelation;
 rows=cfg.srsRxRows;
 precision=prior\eye(4)+eye(4)/nc;
 precision(rows,rows)=precision(rows,rows)+eye(numel(rows))/ns;
@@ -268,19 +273,19 @@ cal=struct('seed',cfg.seed+101,'samples',n, ...
     'empirical_covariance_trace',real(trace(empirical)));
 end
 
-function [output,cov,diag]=reuse_update(means,cov,truth,gain,modeled,pilots,noise,rows,age,coherence,rx,cholRx,stream)
+function [output,cov,diag]=reuse_update(means,cov,truth,gain,modeled,pilots,noise,rows,age,coherence,rxCorrelation,cholRx,stream)
 % Marginal posterior only: co-pilot cross-UE posterior blocks are omitted.
 [k,nr,nt]=size(means);
 means=double(means); cov=double(cov); truth=double(truth);
-alpha=exp(-age/coherence);
+timeCorrelation=exp(-age/coherence);
 for i=find(~modeled)'
-    cov(i,:,:)=reshape(gain(i)*rx,1,nr,nr);
+    cov(i,:,:)=reshape(gain(i)*rxCorrelation,1,nr,nr);
     truth(i,:,:)=reshape(sqrt(gain(i))*cholRx*complex_normal(stream,nr,nt),1,nr,nt);
 end
 past=zeros(k,nr,nt);
 for i=1:k
     innovation=sqrt(gain(i))*cholRx*complex_normal(stream,nr,nt);
-    past(i,:,:)=reshape(alpha*reshape(truth(i,:,:),nr,nt)+sqrt(max(0,1-alpha^2))*innovation,1,nr,nt);
+    past(i,:,:)=reshape(timeCorrelation*reshape(truth(i,:,:),nr,nt)+sqrt(max(0,1-timeCorrelation^2))*innovation,1,nr,nt);
 end
 output=means;
 snr=[]; sinr=[]; collision=[]; observed=[];
@@ -288,20 +293,20 @@ for pid=unique(pilots(:))'
     idx=find(pilots==pid);
     total=reshape(sum(past(idx,rows,:),1),numel(rows),nt);
     y=total+sqrt(noise)*complex_normal(stream,numel(rows),nt);
-    expected=alpha*reshape(sum(means(idx,rows,:),1),numel(rows),nt);
+    expected=timeCorrelation*reshape(sum(means(idx,rows,:),1),numel(rows),nt);
     S=noise*eye(numel(rows));
     for i=idx(:)'
         prior=reshape(cov(i,:,:),nr,nr);
-        observedCov=alpha^2*prior+(1-alpha^2)*gain(i)*rx;
+        observedCov=timeCorrelation^2*prior+(1-timeCorrelation^2)*gain(i)*rxCorrelation;
         S=S+observedCov(rows,rows);
     end
     residual=y-expected;
     for i=idx(:)'
         if ~modeled(i), continue; end
         prior=reshape(cov(i,:,:),nr,nr);
-        kalman=alpha*prior(:,rows)/S;
+        kalman=timeCorrelation*prior(:,rows)/S;
         output(i,:,:)=reshape(reshape(means(i,:,:),nr,nt)+kalman*residual,1,nr,nt);
-        updated=prior-kalman*(alpha*prior(rows,:));
+        updated=prior-kalman*(timeCorrelation*prior(rows,:));
         cov(i,:,:)=reshape((updated+updated')/2,1,nr,nr);
         desired=reshape(past(i,rows,:),numel(rows),nt);
         interference=total-desired;
@@ -315,6 +320,6 @@ end
 diag=struct('signal_to_awgn_linear',snr,'signal_to_interference_plus_awgn_linear',sinr, ...
     'co_pilot_user_count',collision,'observed_group_user_indices',observed, ...
     'pilot_noise_variance',noise,'measurement_age_ms',age, ...
-    'current_past_correlation',alpha,'pilot_sequences_in_group',numel(unique(pilots)), ...
+    'current_past_correlation',timeCorrelation,'pilot_sequences_in_group',numel(unique(pilots)), ...
     'modeled_observed_links',nnz(modeled));
 end

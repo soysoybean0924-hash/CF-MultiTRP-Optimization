@@ -35,13 +35,13 @@ omittedExpected = 0; modeledNoise = 0; omittedMax = 0;
 demand = ones(numUEs,T); demand(tail) = 2/7;
 for g = 1:G
     resource = resources(g); precoder = precoders{g};
-    ids = resource.ue_ids(:); K = numel(ids);
+    ids = resource.ueIds(:); K = numel(ids);
     if any(ids < 1 | ids > numUEs) || numel(unique(ids)) ~= K || ...
             size(resource.H_true,1) ~= K || ...
             size(precoder,1) ~= L || size(precoder,2) ~= K
         error('chasi_evaluate:Shape','Inconsistent resource or precoder axes.');
     end
-    weight = rb_weight(resource);
+    weight = resource_weight(resource);
     rr = true_rates(resource.H_true,precoder);
     perGroup(ids,g) = rr;
     perPhysical(ids) = perPhysical(ids) + rr*weight;
@@ -122,11 +122,13 @@ metrics.per_ue_valid_tti = valid;
 metrics.per_ue_delivered_bits_proxy = volume;
 end
 
-function rbWeight = rb_weight(resource)
-if isfield(resource,'tx_rb_count') && ~isempty(resource.tx_rb_count)
-    rbWeight = resource.tx_rb_count/273;
+function nu = resource_weight(resource)
+if isfield(resource,'resourceWeightNu') && ~isempty(resource.resourceWeightNu)
+    nu = resource.resourceWeightNu;
+elseif isfield(resource,'tx_rb_count') && ~isempty(resource.tx_rb_count)
+    nu = resource.tx_rb_count/273;
 else
-    rbWeight = resource.rb_count/273;
+    nu = resource.rb_count/273;
 end
 end
 

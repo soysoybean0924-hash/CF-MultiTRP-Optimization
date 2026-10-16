@@ -124,7 +124,7 @@ if cfg.probe_fixed_receiver_weight
         out.fixed_receiver_weight_probe{g}=struct('M',coefficients.M,...
             'B',coefficients.B,'D',coefficients.D,...
             'quadraticAppliedToPrecoder',qv,...
-            'weighted_quadratic',rbweight(resources(g))*(real(sum(conj(precoder{g}).*qv,'all'))-...
+            'weighted_quadratic',resourceWeight(resources(g))*(real(sum(conj(precoder{g}).*qv,'all'))-...
               2*real(sum(conj(coefficients.B).*precoder{g},'all'))));
     end
 end
@@ -201,10 +201,14 @@ for g=1:numel(resources)
     if ~isequal(size4(resource.C_stat),[K,L,Nr,Nr])
         error('Resource %d has invalid covariance axes',g);
     end
+    nu=resourceWeight(resource);
+    if ~isscalar(nu) || ~isfinite(nu) || nu<0 || nu>1
+        error('Resource %d has invalid resourceWeightNu',g);
+    end
     if ~strcmp(cfg.branch,'matrix_sum')
-        if ~isfield(resource,'ue_ids') || numel(resource.ue_ids)~=K || ...
-                any(resource.ue_ids<1) || any(resource.ue_ids~=floor(resource.ue_ids))
-            error('Resource %d requires one-based global ue_ids',g);
+        if ~isfield(resource,'ueIds') || numel(resource.ueIds)~=K || ...
+                any(resource.ueIds<1) || any(resource.ueIds~=floor(resource.ueIds))
+            error('Resource %d requires one-based global ueIds',g);
         end
         if ~isfield(resource,'H_true') || ~isequal(size4(resource.H_true),size4(resource.H))
             error('Resource %d requires explicit H_true for held-out evaluation',g);
@@ -255,7 +259,7 @@ for g=1:numel(resources)
 end
 if ~strcmp(cfg.branch,'matrix_sum')
     allIDs=[];
-    for g=1:numel(resources), allIDs=[allIDs;resources(g).ue_ids(:)]; end
+    for g=1:numel(resources), allIDs=[allIDs;resources(g).ueIds(:)]; end
     if isempty(allIDs) || isempty(cfg.users) || cfg.users<max(allIDs)
         error('cfg.users must cover every one-based global ue_id');
     end
@@ -298,15 +302,15 @@ function [obj,sumRate,perUE,weights,surrogate]=objectiveSnapshot(resources,rate,
 if strcmp(cfg.branch,'matrix_sum')
     obj=0; weights=cell(1,numel(resources));
     for g=1:numel(resources)
-        obj=obj+rbweight(resources(g))*sum(rate{g});
+        obj=obj+resourceWeight(resources(g))*sum(rate{g});
         weights{g}=ones(numel(rate{g}),1);
     end
     sumRate=obj; perUE=[]; surrogate=obj; return
 end
 perUE=zeros(cfg.users,1); scheduled=false(cfg.users,1);
 for g=1:numel(resources)
-    ids=double(resources(g).ue_ids(:));
-    perUE(ids)=perUE(ids)+rbweight(resources(g))*rate{g}(:);
+    ids=double(resources(g).ueIds(:));
+    perUE(ids)=perUE(ids)+resourceWeight(resources(g))*rate{g}(:);
     scheduled(ids)=true;
 end
 sumRate=sum(perUE);
@@ -319,13 +323,13 @@ switch cfg.branch
         scale=median(derivative(scheduled));
         derivative=derivative/max(scale,1e-30);
         for g=1:numel(resources)
-            weights{g}=derivative(double(resources(g).ue_ids(:)));
+            weights{g}=derivative(double(resources(g).ueIds(:)));
         end
     case 'matrix_edge_weighted'
         obj=0;
         for g=1:numel(resources)
             weights{g}=resources(g).edge_weight(:);
-            obj=obj+rbweight(resources(g))*sum(weights{g}.*rate{g}(:));
+            obj=obj+resourceWeight(resources(g))*sum(weights{g}.*rate{g}(:));
         end
     otherwise
         obj=sumRate;
@@ -335,7 +339,7 @@ switch cfg.branch
 end
 surrogate=0;
 for g=1:numel(resources)
-    surrogate=surrogate+rbweight(resources(g))*sum(weights{g}.*rate{g}(:));
+    surrogate=surrogate+resourceWeight(resources(g))*sum(weights{g}.*rate{g}(:));
 end
 end
 
@@ -354,8 +358,8 @@ for g=1:numel(resources)
             if i~=k, interf=interf+eff*eff'; end
         end
         spectralEfficiency=max(0,(real(log(det(allCov)))-real(log(det(interf))))/log(2));
-        id=double(resources(g).ue_ids(k));
-        perUE(id)=perUE(id)+rbweight(resources(g))*spectralEfficiency;
+        id=double(resources(g).ueIds(k));
+        perUE(id)=perUE(id)+resourceWeight(resources(g))*spectralEfficiency;
     end
 end
 end
@@ -440,9 +444,9 @@ for t=1:cfg.admm_iterations
     new=cell(1,G); cgmax=0;
     for g=1:G
         resource=resources(g); mask=reshape(resource.servingMask,size(resource.servingMask,1),size(resource.servingMask,2),1,1);
-        a=rbweight(resource); coefficients=parts{g};
-        apply=@(v) a*qapply(resource.H,coefficients,v,resource.servingMask)+(rho/2)*v;
-        rhs=(a*coefficients.B+(rho/2)*(z{g}-dual{g})).*mask;
+        nu=resourceWeight(resource); coefficients=parts{g};
+        apply=@(v) nu*qapply(resource.H,coefficients,v,resource.servingMask)+(rho/2)*v;
+        rhs=(nu*coefficients.B+(rho/2)*(z{g}-dual{g})).*mask;
         new{g}=cg(apply,rhs,x{g},cfg.cg_iterations,1e-5).*mask;
         residual=apply(new{g})-rhs;
         cgmax=max(cgmax,sqrt(sum(abs(residual).^2,'all'))/max(sqrt(sum(abs(rhs).^2,'all')),eps));
@@ -461,7 +465,7 @@ for t=1:cfg.admm_iterations
         fixedObjective=0;
         for g=1:G
             qz=qapply(resources(g).H,parts{g},z{g},resources(g).servingMask);
-            fixedObjective=fixedObjective+rbweight(resources(g))*(...
+            fixedObjective=fixedObjective+resourceWeight(resources(g))*(...
                 real(sum(conj(z{g}).*qz,'all'))-...
                 2*real(sum(conj(parts{g}.B).*z{g},'all')));
         end
@@ -507,28 +511,34 @@ for l=1:L
         if projectedpower(resources,out,l,lam)>budget, lo=lam;
         else, hi=lam; end
     end
-    for g=1:G, out{g}(l,:,:,:)=out{g}(l,:,:,:)/(1+hi*rbweight(resources(g))); end
+    for g=1:G, out{g}(l,:,:,:)=out{g}(l,:,:,:)/(1+hi*resourceWeight(resources(g))); end
 end
 end
 
 function p=projectedpower(resources,x,l,lambda)
 p=0;
 for g=1:numel(x)
-    a=rbweight(resources(g)); p=p+a*sum(abs(x{g}(l,:,:,:)).^2,'all')/(1+lambda*a)^2;
+    nu=resourceWeight(resources(g));
+    p=p+nu*sum(abs(x{g}(l,:,:,:)).^2,'all')/(1+lambda*nu)^2;
 end
 end
 
 function p=chasi_power(resources,precoder)
 L=size(precoder{1},1); p=zeros(L,1);
 for g=1:numel(precoder)
-    a=rbweight(resources(g));
-    for l=1:L, p(l)=p(l)+a*sum(abs(precoder{g}(l,:,:,:)).^2,'all'); end
+    nu=resourceWeight(resources(g));
+    for l=1:L, p(l)=p(l)+nu*sum(abs(precoder{g}(l,:,:,:)).^2,'all'); end
 end
 end
 
-function a=rbweight(resource)
-if isfield(resource,'tx_rb_count'), a=double(resource.tx_rb_count)/273;
-else, a=double(resource.rb_count)/273; end
+function nu=resourceWeight(resource)
+if isfield(resource,'resourceWeightNu') && ~isempty(resource.resourceWeightNu)
+    nu=double(resource.resourceWeightNu);
+elseif isfield(resource,'tx_rb_count')
+    nu=double(resource.tx_rb_count)/273;
+else
+    nu=double(resource.rb_count)/273;
+end
 end
 
 function s=size4(v)
