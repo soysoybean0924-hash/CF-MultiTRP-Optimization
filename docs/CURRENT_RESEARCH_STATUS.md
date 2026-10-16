@@ -2,11 +2,17 @@
 
 Snapshot date: 2026-09-02.
 
-2026-10-15 reading update: this snapshot describes the older MATLAB `J_true`
-ablation track. The later CHASI Python formal entry, MATLAB-to-Python bridge,
-and conditional native MATLAB PF adapter are mapped from current source in
-[the code reading navigator](full_trace_20261014/README.md). The native adapter
-has small fixture parity and smoke evidence, not a 210-UE end-to-end parity run.
+2026-10-16 CHASI update: the new formal CHASI entry is native MATLAB
+`matlab/chasi/chasi_run.m`. See [the migration and verification record](CHASI_MATLAB_MIGRATION.md)
+for the explicit-input solver/evaluator parity, 210-UE statistical-branch run,
+remaining random-stream and acceptance-metric limits. The older MATLAB
+outer-search paper track described below is a separate model.
+
+2026-10-15 historical reading update: this snapshot describes the older MATLAB
+`J_true` ablation track. The then-active CHASI Python entry and MATLAB bridge
+are mapped in [the code reading navigator](full_trace_20261014/README.md).
+That navigator predates the native entry above; its migration-status statements
+are retained as historical evidence rather than current run instructions.
 
 ## 中文摘要
 

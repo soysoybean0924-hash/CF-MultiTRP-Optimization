@@ -3,6 +3,13 @@
 Cell-Free / Multi-TRP cooperative scheduling research code for studying
 inner iterative optimization plus outer search over scheduling parameters.
 
+## CHASI 原生 MATLAB 正式入口
+
+在仓库根目录执行 `addpath('matlab/chasi'); summary=chasi_run();`。该入口由
+MATLAB 生成场景与 CSI，完成 WMMSE-ADMM、评价和保存，不调用 Python。
+迁移边界、参数规模、对拍和未完成验证见
+[`docs/CHASI_MATLAB_MIGRATION.md`](docs/CHASI_MATLAB_MIGRATION.md)。
+
 ## 中文速览
 
 这是一个用于 Multi-TRP / Cell-Free Massive MIMO 协同调度研究的 MATLAB
