@@ -1,0 +1,29 @@
+{
+  "physical_mean_bits_per_s_hz": 0.5,
+  "physical_sum_bits_per_s_hz": 1.0,
+  "experience_mean_mbps_valid_ues": 63.179999999999986,
+  "experience_bottom5_mbps_valid_ues": 63.179999999999986,
+  "experience_bottom5_mbps_all_ues_zero_included": 3.1589999999999994,
+  "actual_prb_fraction_mean": 0.03571428571428571,
+  "actual_busy_ue_tti_fraction": 0.375,
+  "actual_tail_tti_fraction_of_busy": 0.6666666666666666,
+  "actual_tail_demand_fraction_of_arrivals": 0.3636363636363637,
+  "total_radiated_power_watt": 1.0,
+  "valid_sample_count": 2,
+  "per_ue_physical_bits_per_s_hz": [
+    1.0,
+    0.0
+  ],
+  "per_ue_valid_tti": [
+    2,
+    0
+  ],
+  "per_ue_delivered_bits_proxy": [
+    126359.99999999997,
+    0.0
+  ],
+  "per_ue_allocated_rb": [
+    273,
+    0
+  ]
+}

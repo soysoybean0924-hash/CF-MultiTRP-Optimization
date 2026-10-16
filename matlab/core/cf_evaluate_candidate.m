@@ -1,5 +1,5 @@
 function result=cf_evaluate_candidate(cfg,scenario,candidate,doOptimize)
-%CF_EVALUATE_CANDIDATE Evaluate one b/p/r/W policy in a fixed H scenario.
+%CF_EVALUATE_CANDIDATE Evaluate one b/p/r/legacyBeamformer policy in a fixed H scenario.
 if nargin<4, doOptimize=true; end
 if isfield(cfg,'chasiNative') && isfield(cfg.chasiNative,'enabled') && cfg.chasiNative.enabled
     result=cf_evaluate_chasi_native_candidate(cfg,scenario,candidate,doOptimize);
@@ -7,12 +7,12 @@ if isfield(cfg,'chasiNative') && isfield(cfg.chasiNative,'enabled') && cfg.chasi
 end
 
 % Build the deterministic initial policy: top-gain DU associations bInit,
-% stream rank r, receive subspace Q, and matched-filter-like W baseline.
-[bInit,rankUG,Q,Wbaseline]=buildInitialState(cfg,scenario,candidate);
-[Wbaseline,~]=normalizeAllDUPower(Wbaseline,cfg.maxDUPower);
-pBaseline=powerFromW(Wbaseline);
-baseline=computeMetrics(cfg,scenario,Wbaseline,bInit,Q,rankUG,ones(cfg.numUEs,1));
-W=Wbaseline; history=emptyHistory();
+% stream rank r, receive subspace Q, and matched-filter-like legacyBeamformer baseline.
+[bInit,rankUG,Q,baselineBeamformer]=buildInitialState(cfg,scenario,candidate);
+[baselineBeamformer,~]=normalizeAllDUPower(baselineBeamformer,cfg.maxDUPower);
+pBaseline=powerFromBeamformer(baselineBeamformer);
+baseline=computeMetrics(cfg,scenario,baselineBeamformer,bInit,Q,rankUG,ones(cfg.numUEs,1));
+legacyBeamformer=baselineBeamformer; history=emptyHistory();
 
 if doOptimize && cfg.inner.maxIter>0
     % Inner loop alternates between metric evaluation, WPS weights, power
@@ -27,8 +27,8 @@ if doOptimize && cfg.inner.maxIter>0
     stopReason = 'max_iter';
     converged = false;
     for iter=1:cfg.inner.maxIter
-        Wold=W;
-        current=computeMetrics(cfg,scenario,W,bInit,Q,rankUG,delta);
+        previousBeamformer=legacyBeamformer;
+        current=computeMetrics(cfg,scenario,legacyBeamformer,bInit,Q,rankUG,delta);
         % zeta is the quadratic-transform auxiliary variable used to make
         % the beamformer update tractable for the current SLINR state.
         zeta=complex(zeros(S,U,G));
@@ -42,7 +42,7 @@ if doOptimize && cfg.inner.maxIter>0
             end
         end
 
-        pNow=powerFromW(W); alpha=1./(pNow+cfg.inner.alphaEpsilon);
+        pNow=powerFromBeamformer(legacyBeamformer); alpha=1./(pNow+cfg.inner.alphaEpsilon);
         % lambda discourages too many effective active antenna/stream loads;
         % mu is updated after normalization for per-DU/RBG power violations.
         for g=1:G
@@ -56,9 +56,9 @@ if doOptimize && cfg.inner.maxIter>0
             end
         end
 
-        Wnew=updateBeamformers(cfg,scenario,candidate,bInit,rankUG,Q, ...
+        candidateBeamformer=updateBeamformers(cfg,scenario,candidate,bInit,rankUG,Q, ...
             current.SLINR,delta,zeta,alpha,lambda,mu);
-        [W,prePower]=normalizeAllDUPower(Wnew,cfg.maxDUPower);
+        [legacyBeamformer,prePower]=normalizeAllDUPower(candidateBeamformer,cfg.maxDUPower);
         for g=1:G
             for r=1:R
                 violation=prePower(r,g)-cfg.maxDUPower;
@@ -70,16 +70,16 @@ if doOptimize && cfg.inner.maxIter>0
             end
         end
 
-        W=ensureMinimumService(cfg,scenario,candidate,W,bInit,Q,rankUG);
-        updated=computeMetrics(cfg,scenario,W,bInit,Q,rankUG,delta);
+        legacyBeamformer=ensureMinimumService(cfg,scenario,candidate,legacyBeamformer,bInit,Q,rankUG);
+        updated=computeMetrics(cfg,scenario,legacyBeamformer,bInit,Q,rankUG,delta);
         averageRate=cfg.inner.rateAveragingFactor*averageRate+ ...
             (1-cfg.inner.rateAveragingFactor)*updated.userRate;
         delta=1./((averageRate+cfg.inner.pfEpsilon).^candidate.betaPF);
-        pUpdated=powerFromW(W);
+        pUpdated=powerFromBeamformer(legacyBeamformer);
         activeLinks=sum(pUpdated(:)>candidate.scheduleThreshold);
         totalPower=sum(pUpdated(:)); sumWPS=sum(updated.WPS(:));
         objective=sumWPS;
-        relativeChange=norm(W(:)-Wold(:))/(norm(Wold(:))+eps);
+        relativeChange=norm(legacyBeamformer(:)-previousBeamformer(:))/(norm(previousBeamformer(:))+eps);
         objectiveHistory(iter)=objective; sumWPSHistory(iter)=sumWPS;
         activeLinksHistory(iter)=activeLinks; totalPowerHistory(iter)=totalPower;
         fairnessHistory(iter)=updated.Jain; relativeChangeHistory(iter)=relativeChange;
@@ -99,28 +99,28 @@ end
 
 % Final cleanup: preserve minimum service, optionally repair weak users, and
 % normalize once more before converting continuous power p into binary b.
-W=ensureMinimumService(cfg,scenario,candidate,W,bInit,Q,rankUG);
-pFinal=powerFromW(W); bFinal=double(pFinal>candidate.scheduleThreshold);
+legacyBeamformer=ensureMinimumService(cfg,scenario,candidate,legacyBeamformer,bInit,Q,rankUG);
+pFinal=powerFromBeamformer(legacyBeamformer); bFinal=double(pFinal>candidate.scheduleThreshold);
 if doOptimize && candidate.maxRepairLinks>0
-    [W,~,~]=repairWeakUsers(cfg,scenario,candidate,W,bInit,bFinal,Q,rankUG,baseline.userRate);
+    [legacyBeamformer,~,~]=repairWeakUsers(cfg,scenario,candidate,legacyBeamformer,bInit,bFinal,Q,rankUG,baseline.userRate);
 end
-[W,~]=normalizeAllDUPower(W,cfg.maxDUPower);
-W=ensureMinimumService(cfg,scenario,candidate,W,bInit,Q,rankUG);
-[W,~]=normalizeAllDUPower(W,cfg.maxDUPower);
-pFinal=powerFromW(W); bFinal=double(pFinal>candidate.scheduleThreshold);
-proposed=computeMetrics(cfg,scenario,W,bFinal,Q,rankUG,ones(cfg.numUEs,1));
+[legacyBeamformer,~]=normalizeAllDUPower(legacyBeamformer,cfg.maxDUPower);
+legacyBeamformer=ensureMinimumService(cfg,scenario,candidate,legacyBeamformer,bInit,Q,rankUG);
+[legacyBeamformer,~]=normalizeAllDUPower(legacyBeamformer,cfg.maxDUPower);
+pFinal=powerFromBeamformer(legacyBeamformer); bFinal=double(pFinal>candidate.scheduleThreshold);
+proposed=computeMetrics(cfg,scenario,legacyBeamformer,bFinal,Q,rankUG,ones(cfg.numUEs,1));
 trafficTrace=[];
 if isfield(scenario,'traffic'), trafficTrace=scenario.traffic; end
 baselineExperience=cf_compute_experience_rate(cfg,baseline.ratePerStream,bInit,trafficTrace);
 proposedExperience=cf_compute_experience_rate(cfg,proposed.ratePerStream,bFinal,trafficTrace);
 objective=proposed.SumRate;
 [score,scoreParts]=computeScore(cfg,proposed,baseline,bFinal,pFinal,rankUG);
-trueChannel=evaluateOnTrueChannel(cfg,scenario,W,bFinal,Q,rankUG,trafficTrace);
+trueChannel=evaluateOnTrueChannel(cfg,scenario,legacyBeamformer,bFinal,Q,rankUG,trafficTrace);
 
 % Return both proposed and baseline fields so plotting, diagnostics, and
 % sensitivity analysis can compare them without rerunning the candidate.
 result.Candidate=candidate; result.Objective=objective; result.Score=score; result.ScoreParts=scoreParts;
-result.H=scenario.H; result.Q=Q; result.b=bFinal; result.p=pFinal; result.r=rankUG; result.legacyBeamformer=W;
+result.H=scenario.H; result.Q=Q; result.b=bFinal; result.p=pFinal; result.r=rankUG; result.legacyBeamformer=legacyBeamformer;
 result.bInit=bInit; result.SLINR=proposed.SLINR; result.WPS=proposed.WPS;
 result.ratePerStream=proposed.ratePerStream; result.userRate=proposed.userRate;
 result.SumRate=proposed.SumRate; result.MeanRate=proposed.MeanRate;
@@ -129,7 +129,7 @@ result.Jain=proposed.Jain; result.ActiveLinks=sum(bFinal(:)); result.TotalPower=
 result.ActiveStreams=sum(rankUG(:)); result.ExperienceRate=proposedExperience;
 result.Robust=robustSummary(cfg,scenario); result.Edge=edgeSummary(cfg,scenario,bFinal,proposedExperience);
 result.TrueChannel=trueChannel; result.history=history;
-result.baseline.legacyBeamformer=Wbaseline; result.baseline.b=bInit; result.baseline.p=pBaseline; result.baseline.r=rankUG;
+result.baseline.legacyBeamformer=baselineBeamformer; result.baseline.b=bInit; result.baseline.p=pBaseline; result.baseline.r=rankUG;
 result.baseline.SLINR=baseline.SLINR; result.baseline.WPS=baseline.WPS;
 result.baseline.userRate=baseline.userRate; result.baseline.SumRate=baseline.SumRate;
 result.baseline.MeanRate=baseline.MeanRate; result.baseline.MinRate=baseline.MinRate;
@@ -139,7 +139,7 @@ result.baseline.TotalPower=sum(pBaseline(:)); result.baseline.ExperienceRate=bas
 result.scenario=scenario;
 end
 
-function [bInit,rankUG,Q,W]=buildInitialState(cfg,scenario,candidate)
+function [bInit,rankUG,Q,legacyBeamformer]=buildInitialState(cfg,scenario,candidate)
 R=cfg.numDUs; U=cfg.numUEs; G=cfg.numRBGs; M=cfg.numTxAntennas;
 Nr=cfg.numRxAntennas; Smax=cfg.maxRank; H=scenario.H;
 bInit=zeros(R,U,G);
@@ -193,23 +193,23 @@ order=[edgeOrder(:); otherOrder(:)];
 count=min([requestedCount,numel(edgeOrder),R]);
 count=max(1,count);
 end
-W=complex(zeros(M,Smax,R,U,G));
+legacyBeamformer=complex(zeros(M,Smax,R,U,G));
 % Initialize each active precoder along the effective channel direction.
 for g=1:G
     for r=1:R
         for u=1:U
             if bInit(r,u,g)==0, continue; end
             for s=1:rankUG(u,g)
-                hEff=H(:,:,r,u,g)'*Q(:,u,g,s); W(:,s,r,u,g)=hEff/(norm(hEff)+eps);
+                hEff=H(:,:,r,u,g)'*Q(:,u,g,s); legacyBeamformer(:,s,r,u,g)=hEff/(norm(hEff)+eps);
             end
         end
     end
 end
 end
 
-function Wnew=updateBeamformers(cfg,scenario,candidate,bInit,rankUG,Q,SLINR,delta,zeta,alpha,lambda,mu)
+function candidateBeamformer=updateBeamformers(cfg,scenario,candidate,bInit,rankUG,Q,SLINR,delta,zeta,alpha,lambda,mu)
 R=cfg.numDUs; U=cfg.numUEs; G=cfg.numRBGs; M=cfg.numTxAntennas; Smax=cfg.maxRank;
-H=scenario.H; Wnew=complex(zeros(M,Smax,R,U,G)); identityM=eye(M);
+H=scenario.H; candidateBeamformer=complex(zeros(M,Smax,R,U,G)); identityM=eye(M);
 for g=1:G
     for r=1:R
         % commonA aggregates how DU r's beam affects all users on this RBG.
@@ -229,21 +229,21 @@ for g=1:G
                 hEff=H(:,:,r,u,g)'*Q(:,u,g,s);
                 hEff=applyRobustChannelScale(cfg,scenario,hEff,r,u,g);
                 scale=conj(zeta(s,u,g))*sqrt(delta(u)*(1+SLINR(s,u,g)));
-                Wnew(:,s,r,u,g)=systemMatrix\(scale*hEff);
+                candidateBeamformer(:,s,r,u,g)=systemMatrix\(scale*hEff);
             end
         end
     end
 end
 end
 
-function metrics=computeMetrics(cfg,scenario,W,bMask,Q,rankUG,delta)
+function metrics=computeMetrics(cfg,scenario,legacyBeamformer,bMask,Q,rankUG,delta)
 R=cfg.numDUs; U=cfg.numUEs; G=cfg.numRBGs; Smax=cfg.maxRank; H=scenario.H;
 SLINR=zeros(Smax,U,G); WPS=SLINR; signalPower=SLINR; interferencePower=SLINR;
 usefulAmplitude=complex(zeros(Smax,U,G));
 for g=1:G
     activeColumns=false(1,Smax*U);
     queryColumns=false(1,Smax*U);
-    Wmasked=complex(zeros(cfg.numTxAntennas*R,Smax*U));
+    maskedBeamformer=complex(zeros(cfg.numTxAntennas*R,Smax*U));
     Hquery=complex(zeros(cfg.numTxAntennas*R,Smax*U));
     for up=1:U
         for sp=1:rankUG(up,g)
@@ -254,7 +254,7 @@ for g=1:G
             for r=1:R
                 if bMask(r,up,g)>0
                     rows=(r-1)*cfg.numTxAntennas+(1:cfg.numTxAntennas);
-                    Wmasked(rows,col)=W(:,sp,r,up,g);
+                    maskedBeamformer(rows,col)=legacyBeamformer(:,sp,r,up,g);
                 end
             end
         end
@@ -264,7 +264,7 @@ for g=1:G
     if isempty(activeIndex) || isempty(queryIndex)
         continue;
     end
-    amplitudeMatrix=Hquery(:,queryIndex)'*Wmasked(:,activeIndex);
+    amplitudeMatrix=Hquery(:,queryIndex)'*maskedBeamformer(:,activeIndex);
     totalPowerByQuery=sum(abs(amplitudeMatrix).^2,2);
     [signalIsActive,signalLocations]=ismember(queryIndex,activeIndex);
     for qi=1:numel(queryIndex)
@@ -305,33 +305,33 @@ for r=1:R
 end
 end
 
-function p=powerFromW(W)
-[~,S,R,U,G]=size(W); p=zeros(R,U,G);
+function p=powerFromBeamformer(legacyBeamformer)
+[~,S,R,U,G]=size(legacyBeamformer); p=zeros(R,U,G);
 for g=1:G
     for r=1:R
         for u=1:U
-            for s=1:S, p(r,u,g)=p(r,u,g)+norm(W(:,s,r,u,g))^2; end
+            for s=1:S, p(r,u,g)=p(r,u,g)+norm(legacyBeamformer(:,s,r,u,g))^2; end
         end
     end
 end
 end
 
-function [W,prePower]=normalizeAllDUPower(W,maxPower)
-[~,S,R,U,G]=size(W); prePower=zeros(R,G);
+function [legacyBeamformer,prePower]=normalizeAllDUPower(legacyBeamformer,maxPower)
+[~,S,R,U,G]=size(legacyBeamformer); prePower=zeros(R,G);
 for g=1:G
     for r=1:R
         total=0;
         for u=1:U
-            for s=1:S, total=total+norm(W(:,s,r,u,g))^2; end
+            for s=1:S, total=total+norm(legacyBeamformer(:,s,r,u,g))^2; end
         end
         prePower(r,g)=total;
-        if total>maxPower, W(:,:,r,:,g)=sqrt(maxPower/(total+eps)).*W(:,:,r,:,g); end
+        if total>maxPower, legacyBeamformer(:,:,r,:,g)=sqrt(maxPower/(total+eps)).*legacyBeamformer(:,:,r,:,g); end
     end
 end
 end
 
-function W=ensureMinimumService(cfg,scenario,candidate,W,bInit,Q,rankUG)
-p=powerFromW(W);
+function legacyBeamformer=ensureMinimumService(cfg,scenario,candidate,legacyBeamformer,bInit,Q,rankUG)
+p=powerFromBeamformer(legacyBeamformer);
 % If a UE lost all links after thresholding, add a small protected beam on
 % its strongest initial DU/RBG so every UE remains represented.
 for u=1:cfg.numUEs
@@ -346,14 +346,14 @@ for u=1:cfg.numUEs
     end
     hEff=scenario.H(:,:,bestR,u,bestG)'*Q(:,u,bestG,1);
     protectPower=max([cfg.inner.minimumServicePower,10*candidate.scheduleThreshold,10*eps]);
-    W(:,1,bestR,u,bestG)=sqrt(protectPower)*hEff/(norm(hEff)+eps);
-    for s=2:rankUG(u,bestG), W(:,s,bestR,u,bestG)=0; end
-    [W,~]=normalizeAllDUPower(W,cfg.maxDUPower); p=powerFromW(W);
+    legacyBeamformer(:,1,bestR,u,bestG)=sqrt(protectPower)*hEff/(norm(hEff)+eps);
+    for s=2:rankUG(u,bestG), legacyBeamformer(:,s,bestR,u,bestG)=0; end
+    [legacyBeamformer,~]=normalizeAllDUPower(legacyBeamformer,cfg.maxDUPower); p=powerFromBeamformer(legacyBeamformer);
 end
 end
 
-function [W,bFinal,pFinal]=repairWeakUsers(cfg,scenario,candidate,W,bInit,bFinal,Q,rankUG,baselineRate)
-current=computeMetrics(cfg,scenario,W,bFinal,Q,rankUG,ones(cfg.numUEs,1));
+function [legacyBeamformer,bFinal,pFinal]=repairWeakUsers(cfg,scenario,candidate,legacyBeamformer,bInit,bFinal,Q,rankUG,baselineRate)
+current=computeMetrics(cfg,scenario,legacyBeamformer,bFinal,Q,rankUG,ones(cfg.numUEs,1));
 % Optional weak-user repair reactivates a limited number of previously
 % selected links when a user's final rate falls below a baseline fraction.
 for u=1:cfg.numUEs
@@ -373,15 +373,15 @@ for u=1:cfg.numUEs
         if repairCount>=candidate.maxRepairLinks, break; end
         r=candidates(k,1); g=candidates(k,2);
         hEff=scenario.H(:,:,r,u,g)'*Q(:,u,g,1);
-        W(:,1,r,u,g)=sqrt(candidate.repairPower)*hEff/(norm(hEff)+eps);
-        [W,~]=normalizeAllDUPower(W,cfg.maxDUPower); pFinal=powerFromW(W);
+        legacyBeamformer(:,1,r,u,g)=sqrt(candidate.repairPower)*hEff/(norm(hEff)+eps);
+        [legacyBeamformer,~]=normalizeAllDUPower(legacyBeamformer,cfg.maxDUPower); pFinal=powerFromBeamformer(legacyBeamformer);
         bFinal=double(pFinal>candidate.scheduleThreshold);
-        current=computeMetrics(cfg,scenario,W,bFinal,Q,rankUG,ones(cfg.numUEs,1));
+        current=computeMetrics(cfg,scenario,legacyBeamformer,bFinal,Q,rankUG,ones(cfg.numUEs,1));
         repairCount=repairCount+1;
         if current.userRate(u)>=target, break; end
     end
 end
-pFinal=powerFromW(W); bFinal=double(pFinal>candidate.scheduleThreshold);
+pFinal=powerFromBeamformer(legacyBeamformer); bFinal=double(pFinal>candidate.scheduleThreshold);
 end
 
 function [score,parts]=computeScore(cfg,proposed,baseline,bFinal,pFinal,rankUG)
@@ -411,7 +411,7 @@ h.objective=[]; h.sumWPS=[]; h.activeLinks=[]; h.totalPower=[]; h.Jain=[]; h.rel
 h.iterations=0; h.converged=false; h.stopReason='not_run';
 end
 
-function trueChannel=evaluateOnTrueChannel(cfg,scenario,W,bFinal,Q,rankUG,trafficTrace)
+function trueChannel=evaluateOnTrueChannel(cfg,scenario,legacyBeamformer,bFinal,Q,rankUG,trafficTrace)
 trueChannel=struct();
 trueChannel.Available=false;
 if ~isfield(scenario,'H_true') || isempty(scenario.H_true)
@@ -422,7 +422,7 @@ trueScenario.H=scenario.H_true;
 if isfield(scenario,'channelGainTrue')
     trueScenario.channelGain=scenario.channelGainTrue;
 end
-metrics=computeMetrics(cfg,trueScenario,W,bFinal,Q,rankUG,ones(cfg.numUEs,1));
+metrics=computeMetrics(cfg,trueScenario,legacyBeamformer,bFinal,Q,rankUG,ones(cfg.numUEs,1));
 experience=cf_compute_experience_rate(cfg,metrics.ratePerStream,bFinal,trafficTrace);
 trueChannel.Available=true;
 trueChannel.SLINR=metrics.SLINR;
