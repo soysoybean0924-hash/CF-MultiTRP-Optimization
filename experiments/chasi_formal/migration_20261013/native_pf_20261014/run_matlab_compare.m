@@ -1,7 +1,7 @@
 % Consume only the explicit inputs saved by prepare_compare.py.
 here=fileparts(mfilename('fullpath'));
 root=fileparts(fileparts(fileparts(fileparts(here))));
-addpath(fullfile(root,'experiments','chasi_formal','migration_20261013'));
+addpath(fullfile(root,'matlab','chasi'));
 names={'rank1_nominal','rank2_nominal','rank2_uniform',...
        'rank2_relative','rank2_statistical'};
 for j=1:numel(names)

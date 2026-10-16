@@ -120,7 +120,7 @@ trueChannel=evaluateOnTrueChannel(cfg,scenario,W,bFinal,Q,rankUG,trafficTrace);
 % Return both proposed and baseline fields so plotting, diagnostics, and
 % sensitivity analysis can compare them without rerunning the candidate.
 result.Candidate=candidate; result.Objective=objective; result.Score=score; result.ScoreParts=scoreParts;
-result.H=scenario.H; result.Q=Q; result.b=bFinal; result.p=pFinal; result.r=rankUG; result.W=W;
+result.H=scenario.H; result.Q=Q; result.b=bFinal; result.p=pFinal; result.r=rankUG; result.legacyBeamformer=W;
 result.bInit=bInit; result.SLINR=proposed.SLINR; result.WPS=proposed.WPS;
 result.ratePerStream=proposed.ratePerStream; result.userRate=proposed.userRate;
 result.SumRate=proposed.SumRate; result.MeanRate=proposed.MeanRate;
@@ -129,7 +129,7 @@ result.Jain=proposed.Jain; result.ActiveLinks=sum(bFinal(:)); result.TotalPower=
 result.ActiveStreams=sum(rankUG(:)); result.ExperienceRate=proposedExperience;
 result.Robust=robustSummary(cfg,scenario); result.Edge=edgeSummary(cfg,scenario,bFinal,proposedExperience);
 result.TrueChannel=trueChannel; result.history=history;
-result.baseline.W=Wbaseline; result.baseline.b=bInit; result.baseline.p=pBaseline; result.baseline.r=rankUG;
+result.baseline.legacyBeamformer=Wbaseline; result.baseline.b=bInit; result.baseline.p=pBaseline; result.baseline.r=rankUG;
 result.baseline.SLINR=baseline.SLINR; result.baseline.WPS=baseline.WPS;
 result.baseline.userRate=baseline.userRate; result.baseline.SumRate=baseline.SumRate;
 result.baseline.MeanRate=baseline.MeanRate; result.baseline.MinRate=baseline.MinRate;

@@ -7,5 +7,5 @@ candidate=cf_decode_candidate(cfg.defaultX,cfg);
 result=cf_evaluate_candidate(cfg,scenario,candidate,true);
 comparisonTable=cf_print_result(result,'02 Inner WPS/SLINR iteration');
 cf_plot_result(result,'02 H-W-SLINR-WPS iteration');
-H=result.H; W=result.W; b=result.b; p=result.p; r=result.r;
+H=result.H; W=result.legacyBeamformer; b=result.b; p=result.p; r=result.r;
 SLINR=result.SLINR; WPS=result.WPS;

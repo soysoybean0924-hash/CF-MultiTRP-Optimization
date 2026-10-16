@@ -189,13 +189,13 @@ mask=rand(size(child))<rate; child(mask)=child(mask)+sigma*randn(1,sum(mask));
 reset=rand(size(child))<0.03; child(reset)=rand(1,sum(reset)); child=clip01(child);
 end
 
-function [X,currentScores,pbestX,pbestScore,t]=psoPhase(cfg,scenario,o,t,X,initialScores,V,phaseEnd)
-[N,D]=size(X); if isempty(V), V=0.1*(2*rand(N,D)-1); end
+function [X,currentScores,pbestX,pbestScore,t]=psoPhase(cfg,scenario,o,t,X,initialScores,psoVelocity,phaseEnd)
+[N,D]=size(X); if isempty(psoVelocity), psoVelocity=0.1*(2*rand(N,D)-1); end
 if isempty(initialScores)
     pbestX=X; pbestScore=-inf(N,1); currentScores=-inf(N,1);
 else
     currentScores=initialScores(:); pbestX=X; pbestScore=currentScores;
-    [X,V]=moveParticles(X,V,pbestX,pbestScore,t.bestX,t.evaluationCount,o);
+    [X,psoVelocity]=moveParticles(X,psoVelocity,pbestX,pbestScore,t.bestX,t.evaluationCount,o);
 end
 % PSO keeps a personal best per particle and moves each particle toward its
 % own best and the global best, with inertia decreasing over the budget.
@@ -211,20 +211,20 @@ while t.evaluationCount<phaseEnd && t.evaluationCount<t.maxEvaluations
     if ~completed || t.evaluationCount>=phaseEnd || t.evaluationCount>=t.maxEvaluations, break; end
     progress=t.evaluationCount/max(1,t.maxEvaluations);
     inertia=o.psoInertiaStart+progress*(o.psoInertiaEnd-o.psoInertiaStart);
-    V=inertia*V+o.psoCognitive*rand(N,D).*(pbestX-X)+ ...
+    psoVelocity=inertia*psoVelocity+o.psoCognitive*rand(N,D).*(pbestX-X)+ ...
         o.psoSocial*rand(N,D).*(repmat(t.bestX,N,1)-X);
-    V=min(max(V,-o.psoVelocityLimit),o.psoVelocityLimit); X=clip01(X+V);
+    psoVelocity=min(max(psoVelocity,-o.psoVelocityLimit),o.psoVelocityLimit); X=clip01(X+psoVelocity);
 end
 end
 
-function [X,V]=moveParticles(X,V,pbestX,pbestScore,gbest,evalCount,o)
+function [X,psoVelocity]=moveParticles(X,psoVelocity,pbestX,pbestScore,gbest,evalCount,o)
 [N,D]=size(X);
 if any(~isfinite(gbest)), [~,idx]=max(pbestScore); gbest=pbestX(idx,:); end
 progress=evalCount/max(1,o.maxEvaluations);
 inertia=o.psoInertiaStart+progress*(o.psoInertiaEnd-o.psoInertiaStart);
-V=inertia*V+o.psoCognitive*rand(N,D).*(pbestX-X)+ ...
+psoVelocity=inertia*psoVelocity+o.psoCognitive*rand(N,D).*(pbestX-X)+ ...
     o.psoSocial*rand(N,D).*(repmat(gbest,N,1)-X);
-V=min(max(V,-o.psoVelocityLimit),o.psoVelocityLimit); X=clip01(X+V);
+psoVelocity=min(max(psoVelocity,-o.psoVelocityLimit),o.psoVelocityLimit); X=clip01(X+psoVelocity);
 end
 
 function [X,scores,t]=pgsaoSearch(cfg,scenario,o,t,X)

@@ -1,5 +1,7 @@
 % Deterministic two-TRP/two-resource fixture; no formal experiment is run.
 here=fileparts(mfilename('fullpath'));
+projectRoot=fileparts(fileparts(fileparts(here)));
+addpath(fullfile(projectRoot,'matlab','chasi'));
 G=2; K=2; L=2; Nr=4; Nt=4; d=1;
 resources=repmat(struct('H',[],'C',[],'serve',[],'rb_count',[],...
     'tx_rb_count',[]),1,G);

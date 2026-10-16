@@ -2,7 +2,8 @@ function out = chasi_matrix_wmmse(resources, cfg, initialV)
 %CHASI_MATRIX_WMMSE Complex coherent-JT WMMSE with centralized V=Z ADMM.
 % resources(g): H [K,L,Nr,Nt], C [K,L,Nr,Nr], serve [L,K],
 %   rb_count, tx_rb_count. All inputs are supplied; no scene is generated.
-% V{g} [L,K,Nt,d], U{g} [K,Nr,d], W{g} [K,d,d].
+% precoderV{g} [L,K,Nt,d], receiverU{g} [K,Nr,d],
+% mseWeightW{g} and mseMatrixE{g} [K,d,d].
 % The local use of this function does not make its ADMM TRP distributed.
 if nargin < 3, initialV = []; end
 cfg = defaults(cfg);
@@ -22,6 +23,7 @@ if isempty(initialV)
         end
     end
     V=project(resources,V,cfg.budget);
+    V=initializeVariation(resources,V,cfg);
 else
     V=initialV;
     if numel(V)~=G, error('Resource count mismatch'); end
@@ -35,11 +37,11 @@ else
     end
     if max(chasi_power(resources,V))>cfg.budget+1e-7, error('V over budget'); end
 end
-hist=struct([]); U=cell(1,G); W=cell(1,G); rate=cell(1,G);
+hist=struct([]); U=cell(1,G); W=cell(1,G); E=cell(1,G); rate=cell(1,G);
 lastObj=-inf; lastChange=inf; lastADMM=false; admmHist=[];
 for outer=0:cfg.outer_iterations
     for g=1:G
-        [U{g},W{g},rate{g}]=state(resources(g).H,resources(g).C,V{g});
+        [U{g},W{g},E{g},rate{g}]=state(resources(g).H,resources(g).C,V{g});
     end
     [obj,estimatedSum,perUE,userWeights,surrogate]=objectiveSnapshot(resources,rate,cfg);
     if outer==0, rel=NaN; else, rel=abs(obj-lastObj)/max(1,abs(lastObj)); end
@@ -71,7 +73,7 @@ for outer=0:cfg.outer_iterations
         nextV=cell(1,G); trialRate=cell(1,G);
         for g=1:G
             nextV{g}=V{g}+step*(candidateV{g}-V{g});
-            [~,~,trialRate{g}]=state(resources(g).H,resources(g).C,nextV{g});
+            [~,~,~,trialRate{g}]=state(resources(g).H,resources(g).C,nextV{g});
         end
         trialObj=objectiveSnapshot(resources,trialRate,cfg);
         if trialObj>=obj-1e-7*max(1,abs(obj))
@@ -95,10 +97,11 @@ for outer=0:cfg.outer_iterations
     if ~accepted, reason='inexact_v_step_no_proxy_improvement'; break; end
 end
 for g=1:G
-    [U{g},W{g},rate{g}]=state(resources(g).H,resources(g).C,V{g});
+    [U{g},W{g},E{g},rate{g}]=state(resources(g).H,resources(g).C,V{g});
 end
 [obj,estimatedSum,perUE,userWeights,surrogate]=objectiveSnapshot(resources,rate,cfg);
-out.V=V; out.U=U; out.W=W; out.rate=rate; out.trajectory=hist;
+out.precoderV=V; out.receiverU=U; out.mseWeightW=W;
+out.mseMatrixE=E; out.rate=rate; out.trajectory=hist;
 out.reason=reason; out.power=chasi_power(resources,V);
 out.last_admm_history=admmHist;
 out.optimization_objective=obj; out.estimated_sum_rate=estimatedSum;
@@ -130,6 +133,7 @@ d=struct('rank',1,'budget',20,'outer_iterations',10,'outer_rel_tol',1e-4,...
     'outer_v_tol',5e-3,'admm_iterations',100,'cg_iterations',100,...
     'eps_abs',1e-4,'eps_rel',1e-3,'rho',.05,...
     'branch','matrix_sum','pf_floor',1e-2,'users',[],...
+    'initializationMode','svd','initializationSeed',0,'seed',0,...
     'probe_fixed_uw',false);
 f=fieldnames(d);
 for j=1:numel(f)
@@ -137,9 +141,51 @@ for j=1:numel(f)
 end
 end
 
+function V=initializeVariation(resources,V,cfg)
+mode=char(cfg.initializationMode);
+switch mode
+    case 'svd'
+        return
+    case 'home_biased'
+        for g=1:numel(resources)
+            r=resources(g); K=size(r.H,1); L=size(r.H,2);
+            if ~isfield(r,'home_trp') || numel(r.home_trp)~=K
+                error('Home-biased initialization requires home_trp');
+            end
+            home=double(r.home_trp(:));
+            if any(home<1 | home>L | home~=floor(home))
+                error('Home-biased initialization requires one-based home_trp');
+            end
+            for k=1:K
+                for l=find(r.serve(:,k)).'
+                    factor=.5;
+                    if l==home(k), factor=1.5; end
+                    V{g}(l,k,:,:)=factor*V{g}(l,k,:,:);
+                end
+            end
+        end
+    case 'jittered'
+        seed=double(cfg.seed)+double(cfg.initializationSeed);
+        if ~isscalar(seed) || ~isfinite(seed) || seed<0 || seed~=floor(seed)
+            error('Jittered initialization requires a nonnegative integer seed');
+        end
+        stream=RandStream('mt19937ar','Seed',seed);
+        for g=1:numel(resources)
+            r=resources(g); Nt=size(r.H,4);
+            noise=(randn(stream,size(V{g}))+1i*randn(stream,size(V{g})))/sqrt(2*Nt);
+            mask=reshape(r.serve,size(r.serve,1),size(r.serve,2),1,1);
+            V{g}=V{g}+.15*noise.*mask;
+        end
+    otherwise
+        error('Unsupported initialization mode: %s',mode);
+end
+V=project(resources,V,cfg.budget);
+end
+
 function resources=prepareResources(resources,cfg)
 if isempty(resources), error('Native solver requires supplied resources'); end
 if ~isfield(resources,'C_stat'), [resources.C_stat]=deal([]); end
+if ~isfield(resources,'edge_weight'), [resources.edge_weight]=deal([]); end
 L=size(resources(1).H,2); Nr=size(resources(1).H,3); Nt=size(resources(1).H,4);
 for g=1:numel(resources)
     r=resources(g); K=size(r.H,1);
@@ -165,6 +211,13 @@ for g=1:numel(resources)
     switch cfg.branch
         case 'matrix_sum'
             r.C=r.C_stat;
+        case 'ideal'
+            r.H=r.H_true;
+            r.C=complex(zeros(K,L,Nr,Nr));
+        case 'matrix_nominal'
+            r.C=complex(zeros(K,L,Nr,Nr));
+        case {'matrix_statistical','matrix_edge_weighted'}
+            r.C=r.C_stat;
         case 'matrix_pf_nominal'
             r.C=complex(zeros(K,L,Nr,Nr));
         case 'matrix_pf_statistical'
@@ -178,6 +231,23 @@ for g=1:numel(resources)
             r.C=uniformCovariance(r.C_stat,r.prior_gain);
         otherwise
             error('Unsupported native branch: %s',cfg.branch);
+    end
+    if strcmp(cfg.branch,'matrix_edge_weighted')
+        if ~isfield(r,'home_trp') || numel(r.home_trp)~=K || ...
+                ~isfield(r,'prior_gain') || ~isequal(size(r.prior_gain),[K,L])
+            error('Edge branch requires home_trp and K-by-L prior_gain');
+        end
+        home=double(r.home_trp(:));
+        if any(home<1 | home>L | home~=floor(home))
+            error('Edge branch requires one-based home_trp');
+        end
+        gain=r.prior_gain(sub2ind([K,L],(1:K).',home));
+        if any(~isfinite(gain) | gain<0)
+            error('Edge branch requires nonnegative finite home prior_gain');
+        end
+        potential=log2(1+cfg.budget*Nt*gain);
+        potential=max(potential,.01);
+        r.edge_weight=min(8,max(.25,median(potential)./potential));
     end
     resources(g)=r;
 end
@@ -238,13 +308,31 @@ for g=1:numel(resources)
     scheduled(ids)=true;
 end
 sumRate=sum(perUE);
-obj=sum(log1p(perUE(scheduled)/cfg.pf_floor));
-derivative=1./max(perUE+cfg.pf_floor,cfg.pf_floor);
-scale=median(derivative(scheduled));
-derivative=derivative/max(scale,1e-30);
-weights=cell(1,numel(resources)); surrogate=0;
+weights=cell(1,numel(resources));
+switch cfg.branch
+    case {'matrix_pf_nominal','matrix_pf_statistical', ...
+            'matrix_pf_uniform','matrix_pf_uniform_relative'}
+        obj=sum(log1p(perUE(scheduled)/cfg.pf_floor));
+        derivative=1./max(perUE+cfg.pf_floor,cfg.pf_floor);
+        scale=median(derivative(scheduled));
+        derivative=derivative/max(scale,1e-30);
+        for g=1:numel(resources)
+            weights{g}=derivative(double(resources(g).ue_ids(:)));
+        end
+    case 'matrix_edge_weighted'
+        obj=0;
+        for g=1:numel(resources)
+            weights{g}=resources(g).edge_weight(:);
+            obj=obj+rbweight(resources(g))*sum(weights{g}.*rate{g}(:));
+        end
+    otherwise
+        obj=sumRate;
+        for g=1:numel(resources)
+            weights{g}=ones(numel(rate{g}),1);
+        end
+end
+surrogate=0;
 for g=1:numel(resources)
-    weights{g}=derivative(double(resources(g).ue_ids(:)));
     surrogate=surrogate+rbweight(resources(g))*sum(weights{g}.*rate{g}(:));
 end
 end
@@ -277,9 +365,10 @@ t=(n-1)*p/100; lo=floor(t)+1; hi=ceil(t)+1;
 value=x(lo)+(t-floor(t))*(x(hi)-x(lo));
 end
 
-function [U,W,rate]=state(H,C,V)
+function [U,W,E,rate]=state(H,C,V)
 [K,L,Nr,Nt]=size(H); d=size(V,4);
-U=complex(zeros(K,Nr,d)); W=complex(zeros(K,d,d)); rate=zeros(K,1);
+U=complex(zeros(K,Nr,d)); W=complex(zeros(K,d,d));
+E=complex(zeros(K,d,d)); rate=zeros(K,1);
 p=zeros(L,1);
 for l=1:L, p(l)=sum(abs(V(l,:,:,:)).^2,'all'); end
 for k=1:K
@@ -296,11 +385,12 @@ for k=1:K
     end
     for l=1:L, R=R+p(l)*reshape(C(k,l,:,:),Nr,Nr); end
     u=R\wanted;
-    E=eye(d)-u'*wanted-wanted'*u+u'*R*u;
-    E=(E+E')/2;
+    e=eye(d)-u'*wanted-wanted'*u+u'*R*u;
+    e=(e+e')/2;
     U(k,:,:)=reshape(u,1,Nr,d);
-    W(k,:,:)=reshape(E\eye(d),1,d,d);
-    rate(k)=-real(log(det(E)))/log(2);
+    E(k,:,:)=reshape(e,1,d,d);
+    W(k,:,:)=reshape(e\eye(d),1,d,d);
+    rate(k)=-real(log(det(e)))/log(2);
 end
 end
 

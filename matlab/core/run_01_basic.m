@@ -11,4 +11,4 @@ candidate=cf_decode_candidate(cfg.defaultX,cfg); candidate.maxRank=1;
 result=cf_evaluate_candidate(cfg,scenario,candidate,false);
 comparisonTable=cf_print_result(result,'01 Basic Cell-Free model');
 cf_plot_result(result,'01 Basic Cell-Free: b/p/r/W/H');
-H=result.H; W=result.W; b=result.b; p=result.p; r=result.r;
+H=result.H; W=result.legacyBeamformer; b=result.b; p=result.p; r=result.r;

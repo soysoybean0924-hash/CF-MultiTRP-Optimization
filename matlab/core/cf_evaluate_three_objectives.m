@@ -53,7 +53,7 @@ for r = 1:cfg.numDUs
     end
 end
 
-wDims = size(nativeResult.W);
+wDims = size(nativeResult.legacyBeamformer);
 if numel(wDims) < 5
     wDims(end+1:5) = 1;
 end
