@@ -3,7 +3,7 @@ function test_chasi_no_cooperation()
 root=fileparts(fileparts(mfilename('fullpath')));
 addpath(fullfile(root,'matlab','chasi'));
 resources=repmat(struct('H',[],'H_true',[],'C',[],'C_stat',[], ...
-    'serve',[],'home_trp',[],'ue_ids',[],'rb_count',[], ...
+    'servingMask',[],'home_trp',[],'ue_ids',[],'rb_count',[], ...
     'tx_rb_count',[],'prior_gain',[]),1,2);
 for g=1:2
     H=complex(zeros(2,2,4,4));
@@ -16,7 +16,7 @@ for g=1:2
     resources(g).H=H; resources(g).H_true=H;
     resources(g).C=complex(zeros(2,2,4,4));
     resources(g).C_stat=resources(g).C;
-    resources(g).serve=true(2,2);
+    resources(g).servingMask=true(2,2);
     resources(g).home_trp=[1;2]; resources(g).ue_ids=[1;2];
     resources(g).rb_count=20; resources(g).tx_rb_count=20;
     resources(g).prior_gain=ones(2,2);
@@ -29,13 +29,13 @@ assert(out.converged);
 assert(abs(out.optimization_objective-out.estimated_sum_rate)<1e-10);
 assert(all(abs(out.power-cfg.budget)<1e-8));
 for g=1:2
-    v=out.precoderV{g};
+    v=out.precoder{g};
     assert(norm(reshape(v(1,2,:,:),[],1))<1e-12);
     assert(norm(reshape(v(2,1,:,:),[],1))<1e-12);
     assert(norm(reshape(v(1,1,:,:),[],1))>0);
     assert(norm(reshape(v(2,2,:,:),[],1))>0);
-    assert(size(out.mseMatrixE{g},1)==2 && ...
-        size(out.mseMatrixE{g},2)==1 && size(out.mseMatrixE{g},3)==1);
+    assert(size(out.mseMatrix{g},1)==2 && ...
+        size(out.mseMatrix{g},2)==1 && size(out.mseMatrix{g},3)==1);
 end
 assert(out.max_power_violation<1e-8);
 resources(2).tx_rb_count=0;

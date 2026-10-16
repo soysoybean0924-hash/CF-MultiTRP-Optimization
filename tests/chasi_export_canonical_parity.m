@@ -20,10 +20,20 @@ names={'rank1_nominal','rank2_nominal','rank2_uniform', ...
     'rank2_relative','rank2_statistical'};
 for j=1:numel(names)
     input=load(fullfile(fixture,[names{j} '_input.mat']));
+    % Historical fixture schema used serve for the TRP-to-local-UE mask.
+    for g=1:numel(input.resources)
+        input.resources(g).servingMask=input.resources(g).serve;
+    end
+    input.resources=rmfield(input.resources,'serve');
     for outer=[0 2]
         cfg=input.cfg;
+        % Convert only the historical Python/MATLAB fixture option name.
+        if isfield(cfg,'outer_v_tol')
+            cfg.outer_precoder_tol=cfg.outer_v_tol;
+            cfg=rmfield(cfg,'outer_v_tol');
+        end
         cfg.outer_iterations=outer;
-        cfg.probe_fixed_uw=(outer==2);
+        cfg.probe_fixed_receiver_weight=(outer==2);
         out=chasi_matrix_wmmse(input.resources,cfg,input.initialV);
         destination=fullfile(outputDir, ...
             sprintf('%s_canonical_outer%d.mat',names{j},outer));

@@ -28,19 +28,18 @@ if ~isequal(size(busy),[cfg.users,windowTti]) || ...
         any(tail(:) & ~busy(:)) || any(terminal(:) & ~busy(:))
     error('chasi_time_evolution:Traffic','Invalid [UE,TTI] traffic masks.');
 end
-if isfield(solution,'precoderV'), v = solution.precoderV;
-else, v = solution.precoders; end
-resources = scene.resources; G = numel(resources); L = size(v{1},1);
+precoder = solution.precoder;
+resources = scene.resources; G = numel(resources); L = size(precoder{1},1);
 truth = cell(G,1); est = cell(G,1); cov = cell(G,1);
 gain = cell(G,1); linkMask = cell(G,1);
 for g = 1:G
-    r = resources(g);
-    truth{g} = double(r.H_true);
-    est{g} = double(r.H);
-    cov{g} = double(r.C);
-    gain{g} = double(r.prior_gain);
-    linkMask{g} = false(numel(r.ue_ids),L);
-    for k = 1:numel(r.ue_ids)
+    resource = resources(g);
+    truth{g} = double(resource.H_true);
+    est{g} = double(resource.H);
+    cov{g} = double(resource.C);
+    gain{g} = double(resource.prior_gain);
+    linkMask{g} = false(numel(resource.ue_ids),L);
+    for k = 1:numel(resource.ue_ids)
         for l = 1:L
             linkMask{g}(k,l) = any(reshape(abs(truth{g}(k,l,:,:)),[],1)>0);
         end
@@ -118,13 +117,15 @@ for t = 0:20:windowTti-20
     end
     fast = strcmp(beamPolicy,'estimated_svd') && t>0 && mod(t,fastPeriod)==0;
     slow = t>0 && mod(t,slowPeriod)==0;
-    if fast, v = fast_svd(resources,est,v,cfg.powerWattPerTrp); end
+    if fast
+        precoder = fast_svd(resources,est,precoder,cfg.powerWattPerTrp);
+    end
     changes = 0;
     if slow
         for g = 1:G
-            r = resources(g); ids = r.ue_ids(:);
+            resource = resources(g); ids = resource.ue_ids(:);
             for k = 1:numel(ids)
-                u = ids(k); old = find(r.serve(:,k));
+                u = ids(k); old = find(resource.servingMask(:,k));
                 active = unique(scene.home(ids));
                 distances = vecnorm(scene.trp_xy(active,:)-ueXy(u,:),2,2);
                 [~,order] = sort(distances); ordered = active(order);
@@ -138,15 +139,15 @@ for t = 0:20:windowTti-20
     for g = 1:G
         ids = resources(g).ue_ids(:); K = numel(ids);
         if K == 0, continue; end
-        w = rb_weight(resources(g)); rb = 273*w;
-        rr = true_rates(truth{g},v{g});
+        rbWeight = rb_weight(resources(g)); rb = 273*rbWeight;
+        rr = true_rates(truth{g},precoder{g});
         capacity(ids) = capacity(ids) + rr*rb*12*cfg.scsHz*cfg.ttiMs/1000;
-        physicalSum = physicalSum + sum(rr)*w*20/windowTti;
+        physicalSum = physicalSum + sum(rr)*rbWeight*20/windowTti;
         allocated(ids) = allocated(ids) + rb*20;
         for l = 1:L
             tx = false(K,1);
             for k = 1:K
-                tx(k) = any(reshape(abs(v{g}(l,k,:,:)),[],1)>1e-10);
+                tx(k) = any(reshape(abs(precoder{g}(l,k,:,:)),[],1)>1e-10);
             end
             if any(tx)
                 occupiedRbTti = occupiedRbTti + rb*nnz(any(busy(ids(tx),t+(1:20)),1));
@@ -165,7 +166,7 @@ for t = 0:20:windowTti-20
         completedTti(:,tt) = terminal(:,tt) & queue<1;
         completed = completed + double(completedTti(:,tt));
     end
-    powers = power_by_trp(resources,v,L);
+    powers = power_by_trp(resources,precoder,L);
     maxViolation = max(maxViolation,max(max(powers-cfg.powerWattPerTrp,0)));
     e = t/20+1;
     events(e).tti = t; events(e).srs_group = srsGroup;
@@ -222,8 +223,8 @@ result.completed_tti = completedTti;
 result.events = events;
 end
 
-function v = opt(options,name,fallback)
-if isfield(options,name), v = options.(name); else, v = fallback; end
+function value = opt(options,name,fallback)
+if isfield(options,name), value = options.(name); else, value = fallback; end
 end
 
 function [updated,posteriorCov] = posterior(mu,c,truth,rows,noiseVar,stream)
@@ -237,70 +238,83 @@ posteriorCov = c-gain*c(rows,:);
 posteriorCov = (posteriorCov+posteriorCov')/2;
 end
 
-function vv = fast_svd(resources,est,v,budget)
-G = numel(resources); L = size(v{1},1); vv = cell(G,1);
+function updatedPrecoder = fast_svd(resources,est,precoder,budget)
+G = numel(resources); L = size(precoder{1},1);
+updatedPrecoder = cell(G,1);
 for g = 1:G
-    vv{g} = zeros(size(v{g}),'like',v{g});
-    K = numel(resources(g).ue_ids); d = size(v{g},4); Nt = size(v{g},3);
+    updatedPrecoder{g} = zeros(size(precoder{g}),'like',precoder{g});
+    K = numel(resources(g).ue_ids);
+    numStreams = size(precoder{g},4); Nt = size(precoder{g},3);
     for l = 1:L
         for k = 1:K
-            if ~resources(g).serve(l,k), continue; end
-            p = sum(abs(reshape(v{g}(l,k,:,:),[],1)).^2);
-            if p <= 0, continue; end
+            if ~resources(g).servingMask(l,k), continue; end
+            power = sum(abs(reshape(precoder{g}(l,k,:,:),[],1)).^2);
+            if power <= 0, continue; end
             h = reshape(est{g}(k,l,:,:),size(est{g},3),Nt);
             [~,~,right] = svd(h,'econ');
-            vv{g}(l,k,:,:) = reshape(sqrt(p/d)*right(:,1:d),1,1,Nt,d);
+            updatedPrecoder{g}(l,k,:,:) = ...
+                reshape(sqrt(power/numStreams)*right(:,1:numStreams), ...
+                1,1,Nt,numStreams);
         end
     end
 end
-powers = power_by_trp(resources,vv,L);
+powers = power_by_trp(resources,updatedPrecoder,L);
 for l = 1:L
     if powers(l) <= budget, continue; end
     lo = 0; hi = 1;
-    while projected_power(resources,vv,l,hi) > budget, hi = hi*2; end
+    while projected_power(resources,updatedPrecoder,l,hi) > budget
+        hi = hi*2;
+    end
     for step = 1:35
         mid = (lo+hi)/2;
-        if projected_power(resources,vv,l,mid) > budget, lo = mid;
+        if projected_power(resources,updatedPrecoder,l,mid) > budget, lo = mid;
         else, hi = mid; end
     end
     for g = 1:G
-        vv{g}(l,:,:,:) = vv{g}(l,:,:,:)/(1+hi*rb_weight(resources(g)));
+        updatedPrecoder{g}(l,:,:,:) = ...
+            updatedPrecoder{g}(l,:,:,:)/(1+hi*rb_weight(resources(g)));
     end
 end
 end
 
-function p = projected_power(resources,v,l,lambda)
-p = 0;
+function power = projected_power(resources,precoder,l,lambda)
+power = 0;
 for g = 1:numel(resources)
-    w = rb_weight(resources(g));
-    p = p + w*sum(abs(reshape(v{g}(l,:,:,:),[],1)).^2)/(1+lambda*w)^2;
+    rbWeight = rb_weight(resources(g));
+    power = power + rbWeight* ...
+        sum(abs(reshape(precoder{g}(l,:,:,:),[],1)).^2)/(1+lambda*rbWeight)^2;
 end
 end
 
-function p = power_by_trp(resources,v,L)
-p = zeros(L,1);
+function power = power_by_trp(resources,precoder,L)
+power = zeros(L,1);
 for g = 1:numel(resources)
-    w = rb_weight(resources(g));
+    rbWeight = rb_weight(resources(g));
     for l = 1:L
-        p(l) = p(l)+w*sum(abs(reshape(v{g}(l,:,:,:),[],1)).^2);
+        power(l) = power(l)+rbWeight* ...
+            sum(abs(reshape(precoder{g}(l,:,:,:),[],1)).^2);
     end
 end
 end
 
-function w = rb_weight(r)
-if isfield(r,'tx_rb_count') && ~isempty(r.tx_rb_count), w = r.tx_rb_count/273;
-else, w = r.rb_count/273; end
+function rbWeight = rb_weight(resource)
+if isfield(resource,'tx_rb_count') && ~isempty(resource.tx_rb_count)
+    rbWeight = resource.tx_rb_count/273;
+else
+    rbWeight = resource.rb_count/273;
+end
 end
 
-function out = true_rates(h,v)
+function out = true_rates(h,precoder)
 K = size(h,1); L = size(h,2); Nr = size(h,3); Nt = size(h,4);
-d = size(v,4); out = zeros(K,1);
+numStreams = size(precoder,4); out = zeros(K,1);
 for k = 1:K
-    interference = eye(Nr); signal = zeros(Nr,d);
+    interference = eye(Nr); signal = zeros(Nr,numStreams);
     for i = 1:K
-        effective = zeros(Nr,d);
+        effective = zeros(Nr,numStreams);
         for l = 1:L
-            effective = effective + reshape(h(k,l,:,:),Nr,Nt)*reshape(v(l,i,:,:),Nt,d);
+            effective = effective + reshape(h(k,l,:,:),Nr,Nt)* ...
+                reshape(precoder(l,i,:,:),Nt,numStreams);
         end
         if i == k, signal = effective;
         else, interference = interference+effective*effective'; end
@@ -314,9 +328,9 @@ function value = mean_or_nan(x)
 if isempty(x), value = NaN; else, value = mean(x); end
 end
 
-function value = linear_percentile(x,p)
+function value = linear_percentile(x,percentile)
 if isempty(x), value = NaN; return; end
-x = sort(x(:)); position = 1+(numel(x)-1)*p/100;
+x = sort(x(:)); position = 1+(numel(x)-1)*percentile/100;
 lo = floor(position); hi = ceil(position);
 value = x(lo)+(position-lo)*(x(hi)-x(lo));
 end
@@ -326,11 +340,11 @@ perSecond = 1000/ttiMs;
 if abs(perSecond-round(perSecond))>1e-9
     error('chasi_time_evolution:Seconds','One second must contain integer TTIs.');
 end
-perSecond = round(perSecond); [U,T] = size(busy);
-seconds = floor(T/perSecond); samples = nan(U,seconds);
-eligibleCounts = zeros(U,seconds); completedCounts = zeros(U,seconds);
+perSecond = round(perSecond); [numUEs,T] = size(busy);
+seconds = floor(T/perSecond); samples = nan(numUEs,seconds);
+eligibleCounts = zeros(numUEs,seconds); completedCounts = zeros(numUEs,seconds);
 censoredCross = 0; censoredOpen = 0; terminalOnly = 0; notCompleted = 0;
-for u = 1:U
+for u = 1:numUEs
     active = false; start = 0; volume = 0; eligible = 0;
     for t = 1:T
         if busy(u,t) && ~active
@@ -363,9 +377,9 @@ samples(valid) = samples(valid)./(eligibleCounts(valid)*ttiMs/1000)/1e6;
 vals = samples(valid);
 out = struct('counter_scope','simulated capacity/queue proxy, not ACKed RLC SDU', ...
     'aggregation','completed bursts wholly within each complete UE-second', ...
-    'complete_seconds',seconds,'potential_ue_second_samples',U*seconds, ...
+    'complete_seconds',seconds,'potential_ue_second_samples',numUEs*seconds, ...
     'valid_ue_second_samples',numel(vals), ...
-    'ue_seconds_without_valid_burst',U*seconds-numel(vals), ...
+    'ue_seconds_without_valid_burst',numUEs*seconds-numel(vals), ...
     'completed_bursts_counted',sum(completedCounts(:)), ...
     'terminal_bursts_not_queue_completed',notCompleted, ...
     'terminal_only_bursts',terminalOnly, ...
@@ -377,7 +391,7 @@ out = struct('counter_scope','simulated capacity/queue proxy, not ACKed RLC SDU'
     'per_ue_second_eligible_tti',eligibleCounts, ...
     'per_ue_second_completed_bursts',completedCounts, ...
     'discarded_partial_window_tti',T-seconds*perSecond, ...
-    'cdf_candidates',cdf_candidates(vals,U*seconds-numel(vals)), ...
+    'cdf_candidates',cdf_candidates(vals,numUEs*seconds-numel(vals)), ...
     'formal_edge_mbps',[], ...
     'formal_edge_unresolved_reason','ACKed RLC counter, cross-second burst handling, missing-user policy and CDF quantile convention are not specified by supplied image');
 end

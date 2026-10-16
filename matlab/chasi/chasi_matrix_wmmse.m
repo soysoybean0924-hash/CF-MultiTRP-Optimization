@@ -1,61 +1,61 @@
-function out = chasi_matrix_wmmse(resources, cfg, initialV)
-%CHASI_MATRIX_WMMSE Complex coherent-JT WMMSE with centralized V=Z ADMM.
-% resources(g): H [K,L,Nr,Nt], C [K,L,Nr,Nr], serve [L,K],
+function out = chasi_matrix_wmmse(resources, cfg, initialPrecoder)
+%CHASI_MATRIX_WMMSE Complex coherent-JT WMMSE with centralized ADMM.
+% resources(g): H [K,L,Nr,Nt], C [K,L,Nr,Nr], servingMask [L,K],
 %   rb_count, tx_rb_count. All inputs are supplied; no scene is generated.
-% precoderV{g} [L,K,Nt,d], receiverU{g} [K,Nr,d],
-% mseWeightW{g} and mseMatrixE{g} [K,d,d].
+% precoder{g} [L,K,Nt,numStreams], rxCombiner{g} [K,Nr,numStreams],
+% mseWeight{g} and mseMatrix{g} [K,numStreams,numStreams].
 % The local use of this function does not make its ADMM TRP distributed.
-if nargin < 3, initialV = []; end
+if nargin < 3, initialPrecoder = []; end
 cfg = defaults(cfg);
 G = numel(resources); L = size(resources(1).H,2);
 resources=prepareResources(resources,cfg);
-if isempty(initialV)
-    V = cell(1,G);
+if isempty(initialPrecoder)
+    precoder = cell(1,G);
     for g=1:G
-        r=resources(g); [K,~,~,Nt]=size(r.H);
-        V{g}=complex(zeros(L,K,Nt,cfg.rank));
+        resource=resources(g); [K,~,~,Nt]=size(resource.H);
+        precoder{g}=complex(zeros(L,K,Nt,cfg.rank));
         for k=1:K
-            for l=find(r.serve(:,k)).'
-                h=reshape(r.H(k,l,:,:),size(r.H,3),Nt);
+            for l=find(resource.servingMask(:,k)).'
+                h=reshape(resource.H(k,l,:,:),size(resource.H,3),Nt);
                 [~,~,vv]=svd(h,'econ');
-                V{g}(l,k,:,:)=reshape(vv(:,1:cfg.rank),1,1,Nt,cfg.rank);
+                precoder{g}(l,k,:,:)=reshape(vv(:,1:cfg.rank),1,1,Nt,cfg.rank);
             end
         end
     end
-    V=project(resources,V,cfg.budget);
-    V=initializeVariation(resources,V,cfg);
+    precoder=project(resources,precoder,cfg.budget);
+    precoder=initializeVariation(resources,precoder,cfg);
 else
-    V=initialV;
-    if numel(V)~=G, error('Resource count mismatch'); end
+    precoder=initialPrecoder;
+    if numel(precoder)~=G, error('Resource count mismatch'); end
     for g=1:G
-        r=resources(g); expected=[L,size(r.H,1),size(r.H,4),cfg.rank];
-        if ~isequal(size4(V{g}),expected), error('V shape mismatch'); end
-        masked=V{g}.*reshape(~r.serve,L,[],1,1);
+        resource=resources(g); expected=[L,size(resource.H,1),size(resource.H,4),cfg.rank];
+        if ~isequal(size4(precoder{g}),expected), error('precoder shape mismatch'); end
+        masked=precoder{g}.*reshape(~resource.servingMask,L,[],1,1);
         if sqrt(sum(abs(masked).^2,'all'))>1e-8
-            error('V violates service mask');
+            error('precoder violates service mask');
         end
     end
-    if max(chasi_power(resources,V))>cfg.budget+1e-7, error('V over budget'); end
+    if max(chasi_power(resources,precoder))>cfg.budget+1e-7, error('precoder over budget'); end
 end
-hist=struct([]); U=cell(1,G); W=cell(1,G); E=cell(1,G); rate=cell(1,G);
+hist=struct([]); rxCombiner=cell(1,G); mseWeight=cell(1,G); mseMatrix=cell(1,G); rate=cell(1,G);
 lastObj=-inf; lastChange=inf; lastADMM=false; admmHist=[];
 for outer=0:cfg.outer_iterations
     for g=1:G
-        [U{g},W{g},E{g},rate{g}]=state(resources(g).H,resources(g).C,V{g});
+        [rxCombiner{g},mseWeight{g},mseMatrix{g},rate{g}]=state(resources(g).H,resources(g).C,precoder{g});
     end
     [obj,estimatedSum,perUE,userWeights,surrogate]=objectiveSnapshot(resources,rate,cfg);
     if outer==0, rel=NaN; else, rel=abs(obj-lastObj)/max(1,abs(lastObj)); end
     hist(outer+1).outer=outer; hist(outer+1).objective=obj;
     hist(outer+1).relative_objective_change=rel;
-    hist(outer+1).max_power=max(chasi_power(resources,V));
-    hist(outer+1).previous_v_change=lastChange;
+    hist(outer+1).max_power=max(chasi_power(resources,precoder));
+    hist(outer+1).previous_precoder_change=lastChange;
     hist(outer+1).previous_admm_converged=lastADMM;
     hist(outer+1).estimated_sum_rate=estimatedSum;
     hist(outer+1).weighted_proxy=surrogate;
     if outer>0 && obj<lastObj-1e-7*max(1,abs(lastObj))
         reason='optimization_objective_decrease'; break
     end
-    if outer>0 && rel<=cfg.outer_rel_tol && lastChange<=cfg.outer_v_tol && lastADMM
+    if outer>0 && rel<=cfg.outer_rel_tol && lastChange<=cfg.outer_precoder_tol && lastADMM
         reason='relative_objective_precoder_and_admm_tolerance'; break
     end
     if outer==cfg.outer_iterations
@@ -65,15 +65,15 @@ for outer=0:cfg.outer_iterations
     end
     parts=cell(1,G);
     for g=1:G
-        parts{g}=quadratic(resources(g).H,resources(g).C,U{g},W{g},userWeights{g});
+        parts{g}=quadratic(resources(g).H,resources(g).C,rxCombiner{g},mseWeight{g},userWeights{g});
     end
-    [candidateV,admmHist,lastADMM]=v_admm(resources,parts,V,cfg);
+    [candidatePrecoder,admmHist,lastADMM]=precoder_admm(resources,parts,precoder,cfg);
     accepted=false; step=1; trialObj=-inf;
     for ls=1:12
-        nextV=cell(1,G); trialRate=cell(1,G);
+        nextPrecoder=cell(1,G); trialRate=cell(1,G);
         for g=1:G
-            nextV{g}=V{g}+step*(candidateV{g}-V{g});
-            [~,~,~,trialRate{g}]=state(resources(g).H,resources(g).C,nextV{g});
+            nextPrecoder{g}=precoder{g}+step*(candidatePrecoder{g}-precoder{g});
+            [~,~,~,trialRate{g}]=state(resources(g).H,resources(g).C,nextPrecoder{g});
         end
         trialObj=objectiveSnapshot(resources,trialRate,cfg);
         if trialObj>=obj-1e-7*max(1,abs(obj))
@@ -82,85 +82,87 @@ for outer=0:cfg.outer_iterations
         step=step/2;
     end
     if accepted
-        lastChange=cellnorm(cellminus(nextV,V))/max(1,cellnorm(V));
-        V=nextV;
+        lastChange=cellnorm(cellminus(nextPrecoder,precoder))/max(1,cellnorm(precoder));
+        precoder=nextPrecoder;
     else
         lastChange=0; step=0;
     end
     lastObj=obj;
-    hist(outer+1).v_change=lastChange;
+    hist(outer+1).precoder_change=lastChange;
     hist(outer+1).admm_converged=lastADMM;
     hist(outer+1).admm_last=admmHist(end);
     hist(outer+1).admm_trace=admmHist;
     hist(outer+1).accepted_step=step;
     hist(outer+1).accepted_objective=trialObj;
-    if ~accepted, reason='inexact_v_step_no_proxy_improvement'; break; end
+    if ~accepted, reason='inexact_precoder_step_no_proxy_improvement'; break; end
 end
 for g=1:G
-    [U{g},W{g},E{g},rate{g}]=state(resources(g).H,resources(g).C,V{g});
+    [rxCombiner{g},mseWeight{g},mseMatrix{g},rate{g}]=state(resources(g).H,resources(g).C,precoder{g});
 end
 [obj,estimatedSum,perUE,userWeights,surrogate]=objectiveSnapshot(resources,rate,cfg);
-out.precoderV=V; out.receiverU=U; out.mseWeightW=W;
-out.mseMatrixE=E; out.rate=rate; out.trajectory=hist;
-out.reason=reason; out.power=chasi_power(resources,V);
+out.precoder=precoder; out.rxCombiner=rxCombiner; out.mseWeight=mseWeight;
+out.mseMatrix=mseMatrix; out.rate=rate; out.trajectory=hist;
+out.reason=reason; out.power=chasi_power(resources,precoder);
 out.last_admm_history=admmHist;
 out.optimization_objective=obj; out.estimated_sum_rate=estimatedSum;
-out.estimated_per_ue_rate=perUE; out.final_user_weights=userWeights;
+out.estimated_per_ue_rate=perUE; out.userWeight=userWeights;
 out.weighted_proxy=surrogate; out.branch=cfg.branch;
 out.converged=strcmp(reason,'relative_objective_precoder_and_admm_tolerance');
 if ~strcmp(cfg.branch,'matrix_sum')
-    out.true_per_ue_rate=trueRates(resources,V,cfg);
+    out.true_per_ue_rate=trueRates(resources,precoder,cfg);
     out.true_rate5=linearPercentile(out.true_per_ue_rate,5);
     out.true_sum_rate=sum(out.true_per_ue_rate);
 else
     out.true_per_ue_rate=[]; out.true_rate5=NaN; out.true_sum_rate=NaN;
 end
 out.max_power_violation=max(max(out.power-cfg.budget,0));
-if isfield(cfg,'probe_fixed_uw') && cfg.probe_fixed_uw
-    out.fixed_uw_probe=cell(1,G);
+if cfg.probe_fixed_receiver_weight
+    out.fixed_receiver_weight_probe=cell(1,G);
     for g=1:G
-        p=quadratic(resources(g).H,resources(g).C,U{g},W{g},userWeights{g});
-        qv=qapply(resources(g).H,p,V{g},resources(g).serve);
-        out.fixed_uw_probe{g}=struct('M',p.M,'B',p.B,'D',p.D,'QV',qv,...
-            'weighted_quadratic',rbweight(resources(g))*(real(sum(conj(V{g}).*qv,'all'))-...
-              2*real(sum(conj(p.B).*V{g},'all'))));
+        coefficients=quadratic(resources(g).H,resources(g).C,rxCombiner{g},mseWeight{g},userWeights{g});
+        qv=qapply(resources(g).H,coefficients,precoder{g},resources(g).servingMask);
+        out.fixed_receiver_weight_probe{g}=struct('M',coefficients.M,...
+            'B',coefficients.B,'D',coefficients.D,...
+            'quadraticAppliedToPrecoder',qv,...
+            'weighted_quadratic',rbweight(resources(g))*(real(sum(conj(precoder{g}).*qv,'all'))-...
+              2*real(sum(conj(coefficients.B).*precoder{g},'all'))));
     end
 end
 end
 
 function cfg=defaults(cfg)
-d=struct('rank',1,'budget',20,'outer_iterations',10,'outer_rel_tol',1e-4,...
-    'outer_v_tol',5e-3,'admm_iterations',100,'cg_iterations',100,...
+defaultCfg=struct('rank',1,'budget',20,'outer_iterations',10,'outer_rel_tol',1e-4,...
+    'outer_precoder_tol',5e-3,'admm_iterations',100,'cg_iterations',100,...
     'eps_abs',1e-4,'eps_rel',1e-3,'rho',.05,...
     'branch','matrix_sum','pf_floor',1e-2,'users',[],...
     'initializationMode','svd','initializationSeed',0,'seed',0,...
-    'probe_fixed_uw',false);
-f=fieldnames(d);
+    'probe_fixed_receiver_weight',false);
+f=fieldnames(defaultCfg);
 for j=1:numel(f)
-    if ~isfield(cfg,f{j}), cfg.(f{j})=d.(f{j}); end
+    if ~isfield(cfg,f{j}), cfg.(f{j})=defaultCfg.(f{j}); end
 end
 end
 
-function V=initializeVariation(resources,V,cfg)
+function precoder=initializeVariation(resources,precoder,cfg)
 mode=char(cfg.initializationMode);
 switch mode
     case 'svd'
         return
     case 'home_biased'
         for g=1:numel(resources)
-            r=resources(g); K=size(r.H,1); L=size(r.H,2);
-            if ~isfield(r,'home_trp') || numel(r.home_trp)~=K
+            resource=resources(g); K=size(resource.H,1); L=size(resource.H,2);
+            if ~isfield(resource,'home_trp') || numel(resource.home_trp)~=K
                 error('Home-biased initialization requires home_trp');
             end
-            home=double(r.home_trp(:));
+            home=double(resource.home_trp(:));
             if any(home<1 | home>L | home~=floor(home))
                 error('Home-biased initialization requires one-based home_trp');
             end
             for k=1:K
-                for l=find(r.serve(:,k)).'
+                for l=find(resource.servingMask(:,k)).'
                     factor=.5;
                     if l==home(k), factor=1.5; end
-                    V{g}(l,k,:,:)=factor*V{g}(l,k,:,:);
+                    precoder{g}(l,k,:,:)=factor*precoder{g}(l,k,:,:);
                 end
             end
         end
@@ -171,15 +173,15 @@ switch mode
         end
         stream=RandStream('mt19937ar','Seed',seed);
         for g=1:numel(resources)
-            r=resources(g); Nt=size(r.H,4);
-            noise=(randn(stream,size(V{g}))+1i*randn(stream,size(V{g})))/sqrt(2*Nt);
-            mask=reshape(r.serve,size(r.serve,1),size(r.serve,2),1,1);
-            V{g}=V{g}+.15*noise.*mask;
+            resource=resources(g); Nt=size(resource.H,4);
+            noise=(randn(stream,size(precoder{g}))+1i*randn(stream,size(precoder{g})))/sqrt(2*Nt);
+            mask=reshape(resource.servingMask,size(resource.servingMask,1),size(resource.servingMask,2),1,1);
+            precoder{g}=precoder{g}+.15*noise.*mask;
         end
     otherwise
         error('Unsupported initialization mode: %s',mode);
 end
-V=project(resources,V,cfg.budget);
+precoder=project(resources,precoder,cfg.budget);
 end
 
 function resources=prepareResources(resources,cfg)
@@ -188,68 +190,68 @@ if ~isfield(resources,'C_stat'), [resources.C_stat]=deal([]); end
 if ~isfield(resources,'edge_weight'), [resources.edge_weight]=deal([]); end
 L=size(resources(1).H,2); Nr=size(resources(1).H,3); Nt=size(resources(1).H,4);
 for g=1:numel(resources)
-    r=resources(g); K=size(r.H,1);
-    if ~isequal(size4(r.H),[K,L,Nr,Nt]) || ~isequal(size(r.serve),[L,K])
+    resource=resources(g); K=size(resource.H,1);
+    if ~isequal(size4(resource.H),[K,L,Nr,Nt]) || ~isequal(size(resource.servingMask),[L,K])
         error('Resource %d has invalid H or serve axes',g);
     end
-    if isempty(r.C_stat)
-        if isfield(r,'C'), r.C_stat=r.C;
+    if isempty(resource.C_stat)
+        if isfield(resource,'C'), resource.C_stat=resource.C;
         else, error('Resource %d requires explicit error covariance',g); end
     end
-    if ~isequal(size4(r.C_stat),[K,L,Nr,Nr])
+    if ~isequal(size4(resource.C_stat),[K,L,Nr,Nr])
         error('Resource %d has invalid covariance axes',g);
     end
     if ~strcmp(cfg.branch,'matrix_sum')
-        if ~isfield(r,'ue_ids') || numel(r.ue_ids)~=K || ...
-                any(r.ue_ids<1) || any(r.ue_ids~=floor(r.ue_ids))
+        if ~isfield(resource,'ue_ids') || numel(resource.ue_ids)~=K || ...
+                any(resource.ue_ids<1) || any(resource.ue_ids~=floor(resource.ue_ids))
             error('Resource %d requires one-based global ue_ids',g);
         end
-        if ~isfield(r,'H_true') || ~isequal(size4(r.H_true),size4(r.H))
+        if ~isfield(resource,'H_true') || ~isequal(size4(resource.H_true),size4(resource.H))
             error('Resource %d requires explicit H_true for held-out evaluation',g);
         end
     end
     switch cfg.branch
         case 'matrix_sum'
-            r.C=r.C_stat;
+            resource.C=resource.C_stat;
         case 'ideal'
-            r.H=r.H_true;
-            r.C=complex(zeros(K,L,Nr,Nr));
+            resource.H=resource.H_true;
+            resource.C=complex(zeros(K,L,Nr,Nr));
         case 'matrix_nominal'
-            r.C=complex(zeros(K,L,Nr,Nr));
+            resource.C=complex(zeros(K,L,Nr,Nr));
         case {'matrix_statistical','matrix_edge_weighted'}
-            r.C=r.C_stat;
+            resource.C=resource.C_stat;
         case 'matrix_pf_nominal'
-            r.C=complex(zeros(K,L,Nr,Nr));
+            resource.C=complex(zeros(K,L,Nr,Nr));
         case 'matrix_pf_statistical'
-            r.C=r.C_stat;
+            resource.C=resource.C_stat;
         case 'matrix_pf_uniform'
-            r.C=uniformCovariance(r.C_stat,[]);
+            resource.C=uniformCovariance(resource.C_stat,[]);
         case 'matrix_pf_uniform_relative'
-            if ~isfield(r,'prior_gain') || ~isequal(size(r.prior_gain),[K,L])
+            if ~isfield(resource,'prior_gain') || ~isequal(size(resource.prior_gain),[K,L])
                 error('Uniform relative branch requires K-by-L prior_gain');
             end
-            r.C=uniformCovariance(r.C_stat,r.prior_gain);
+            resource.C=uniformCovariance(resource.C_stat,resource.prior_gain);
         otherwise
             error('Unsupported native branch: %s',cfg.branch);
     end
     if strcmp(cfg.branch,'matrix_edge_weighted')
-        if ~isfield(r,'home_trp') || numel(r.home_trp)~=K || ...
-                ~isfield(r,'prior_gain') || ~isequal(size(r.prior_gain),[K,L])
+        if ~isfield(resource,'home_trp') || numel(resource.home_trp)~=K || ...
+                ~isfield(resource,'prior_gain') || ~isequal(size(resource.prior_gain),[K,L])
             error('Edge branch requires home_trp and K-by-L prior_gain');
         end
-        home=double(r.home_trp(:));
+        home=double(resource.home_trp(:));
         if any(home<1 | home>L | home~=floor(home))
             error('Edge branch requires one-based home_trp');
         end
-        gain=r.prior_gain(sub2ind([K,L],(1:K).',home));
+        gain=resource.prior_gain(sub2ind([K,L],(1:K).',home));
         if any(~isfinite(gain) | gain<0)
             error('Edge branch requires nonnegative finite home prior_gain');
         end
         potential=log2(1+cfg.budget*Nt*gain);
         potential=max(potential,.01);
-        r.edge_weight=min(8,max(.25,median(potential)./potential));
+        resource.edge_weight=min(8,max(.25,median(potential)./potential));
     end
-    resources(g)=r;
+    resources(g)=resource;
 end
 if ~strcmp(cfg.branch,'matrix_sum')
     allIDs=[];
@@ -337,72 +339,73 @@ for g=1:numel(resources)
 end
 end
 
-function perUE=trueRates(resources,V,cfg)
+function perUE=trueRates(resources,precoder,cfg)
 perUE=zeros(cfg.users,1);
 for g=1:numel(resources)
-    H=resources(g).H_true; x=V{g}; [K,L,Nr,Nt]=size(H); d=size(x,4);
+    H=resources(g).H_true; x=precoder{g}; [K,L,Nr,Nt]=size(H); numStreams=size(x,4);
     for k=1:K
         allCov=eye(Nr); interf=eye(Nr);
         for i=1:K
-            eff=complex(zeros(Nr,d));
+            eff=complex(zeros(Nr,numStreams));
             for l=1:L
-                eff=eff+reshape(H(k,l,:,:),Nr,Nt)*reshape(x(l,i,:,:),Nt,d);
+                eff=eff+reshape(H(k,l,:,:),Nr,Nt)*reshape(x(l,i,:,:),Nt,numStreams);
             end
             allCov=allCov+eff*eff';
             if i~=k, interf=interf+eff*eff'; end
         end
-        r=max(0,(real(log(det(allCov)))-real(log(det(interf))))/log(2));
+        spectralEfficiency=max(0,(real(log(det(allCov)))-real(log(det(interf))))/log(2));
         id=double(resources(g).ue_ids(k));
-        perUE(id)=perUE(id)+rbweight(resources(g))*r;
+        perUE(id)=perUE(id)+rbweight(resources(g))*spectralEfficiency;
     end
 end
 end
 
-function value=linearPercentile(x,p)
+function value=linearPercentile(x,percentile)
 x=sort(x(:)); n=numel(x);
 if n==0, value=NaN; return; end
-t=(n-1)*p/100; lo=floor(t)+1; hi=ceil(t)+1;
+t=(n-1)*percentile/100; lo=floor(t)+1; hi=ceil(t)+1;
 value=x(lo)+(t-floor(t))*(x(hi)-x(lo));
 end
 
-function [U,W,E,rate]=state(H,C,V)
-[K,L,Nr,Nt]=size(H); d=size(V,4);
-U=complex(zeros(K,Nr,d)); W=complex(zeros(K,d,d));
-E=complex(zeros(K,d,d)); rate=zeros(K,1);
+function [rxCombiner,mseWeight,mseMatrix,rate]=state(H,C,precoder)
+[K,L,Nr,Nt]=size(H); numStreams=size(precoder,4);
+rxCombiner=complex(zeros(K,Nr,numStreams)); mseWeight=complex(zeros(K,numStreams,numStreams));
+mseMatrix=complex(zeros(K,numStreams,numStreams)); rate=zeros(K,1);
 p=zeros(L,1);
-for l=1:L, p(l)=sum(abs(V(l,:,:,:)).^2,'all'); end
+for l=1:L, p(l)=sum(abs(precoder(l,:,:,:)).^2,'all'); end
 for k=1:K
-    R=eye(Nr); wanted=complex(zeros(Nr,d));
+    rxCovariance=eye(Nr); wanted=complex(zeros(Nr,numStreams));
     for i=1:K
-        G=complex(zeros(Nr,d));
+        effectiveChannel=complex(zeros(Nr,numStreams));
         for l=1:L
             h=reshape(H(k,l,:,:),Nr,Nt);
-            v=reshape(V(l,i,:,:),Nt,d);
-            G=G+h*v;
+            v=reshape(precoder(l,i,:,:),Nt,numStreams);
+            effectiveChannel=effectiveChannel+h*v;
         end
-        R=R+G*G';
-        if i==k, wanted=G; end
+        rxCovariance=rxCovariance+effectiveChannel*effectiveChannel';
+        if i==k, wanted=effectiveChannel; end
     end
-    for l=1:L, R=R+p(l)*reshape(C(k,l,:,:),Nr,Nr); end
-    u=R\wanted;
-    e=eye(d)-u'*wanted-wanted'*u+u'*R*u;
+    for l=1:L, rxCovariance=rxCovariance+p(l)*reshape(C(k,l,:,:),Nr,Nr); end
+    u=rxCovariance\wanted;
+    e=eye(numStreams)-u'*wanted-wanted'*u+u'*rxCovariance*u;
     e=(e+e')/2;
-    U(k,:,:)=reshape(u,1,Nr,d);
-    E(k,:,:)=reshape(e,1,d,d);
-    W(k,:,:)=reshape(e\eye(d),1,d,d);
+    rxCombiner(k,:,:)=reshape(u,1,Nr,numStreams);
+    mseMatrix(k,:,:)=reshape(e,1,numStreams,numStreams);
+    mseWeight(k,:,:)=reshape(e\eye(numStreams),1,numStreams,numStreams);
     rate(k)=-real(log(det(e)))/log(2);
 end
 end
 
-function parts=quadratic(H,C,U,W,userWeights)
-[K,L,Nr,Nt]=size(H); d=size(U,3);
-M=complex(zeros(K,Nr,Nr)); B=complex(zeros(L,K,Nt,d)); D=zeros(L,1);
+function parts=quadratic(H,C,rxCombiner,mseWeight,userWeights)
+[K,L,Nr,Nt]=size(H); numStreams=size(rxCombiner,3);
+M=complex(zeros(K,Nr,Nr)); B=complex(zeros(L,K,Nt,numStreams)); D=zeros(L,1);
 for k=1:K
-    u=reshape(U(k,:,:),Nr,d); w=reshape(W(k,:,:),d,d)*userWeights(k);
-    m=u*w*u'; M(k,:,:)=reshape(m,1,Nr,Nr);
+    u=reshape(rxCombiner(k,:,:),Nr,numStreams);
+    weightedMse=reshape(mseWeight(k,:,:),numStreams,numStreams)*userWeights(k);
+    m=u*weightedMse*u'; M(k,:,:)=reshape(m,1,Nr,Nr);
     for l=1:L
         h=reshape(H(k,l,:,:),Nr,Nt);
-        B(l,k,:,:)=reshape(h'*u*w,1,1,Nt,d);
+        B(l,k,:,:)=reshape(h'*u*weightedMse,1,1,Nt,numStreams);
         c=reshape(C(k,l,:,:),Nr,Nr);
         D(l)=D(l)+real(trace(m*c));
     end
@@ -411,18 +414,18 @@ parts=struct('M',M,'B',B,'D',D);
 end
 
 function y=qapply(H,parts,x,mask)
-[K,L,Nr,Nt]=size(H); d=size(x,4); y=complex(zeros(size(x)));
+[K,L,Nr,Nt]=size(H); numStreams=size(x,4); y=complex(zeros(size(x)));
 for k=1:K
     m=reshape(parts.M(k,:,:),Nr,Nr);
     for i=1:K
-        s=complex(zeros(Nr,d));
+        s=complex(zeros(Nr,numStreams));
         for l=1:L
-            s=s+reshape(H(k,l,:,:),Nr,Nt)*reshape(x(l,i,:,:),Nt,d);
+            s=s+reshape(H(k,l,:,:),Nr,Nt)*reshape(x(l,i,:,:),Nt,numStreams);
         end
         ms=m*s;
         for l=1:L
-            tmp=reshape(y(l,i,:,:),Nt,d)+reshape(H(k,l,:,:),Nr,Nt)'*ms;
-            y(l,i,:,:)=reshape(tmp,1,1,Nt,d);
+            tmp=reshape(y(l,i,:,:),Nt,numStreams)+reshape(H(k,l,:,:),Nr,Nt)'*ms;
+            y(l,i,:,:)=reshape(tmp,1,1,Nt,numStreams);
         end
     end
 end
@@ -430,16 +433,16 @@ for l=1:L, y(l,:,:,:)=y(l,:,:,:)+parts.D(l)*x(l,:,:,:); end
 y=y.*reshape(mask,L,K,1,1);
 end
 
-function [z,history,converged]=v_admm(resources,parts,initial,cfg)
+function [z,history,converged]=precoder_admm(resources,parts,initial,cfg)
 G=numel(resources); z=initial; x=initial; dual=cellfun(@(v) zeros(size(v),'like',v),z,'UniformOutput',false);
 n=sum(cellfun(@numel,z)); rho=cfg.rho; converged=false; history=struct([]);
 for t=1:cfg.admm_iterations
     new=cell(1,G); cgmax=0;
     for g=1:G
-        r=resources(g); mask=reshape(r.serve,size(r.serve,1),size(r.serve,2),1,1);
-        a=rbweight(r); p=parts{g};
-        apply=@(v) a*qapply(r.H,p,v,r.serve)+(rho/2)*v;
-        rhs=(a*p.B+(rho/2)*(z{g}-dual{g})).*mask;
+        resource=resources(g); mask=reshape(resource.servingMask,size(resource.servingMask,1),size(resource.servingMask,2),1,1);
+        a=rbweight(resource); coefficients=parts{g};
+        apply=@(v) a*qapply(resource.H,coefficients,v,resource.servingMask)+(rho/2)*v;
+        rhs=(a*coefficients.B+(rho/2)*(z{g}-dual{g})).*mask;
         new{g}=cg(apply,rhs,x{g},cfg.cg_iterations,1e-5).*mask;
         residual=apply(new{g})-rhs;
         cgmax=max(cgmax,sqrt(sum(abs(residual).^2,'all'))/max(sqrt(sum(abs(rhs).^2,'all')),eps));
@@ -454,15 +457,15 @@ for t=1:cfg.admm_iterations
     history(t).eps_dual=ed;history(t).cg_relative=cgmax;
     history(t).power=chasi_power(resources,z);
     history(t).max_power_violation=max(max(history(t).power-cfg.budget,0));
-    if cfg.probe_fixed_uw
+    if cfg.probe_fixed_receiver_weight
         fixedObjective=0;
         for g=1:G
-            qz=qapply(resources(g).H,parts{g},z{g},resources(g).serve);
+            qz=qapply(resources(g).H,parts{g},z{g},resources(g).servingMask);
             fixedObjective=fixedObjective+rbweight(resources(g))*(...
                 real(sum(conj(z{g}).*qz,'all'))-...
                 2*real(sum(conj(parts{g}.B).*z{g},'all')));
         end
-        history(t).fixed_uw_v_objective=fixedObjective;
+        history(t).fixed_receiver_weight_precoder_objective=fixedObjective;
     end
     if primal<=ep && dualres<=ed && cgmax<=max(1e-3,10*cfg.eps_rel)
         converged=true; break
@@ -476,21 +479,23 @@ end
 end
 
 function x=cg(apply,b,x,maxiter,tol)
-r=b-apply(x); p=r; rr=real(sum(conj(r).*r,'all'));
+cgResidual=b-apply(x); cgDirection=cgResidual;
+rr=real(sum(conj(cgResidual).*cgResidual,'all'));
 target=tol^2*max(1,real(sum(conj(b).*b,'all')));
 for j=1:maxiter
     if rr<=target, break; end
-    ap=apply(p); alpha=rr/max(real(sum(conj(p).*ap,'all')),1e-30);
-    x=x+alpha*p; r=r-alpha*ap;
-    rrnew=real(sum(conj(r).*r,'all'));
-    p=r+(rrnew/max(rr,1e-30))*p; rr=rrnew;
+    ap=apply(cgDirection);
+    alpha=rr/max(real(sum(conj(cgDirection).*ap,'all')),1e-30);
+    x=x+alpha*cgDirection; cgResidual=cgResidual-alpha*ap;
+    rrnew=real(sum(conj(cgResidual).*cgResidual,'all'));
+    cgDirection=cgResidual+(rrnew/max(rr,1e-30))*cgDirection; rr=rrnew;
 end
 end
 
 function out=project(resources,x,budget)
 out=x; G=numel(x); L=size(x{1},1);
 for g=1:G
-    r=resources(g); out{g}=out{g}.*reshape(r.serve,L,[],1,1);
+    resource=resources(g); out{g}=out{g}.*reshape(resource.servingMask,L,[],1,1);
 end
 p=chasi_power(resources,out);
 for l=1:L
@@ -513,17 +518,17 @@ for g=1:numel(x)
 end
 end
 
-function p=chasi_power(resources,V)
-L=size(V{1},1); p=zeros(L,1);
-for g=1:numel(V)
+function p=chasi_power(resources,precoder)
+L=size(precoder{1},1); p=zeros(L,1);
+for g=1:numel(precoder)
     a=rbweight(resources(g));
-    for l=1:L, p(l)=p(l)+a*sum(abs(V{g}(l,:,:,:)).^2,'all'); end
+    for l=1:L, p(l)=p(l)+a*sum(abs(precoder{g}(l,:,:,:)).^2,'all'); end
 end
 end
 
-function a=rbweight(r)
-if isfield(r,'tx_rb_count'), a=double(r.tx_rb_count)/273;
-else, a=double(r.rb_count)/273; end
+function a=rbweight(resource)
+if isfield(resource,'tx_rb_count'), a=double(resource.tx_rb_count)/273;
+else, a=double(resource.rb_count)/273; end
 end
 
 function s=size4(v)

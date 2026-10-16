@@ -15,8 +15,8 @@ assert(isfile(fullfile(outDir,'scene.mat')));
 assert(isfile(fullfile(outDir,'matrix_nominal_precoders.mat')));
 assert(isfile(fullfile(outDir,'matrix_nominal_per_ue.csv')));
 saved=load(fullfile(outDir,'matrix_nominal_precoders.mat'));
-assert(isfield(saved,'precoderV') && isfield(saved,'receiverU'));
-assert(isfield(saved,'mseWeightW') && isfield(saved,'mseMatrixE'));
+assert(isfield(saved,'precoder') && isfield(saved,'rxCombiner'));
+assert(isfield(saved,'mseWeight') && isfield(saved,'mseMatrix'));
 assert(~isfield(saved,'W')); % no beam/MSE ambiguity in current output
 assert(all(result.branches.matrix_nominal.per_trp_power_watt<=cfg.powerWattPerTrp+1e-6));
 fprintf('CHASI_NATIVE_ENTRY_PASS %s\n',outDir);

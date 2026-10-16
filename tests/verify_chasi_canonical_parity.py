@@ -78,15 +78,15 @@ def check(output_dir: Path):
                 expected_rate = -np.linalg.slogdet(e)[1] / np.log(2)
                 ids = np.asarray(resources[g]["ue_ids"], dtype=int).ravel() - 1
                 all_rate[ids] += weight * expected_rate
-                for field, public in (("V", "precoderV"),
-                                      ("U", "receiverU"),
-                                      ("W", "mseWeightW")):
+                for field, public in (("V", "precoder"),
+                                      ("U", "rxCombiner"),
+                                      ("W", "mseWeight")):
                     actual = groups(mat[public])[g]
                     entry[f"{field}_max_abs"] = max(
                         entry[f"{field}_max_abs"],
                         max_diff(actual, arrays[f"{field}{g}"]))
                 entry["E_max_abs"] = max(entry["E_max_abs"],
-                    max_diff(groups(mat["mseMatrixE"])[g], e))
+                    max_diff(groups(mat["mseMatrix"])[g], e))
                 entry["rate_max_abs"] = max(entry["rate_max_abs"],
                     max_diff(groups(mat["rate"])[g], expected_rate))
             entry["per_ue_rate_max_abs"] = max_diff(
@@ -112,17 +112,22 @@ def check(output_dir: Path):
                     entry["admm_dual_max_abs"] = max(
                         entry["admm_dual_max_abs"],
                         abs(float(last["dual"]) - expected["dual"]))
-            if str(mat["reason"]) != py["reason"]:
+            expected_reason = py["reason"].replace(
+                "inexact_v_step_no_proxy_improvement",
+                "inexact_precoder_step_no_proxy_improvement")
+            if str(mat["reason"]) != expected_reason:
                 raise AssertionError((name, outer, "stopping reason",
-                                      mat["reason"], py["reason"]))
+                                      mat["reason"], expected_reason))
             if outer == 2:
                 operator = np.load(FIXTURE / f"{name}_python_operator.npz")
                 for field in ("M", "B", "D", "QV"):
                     entry[f"{field}_max_abs"] = 0.0
-                    for g, probe in enumerate(groups(mat["fixed_uw_probe"])):
+                    for g, probe in enumerate(groups(mat["fixed_receiver_weight_probe"])):
+                        actual_field = ("quadraticAppliedToPrecoder"
+                                        if field == "QV" else field)
                         entry[f"{field}_max_abs"] = max(
                             entry[f"{field}_max_abs"],
-                            max_diff(probe[field], operator[f"{field}{g}"]))
+                            max_diff(probe[actual_field], operator[f"{field}{g}"]))
             for metric, value in entry.items():
                 if value > TOLERANCE[metric]:
                     raise AssertionError((name, outer, metric, value,

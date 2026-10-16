@@ -1,5 +1,7 @@
 # CHASI 原生 MATLAB 迁移状态
 
+> 本页保留 2026-10-16 首次原生迁移的运行证据和当时的 `V/U/W` 命名。当前正式输出的统一 $w/A/E/\Omega$ 记号、v2 字段、物理模型缺口与对拍状态见 [CHASI_NATIVE_V2_AUDIT.md](CHASI_NATIVE_V2_AUDIT.md)，完整公式及旧版差异见 [CHASI_UNIFIED_TRACE.pdf](CHASI_UNIFIED_TRACE.pdf)（[可编辑 TeX](CHASI_UNIFIED_TRACE.tex)）。不要按本页旧字段名读取新的 MAT 文件。
+
 本表以 2026-10-16 当前源码为准。正式目标为 `matlab/chasi/chasi_run.m` 单进程完成配置、场景、估计、资源、矩阵求解、评价和保存；不执行 Python。此文件同时是本轮实施检查表，只有实际验证后才标记完成。
 
 | 正式模块 | 迁移前 Python 实现 | 迁移前 MATLAB 状态 | 本轮原生位置 | 验证 |

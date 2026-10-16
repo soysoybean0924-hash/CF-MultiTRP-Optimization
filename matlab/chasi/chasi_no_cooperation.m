@@ -9,7 +9,7 @@ if ~isfield(cfg,'rank') || ~isfield(cfg,'budget') || ~isfield(cfg,'users')
     error('CHASI:NoCooperationConfig','rank, budget, and users are required');
 end
 G=numel(resources); L=size(resources(1).H,2); rank=cfg.rank;
-localResources=resources; precoderV=cell(1,G);
+localResources=resources; precoder=cell(1,G);
 for g=1:G
     resource=resources(g);
     [K,localL,Nr,Nt]=size(resource.H);
@@ -24,14 +24,14 @@ for g=1:G
     if any(homes<1 | homes>L | homes~=floor(homes))
         error('CHASI:NoCooperationHome','home_trp must contain one-based TRP IDs');
     end
-    localResources(g).serve=false(L,K);
-    precoderV{g}=complex(zeros(L,K,Nt,rank));
+    localResources(g).servingMask=false(L,K);
+    precoder{g}=complex(zeros(L,K,Nt,rank));
     for k=1:K
         l=homes(k);
-        localResources(g).serve(l,k)=true;
+        localResources(g).servingMask(l,k)=true;
         h=reshape(resource.H(k,l,:,:),Nr,Nt);
         [~,~,rightVectors]=svd(h,'econ');
-        precoderV{g}(l,k,:,:)=reshape(rightVectors(:,1:rank),1,1,Nt,rank);
+        precoder{g}(l,k,:,:)=reshape(rightVectors(:,1:rank),1,1,Nt,rank);
     end
 end
 
@@ -40,28 +40,28 @@ power=zeros(L,1);
 for g=1:G
     weight=resourceWeight(resources(g));
     for l=1:L
-        power(l)=power(l)+weight*sum(abs(precoderV{g}(l,:,:,:)).^2,'all');
+        power(l)=power(l)+weight*sum(abs(precoder{g}(l,:,:,:)).^2,'all');
     end
 end
 for l=1:L
     if power(l)<=0, continue; end
     factor=sqrt(cfg.budget/power(l));
     for g=1:G
-        precoderV{g}(l,:,:,:)=factor*precoderV{g}(l,:,:,:);
+        precoder{g}(l,:,:,:)=factor*precoder{g}(l,:,:,:);
     end
 end
 
 % Reuse the matrix state and true-channel rate calculation at zero outer steps.
-% Its nominal branch sets error covariance to zero without altering local V.
+% Its nominal branch sets error covariance to zero without altering precoder.
 stateCfg=cfg;
 stateCfg.branch='matrix_pf_nominal';
 stateCfg.outer_iterations=0;
 if ~isfield(stateCfg,'pf_floor'), stateCfg.pf_floor=.01; end
-out=chasi_matrix_wmmse(localResources,stateCfg,precoderV);
+out=chasi_matrix_wmmse(localResources,stateCfg,precoder);
 out.branch='no_cooperation';
 out.optimization_objective=out.estimated_sum_rate;
 out.weighted_proxy=out.estimated_sum_rate;
-out.final_user_weights=cellfun(@(v) ones(size(v,2),1),precoderV, ...
+out.userWeight=cellfun(@(v) ones(size(v,2),1),precoder, ...
     'UniformOutput',false);
 out.trajectory(1).objective=out.estimated_sum_rate;
 out.trajectory(1).weighted_proxy=out.estimated_sum_rate;

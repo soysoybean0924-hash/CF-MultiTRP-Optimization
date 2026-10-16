@@ -9,6 +9,7 @@ scene = chasi_generate_scene(cfg);
 assert(isequal(size(scene.trp_xy),[21 2]));
 assert(isequal(size(scene.ue_xy),[210 2]));
 assert(isequal(scene.home(:),repelem((1:21)',10)));
+assert(isequal(size(scene.scheduleMask),[210 17]));
 assert(numel(scene.resources)==17);
 assert(sum([scene.resources.rb_count])==273);
 assert(sum([scene.resources.tx_rb_count])==82); % round(0.3*273)
@@ -24,15 +25,16 @@ for g=1:17
     assert(isequal(size(r.H),[k 21 4 64]));
     assert(isequal(size(r.H_true),[k 21 4 64]));
     assert(isequal(size(r.C),[k 21 4 4]));
-    assert(isequal(size(r.serve),[21 k]));
+    assert(isequal(size(r.servingMask),[21 k]));
     assert(all(r.ue_ids>=1 & r.ue_ids<=cfg.users));
+    assert(isequal(find(scene.scheduleMask(:,g)),sort(r.ue_ids(:))));
     assert(isequal(r.home_trp(:),scene.home(r.ue_ids(:))));
-    assert(all(sum(r.serve,1)>=1 & sum(r.serve,1)<=cfg.serviceTrps));
+    assert(all(sum(r.servingMask,1)>=1 & sum(r.servingMask,1)<=cfg.serviceTrps));
     assert(r.rb_start>=1 && r.rb_start+r.rb_count-1<=273);
     if k>0
         assert(all(scene.home(r.ue_ids)>=1));
         for j=1:k
-            assert(r.serve(scene.home(r.ue_ids(j)),j));
+            assert(r.servingMask(scene.home(r.ue_ids(j)),j));
         end
         modeled=r.omitted_gain==0;
         assert(all(isfinite(r.prior_gain(:)) & r.prior_gain(:)>0));

@@ -2,9 +2,9 @@ function result = chasi_burst_metrics(delivered,busy,terminal,ttiMs)
 %CHASI_BURST_METRICS One throughput sample per completed simulated burst.
 if nargin < 4, ttiMs = 1; end
 validate_masks(delivered,busy,terminal);
-U = size(busy,1); T = size(busy,2);
-rates = []; perUe = cell(U,1); empty = 0; incomplete = 0;
-for u = 1:U
+numUEs = size(busy,1); T = size(busy,2);
+rates = []; perUe = cell(numUEs,1); empty = 0; incomplete = 0;
+for u = 1:numUEs
     ueRates = []; bits = 0; count = 0; open = false;
     for t = 1:T
         if busy(u,t)

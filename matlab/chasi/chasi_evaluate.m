@@ -1,11 +1,11 @@
 function metrics = chasi_evaluate(scene,solution,traffic)
 %CHASI_EVALUATE Held-out true-channel rates and burst-aware throughput proxy.
-%   Input resource H_true is [scheduled UE,TRP,RX,TX], precoderV{g} is
+%   Input resource H_true is [scheduled UE,TRP,RX,TX], precoder{g} is
 %   [TRP,scheduled UE,TX,rank]. Traffic fields are [global UE,TTI] masks.
 cfg = scene.config;
-U = cfg.users; T = cfg.durationTti;
+numUEs = cfg.users; T = cfg.durationTti;
 if nargin < 3 || isempty(traffic)
-    [busy,tail,terminal] = chasi_traffic(U,T,cfg.seed,cfg.trafficModel,cfg.trafficLoad);
+    [busy,tail,terminal] = chasi_traffic(numUEs,T,cfg.seed,cfg.trafficModel,cfg.trafficLoad);
 elseif isstruct(traffic)
     busy = logical(traffic.busy); tail = logical(traffic.tail);
     terminal = logical(traffic.terminal);
@@ -15,39 +15,40 @@ elseif iscell(traffic) && numel(traffic) == 3
 else
     error('chasi_evaluate:Traffic','Traffic must be a struct or three-mask cell.');
 end
-if ~isequal(size(busy),[U,T]) || ~isequal(size(tail),[U,T]) || ...
-        ~isequal(size(terminal),[U,T]) || any(tail(:) & ~busy(:)) || ...
+if ~isequal(size(busy),[numUEs,T]) || ~isequal(size(tail),[numUEs,T]) || ...
+        ~isequal(size(terminal),[numUEs,T]) || any(tail(:) & ~busy(:)) || ...
         any(terminal(:) & ~busy(:))
     error('chasi_evaluate:Traffic','Traffic masks must be valid [UE,TTI] arrays.');
 end
-if isfield(solution,'precoderV'), vs = solution.precoderV;
-else, vs = solution.precoders; end
+precoders = solution.precoder;
 resources = scene.resources;
-if numel(vs) ~= numel(resources)
+if numel(precoders) ~= numel(resources)
     error('chasi_evaluate:Groups','Resource and precoder group counts differ.');
 end
-G = numel(resources); L = size(vs{1},1);
-perPhysical = zeros(U,1); perGroup = zeros(U,G);
-scheduled = false(U,1); allocatedRb = zeros(U,1);
-scheduledGroups = zeros(U,1); serviceOccurrences = zeros(U,1);
-weightedPower = zeros(U,1); volume = zeros(U,1);
+G = numel(resources); L = size(precoders{1},1);
+perPhysical = zeros(numUEs,1); perGroup = zeros(numUEs,G);
+scheduled = false(numUEs,1); allocatedRb = zeros(numUEs,1);
+scheduledGroups = zeros(numUEs,1); serviceOccurrences = zeros(numUEs,1);
+weightedPower = zeros(numUEs,1); volume = zeros(numUEs,1);
 occupied = zeros(21,T); trpPower = zeros(L,1);
 omittedExpected = 0; modeledNoise = 0; omittedMax = 0;
-demand = ones(U,T); demand(tail) = 2/7;
+demand = ones(numUEs,T); demand(tail) = 2/7;
 for g = 1:G
-    r = resources(g); v = vs{g}; ids = r.ue_ids(:); K = numel(ids);
-    if any(ids < 1 | ids > U) || numel(unique(ids)) ~= K || ...
-            size(r.H_true,1) ~= K || size(v,1) ~= L || size(v,2) ~= K
+    resource = resources(g); precoder = precoders{g};
+    ids = resource.ue_ids(:); K = numel(ids);
+    if any(ids < 1 | ids > numUEs) || numel(unique(ids)) ~= K || ...
+            size(resource.H_true,1) ~= K || ...
+            size(precoder,1) ~= L || size(precoder,2) ~= K
         error('chasi_evaluate:Shape','Inconsistent resource or precoder axes.');
     end
-    weight = rb_weight(r);
-    rr = true_rates(r.H_true,v);
+    weight = rb_weight(resource);
+    rr = true_rates(resource.H_true,precoder);
     perGroup(ids,g) = rr;
     perPhysical(ids) = perPhysical(ids) + rr*weight;
-    trpNorm = squeeze(sum(sum(sum(abs(v).^2,4),3),2));
+    trpNorm = squeeze(sum(sum(sum(abs(precoder).^2,4),3),2));
     trpNorm = reshape(trpNorm,L,1);
     trpPower = trpPower + weight*trpNorm;
-    omitted = r.omitted_gain * trpNorm * 4;
+    omitted = resource.omitted_gain * trpNorm * 4;
     omittedExpected = omittedExpected + sum(omitted)*weight;
     modeledNoise = modeledNoise + K*4*weight;
     if ~isempty(omitted), omittedMax = max(omittedMax,max(omitted)); end
@@ -59,10 +60,11 @@ for g = 1:G
         scheduledGroups(u) = scheduledGroups(u) + 1;
         activeTrp = false(L,1);
         for l = 1:L
-            activeTrp(l) = any(abs(reshape(v(l,ki,:,:),[],1)) > 1e-10);
+            activeTrp(l) = any(abs(reshape(precoder(l,ki,:,:),[],1)) > 1e-10);
         end
         serviceOccurrences(u) = serviceOccurrences(u) + nnz(activeTrp);
-        weightedPower(u) = weightedPower(u) + weight*sum(abs(reshape(v(:,ki,:,:),[],1)).^2);
+        weightedPower(u) = weightedPower(u) + ...
+            weight*sum(abs(reshape(precoder(:,ki,:,:),[],1)).^2);
         usable = busy(u,:) & ~terminal(u,:);
         volume(u) = volume(u) + sum(double(usable).*demand(u,:)) * ...
             rr(ki) * (273*weight) * 12*cfg.scsHz * cfg.ttiMs/1000;
@@ -71,14 +73,14 @@ for g = 1:G
     occupied(1:L,:) = occupied(1:L,:) + (273*weight)*double(groupOccupied);
 end
 valid = sum((busy & ~terminal) & scheduled,2);
-experience = nan(U,1); good = valid > 0;
+experience = nan(numUEs,1); good = valid > 0;
 experience(good) = volume(good)./(valid(good)*cfg.ttiMs/1000);
 expGood = experience(good)/1e6;
 zeroIncluded = experience/1e6; zeroIncluded(~good) = 0;
 powerMean = mean(trpPower); powerMax = max(trpPower);
 if isempty(trpPower), powerMean = 0; powerMax = 0; end
 metrics = struct();
-metrics.users_total = U;
+metrics.users_total = numUEs;
 metrics.users_with_valid_samples = nnz(good);
 metrics.users_without_valid_samples = nnz(~good);
 metrics.valid_sample_count = sum(valid);
@@ -120,23 +122,24 @@ metrics.per_ue_valid_tti = valid;
 metrics.per_ue_delivered_bits_proxy = volume;
 end
 
-function w = rb_weight(r)
-if isfield(r,'tx_rb_count') && ~isempty(r.tx_rb_count)
-    w = r.tx_rb_count/273;
+function rbWeight = rb_weight(resource)
+if isfield(resource,'tx_rb_count') && ~isempty(resource.tx_rb_count)
+    rbWeight = resource.tx_rb_count/273;
 else
-    w = r.rb_count/273;
+    rbWeight = resource.rb_count/273;
 end
 end
 
-function out = true_rates(h,v)
+function out = true_rates(h,precoder)
 K = size(h,1); L = size(h,2); Nr = size(h,3); Nt = size(h,4);
-d = size(v,4); out = zeros(K,1);
+numStreams = size(precoder,4); out = zeros(K,1);
 for k = 1:K
-    interference = eye(Nr); signal = zeros(Nr,d);
+    interference = eye(Nr); signal = zeros(Nr,numStreams);
     for i = 1:K
-        effective = zeros(Nr,d);
+        effective = zeros(Nr,numStreams);
         for l = 1:L
-            effective = effective + reshape(h(k,l,:,:),Nr,Nt)*reshape(v(l,i,:,:),Nt,d);
+            effective = effective + reshape(h(k,l,:,:),Nr,Nt)* ...
+                reshape(precoder(l,i,:,:),Nt,numStreams);
         end
         if i == k, signal = effective;
         else, interference = interference + effective*effective'; end
@@ -150,10 +153,10 @@ function value = mean_or_nan(x)
 if isempty(x), value = NaN; else, value = mean(x); end
 end
 
-function value = percentile_or_nan(x,p)
+function value = percentile_or_nan(x,percentile)
 if isempty(x), value = NaN; return; end
 x = sort(x(:));
-position = 1 + (numel(x)-1)*p/100;
+position = 1 + (numel(x)-1)*percentile/100;
 lo = floor(position); hi = ceil(position);
 value = x(lo) + (position-lo)*(x(hi)-x(lo));
 end

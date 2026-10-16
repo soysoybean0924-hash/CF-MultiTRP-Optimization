@@ -27,7 +27,7 @@ else
     calibration=struct('status','not applicable: pilot reuse', ...
         'model','synthetic equal-power pilot reuse with Gaussian current/past correlation');
 end
-template=struct('H',[],'H_true',[],'C',[],'C_stat',[],'serve',[], ...
+template=struct('H',[],'H_true',[],'C',[],'C_stat',[],'servingMask',[], ...
     'ue_ids',[],'home_trp',[],'rb_start',0,'rb_count',0,'tx_rb_count',0, ...
     'prior_gain',[],'omitted_gain',[],'age_ms',0,'measured',false, ...
     'srs_diagnostic',[]);
@@ -107,7 +107,7 @@ for g=1:cfg.srsHops
     end
     r=template;
     r.H=H; r.H_true=Htrue; r.C=C; r.C_stat=C;
-    r.serve=serve; r.ue_ids=ids(:); r.home_trp=home(ids(:));
+    r.servingMask=serve; r.ue_ids=ids(:); r.home_trp=home(ids(:));
     r.rb_start=cfg.rbGroups(g).start;
     r.rb_count=cfg.rbGroups(g).count; r.tx_rb_count=txCounts(g);
     r.prior_gain=single(gains(ids,:)); r.omitted_gain=omitted;
@@ -121,7 +121,12 @@ for t=0:cfg.durationTti
     if mod(t,20)==0, events(t+1).srs_group=mod(t/20,cfg.srsHops)+1; end
     events(t+1).csi_rs=mod(t,cfg.csiRsPeriodTti)==0;
 end
+scheduleMask=false(cfg.users,cfg.srsHops);
+for g=1:cfg.srsHops
+    scheduleMask(resources(g).ue_ids,g)=true;
+end
 scene=struct('config',cfg,'trp_xy',trp,'ue_xy',ue,'home',home, ...
+    'scheduleMask',scheduleMask, ...
     'resources',resources,'events',events,'active_prb_ratio',activeRatio, ...
     'calibration',calibration);
 end

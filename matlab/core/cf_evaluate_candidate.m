@@ -17,8 +17,8 @@ legacyBeamformer=baselineBeamformer; history=emptyHistory();
 if doOptimize && cfg.inner.maxIter>0
     % Inner loop alternates between metric evaluation, WPS weights, power
     % constraint multipliers, and a closed-form beamformer update.
-    R=cfg.numDUs; U=cfg.numUEs; G=cfg.numRBGs; S=cfg.maxRank;
-    lambda=zeros(R,G); mu=zeros(R,G); averageRate=ones(U,1);
+    R=cfg.numDUs; numUEs=cfg.numUEs; G=cfg.numRBGs; S=cfg.maxRank;
+    lambda=zeros(R,G); mu=zeros(R,G); averageRate=ones(numUEs,1);
     delta=1./((averageRate+cfg.inner.pfEpsilon).^candidate.betaPF);
     objectiveHistory=zeros(cfg.inner.maxIter,1); sumWPSHistory=objectiveHistory;
     activeLinksHistory=objectiveHistory; totalPowerHistory=objectiveHistory;
@@ -31,9 +31,9 @@ if doOptimize && cfg.inner.maxIter>0
         current=computeMetrics(cfg,scenario,legacyBeamformer,bInit,Q,rankUG,delta);
         % zeta is the quadratic-transform auxiliary variable used to make
         % the beamformer update tractable for the current SLINR state.
-        zeta=complex(zeros(S,U,G));
+        zeta=complex(zeros(S,numUEs,G));
         for g=1:G
-            for u=1:U
+            for u=1:numUEs
                 for s=1:rankUG(u,g)
                     denominator=current.signalPower(s,u,g)+current.interferencePower(s,u,g)+cfg.noisePower;
                     zeta(s,u,g)=sqrt(delta(u)*(1+current.SLINR(s,u,g)))* ...
@@ -140,24 +140,24 @@ result.scenario=scenario;
 end
 
 function [bInit,rankUG,Q,legacyBeamformer]=buildInitialState(cfg,scenario,candidate)
-R=cfg.numDUs; U=cfg.numUEs; G=cfg.numRBGs; M=cfg.numTxAntennas;
+R=cfg.numDUs; numUEs=cfg.numUEs; G=cfg.numRBGs; M=cfg.numTxAntennas;
 Nr=cfg.numRxAntennas; Smax=cfg.maxRank; H=scenario.H;
-bInit=zeros(R,U,G);
+bInit=zeros(R,numUEs,G);
 % For each UE/RBG, select the strongest candidate.numConnections DUs by
 % channel gain. This forms the initial binary association tensor bInit.
 for g=1:G
-    for u=1:U
+    for u=1:numUEs
         [~,order]=sort(scenario.channelGain(:,u,g),'descend');
         [order,count]=applyEdgeAssociationPolicy(cfg,scenario,order,u,candidate.numConnections,R);
         bInit(order(1:count),u,g)=1;
     end
 end
-rankUG=ones(U,G); Q=complex(zeros(Nr,U,G,Smax));
+rankUG=ones(numUEs,G); Q=complex(zeros(Nr,numUEs,G,Smax));
 % The receive subspace Q and stream count r come from the SVD of the stacked
 % selected-DU channel. rankThreshold decides whether the second stream is
 % strong enough to keep.
 for g=1:G
-    for u=1:U
+    for u=1:numUEs
         selected=find(bInit(:,u,g)>0); Hstack=complex(zeros(Nr,M*numel(selected))); offset=0;
         for k=1:numel(selected)
             r=selected(k); Hstack(:,offset+(1:M))=H(:,:,r,u,g); offset=offset+M;
@@ -193,11 +193,11 @@ order=[edgeOrder(:); otherOrder(:)];
 count=min([requestedCount,numel(edgeOrder),R]);
 count=max(1,count);
 end
-legacyBeamformer=complex(zeros(M,Smax,R,U,G));
+legacyBeamformer=complex(zeros(M,Smax,R,numUEs,G));
 % Initialize each active precoder along the effective channel direction.
 for g=1:G
     for r=1:R
-        for u=1:U
+        for u=1:numUEs
             if bInit(r,u,g)==0, continue; end
             for s=1:rankUG(u,g)
                 hEff=H(:,:,r,u,g)'*Q(:,u,g,s); legacyBeamformer(:,s,r,u,g)=hEff/(norm(hEff)+eps);
@@ -208,20 +208,20 @@ end
 end
 
 function candidateBeamformer=updateBeamformers(cfg,scenario,candidate,bInit,rankUG,Q,SLINR,delta,zeta,alpha,lambda,mu)
-R=cfg.numDUs; U=cfg.numUEs; G=cfg.numRBGs; M=cfg.numTxAntennas; Smax=cfg.maxRank;
-H=scenario.H; candidateBeamformer=complex(zeros(M,Smax,R,U,G)); identityM=eye(M);
+R=cfg.numDUs; numUEs=cfg.numUEs; G=cfg.numRBGs; M=cfg.numTxAntennas; Smax=cfg.maxRank;
+H=scenario.H; candidateBeamformer=complex(zeros(M,Smax,R,numUEs,G)); identityM=eye(M);
 for g=1:G
     for r=1:R
         % commonA aggregates how DU r's beam affects all users on this RBG.
         commonA=complex(zeros(M,M));
-        for up=1:U
+        for up=1:numUEs
             for sp=1:rankUG(up,g)
                 hEff=H(:,:,r,up,g)'*Q(:,up,g,sp);
                 hEff=applyRobustChannelScale(cfg,scenario,hEff,r,up,g);
                 commonA=commonA+abs(zeta(sp,up,g))^2*(hEff*hEff');
             end
         end
-        for u=1:U
+        for u=1:numUEs
             if bInit(r,u,g)==0, continue; end
             penalty=lambda(r,g)*alpha(r,u,g)+mu(r,g)+robustPenalty(cfg,scenario,r,u,g);
             systemMatrix=commonA+(penalty+cfg.inner.regularization)*identityM;
@@ -237,17 +237,17 @@ end
 end
 
 function metrics=computeMetrics(cfg,scenario,legacyBeamformer,bMask,Q,rankUG,delta)
-R=cfg.numDUs; U=cfg.numUEs; G=cfg.numRBGs; Smax=cfg.maxRank; H=scenario.H;
-SLINR=zeros(Smax,U,G); WPS=SLINR; signalPower=SLINR; interferencePower=SLINR;
-usefulAmplitude=complex(zeros(Smax,U,G));
+R=cfg.numDUs; numUEs=cfg.numUEs; G=cfg.numRBGs; Smax=cfg.maxRank; H=scenario.H;
+SLINR=zeros(Smax,numUEs,G); WPS=SLINR; signalPower=SLINR; interferencePower=SLINR;
+usefulAmplitude=complex(zeros(Smax,numUEs,G));
 for g=1:G
-    activeColumns=false(1,Smax*U);
-    queryColumns=false(1,Smax*U);
-    maskedBeamformer=complex(zeros(cfg.numTxAntennas*R,Smax*U));
-    Hquery=complex(zeros(cfg.numTxAntennas*R,Smax*U));
-    for up=1:U
+    activeColumns=false(1,Smax*numUEs);
+    queryColumns=false(1,Smax*numUEs);
+    maskedBeamformer=complex(zeros(cfg.numTxAntennas*R,Smax*numUEs));
+    Hquery=complex(zeros(cfg.numTxAntennas*R,Smax*numUEs));
+    for up=1:numUEs
         for sp=1:rankUG(up,g)
-            col=(sp-1)*U+up;
+            col=(sp-1)*numUEs+up;
             activeColumns(col)=true;
             queryColumns(col)=true;
             Hquery(:,col)=effectiveChannelVector(H,Q,up,g,sp,R,cfg.numTxAntennas);
@@ -269,8 +269,8 @@ for g=1:G
     [signalIsActive,signalLocations]=ismember(queryIndex,activeIndex);
     for qi=1:numel(queryIndex)
         col=queryIndex(qi);
-        u=mod(col-1,U)+1;
-        s=floor((col-1)/U)+1;
+        u=mod(col-1,numUEs)+1;
+        s=floor((col-1)/numUEs)+1;
         if signalIsActive(qi)
             useful=amplitudeMatrix(qi,signalLocations(qi));
         else
@@ -285,15 +285,15 @@ for g=1:G
         WPS(s,u,g)=delta(u)*log(1+SLINR(s,u,g));
     end
 end
-ratePerStream=log2(1+SLINR); userRate=zeros(U,1);
-for u=1:U, userRate(u)=sum(ratePerStream(:,u,:),'all'); end
-sortedRate=sort(userRate); idx5=max(1,ceil(0.05*U)); idx10=max(1,ceil(0.10*U));
+ratePerStream=log2(1+SLINR); userRate=zeros(numUEs,1);
+for u=1:numUEs, userRate(u)=sum(ratePerStream(:,u,:),'all'); end
+sortedRate=sort(userRate); idx5=max(1,ceil(0.05*numUEs)); idx10=max(1,ceil(0.10*numUEs));
 metrics.SLINR=SLINR; metrics.WPS=WPS; metrics.signalPower=signalPower;
 metrics.interferencePower=interferencePower; metrics.usefulAmplitude=usefulAmplitude;
 metrics.ratePerStream=ratePerStream; metrics.userRate=userRate;
 metrics.SumRate=sum(userRate); metrics.MeanRate=mean(userRate); metrics.MinRate=min(userRate);
 metrics.Rate5=sortedRate(idx5); metrics.Rate10=sortedRate(idx10);
-metrics.Jain=(sum(userRate)^2)/(U*sum(userRate.^2)+eps);
+metrics.Jain=(sum(userRate)^2)/(numUEs*sum(userRate.^2)+eps);
 end
 
 function hVector=effectiveChannelVector(H,Q,u,g,s,R,M)
@@ -306,10 +306,10 @@ end
 end
 
 function p=powerFromBeamformer(legacyBeamformer)
-[~,S,R,U,G]=size(legacyBeamformer); p=zeros(R,U,G);
+[~,S,R,numUEs,G]=size(legacyBeamformer); p=zeros(R,numUEs,G);
 for g=1:G
     for r=1:R
-        for u=1:U
+        for u=1:numUEs
             for s=1:S, p(r,u,g)=p(r,u,g)+norm(legacyBeamformer(:,s,r,u,g))^2; end
         end
     end
@@ -317,11 +317,11 @@ end
 end
 
 function [legacyBeamformer,prePower]=normalizeAllDUPower(legacyBeamformer,maxPower)
-[~,S,R,U,G]=size(legacyBeamformer); prePower=zeros(R,G);
+[~,S,R,numUEs,G]=size(legacyBeamformer); prePower=zeros(R,G);
 for g=1:G
     for r=1:R
         total=0;
-        for u=1:U
+        for u=1:numUEs
             for s=1:S, total=total+norm(legacyBeamformer(:,s,r,u,g))^2; end
         end
         prePower(r,g)=total;
