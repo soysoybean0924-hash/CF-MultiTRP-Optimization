@@ -4,7 +4,7 @@ Snapshot date: 2026-09-02.
 
 2026-10-16 CHASI update: the new formal CHASI entry is native MATLAB
 `matlab/chasi/chasi_run.m`. See [the migration and verification record](CHASI_MATLAB_MIGRATION.md)
-for the explicit-input solver/evaluator parity, 210-UE statistical-branch run,
+for the explicit-input solver/evaluator parity, 210-UE four-branch native run,
 remaining random-stream and acceptance-metric limits. The older MATLAB
 outer-search paper track described below is a separate model.
 

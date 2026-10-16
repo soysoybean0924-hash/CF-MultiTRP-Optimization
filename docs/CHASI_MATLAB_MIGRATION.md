@@ -44,4 +44,15 @@ MATLAB 使用 MT19937，Python 使用 NumPy PCG64；相同 seed 不构成相同�
 
 业务回放另以 21 TRP、210 UE、340 TTI、无协作基线、零外循环和限制干扰范围完成原生入口测试，输出本地 `results/chasi_matlab/replay_smoke_20261016_b/`，包含 `no_cooperation_time_evolution.mat`。回放有效 TTI 数 58679、完成 burst 2793、最大功率数值超限 `7.11e-15 W`。首次测试暴露零 RB 权重被基线误拒绝；按 Python `_weight` 允许零权重的定义修正后通过。这是语言等价性边界修复，不是调度或算法改动。
 
-`matlab/chasi/chasi_run.m` 是本轮原生入口，调用 MATLAB 生成场景、CSI、求解、评价与保存。原 `experiments/chasi_formal/run_chasi_formal.m` 是 Python 桥接入口，不能作为原生验证证据。运行命令：在仓库根目录执行 `addpath('matlab/chasi'); summary=chasi_run();`。默认四分支全套、场景和移动模型跨语言同输入对拍仍待完成，不能从单个统计分支的完成推断全部分支验收。
+默认四分支也已在同一 MATLAB 原生 21 TRP、210 UE、273 RB 场景完整运行，输出位于本地 `results/chasi_matlab/formal_20261016_default/`，MATLAB 退出码为 0。各分支均保存预编码 MAT、逐 UE CSV，`summary.json` 的四个状态均为 `completed`，210 个 UE 均有有效样本：
+
+| 分支 | 真实信道 sum-SE (bit/s/Hz) | 有效 UE 边缘 5% 体验 (Mbps) | 最大功率超限 (W) | 停止原因 |
+|---|---:|---:|---:|---|
+| `ideal` | 105.376798 | 17.096679 | 0 | 达到 2 次外循环上限，ADMM 未达内层容差 |
+| `matrix_nominal` | 66.190224 | 4.316168 | 0 | 同上 |
+| `matrix_statistical` | 68.186696 | 3.234964 | 0 | 同上 |
+| `no_cooperation` | 65.811449 | 4.759397 | `7.11e-15` | 固定本地 MRT 规则完成 |
+
+这是语言迁移的全链连通证据，不是算法收敛、全局最优、统计显著改善或华为体验验收证明。在该单场景，统计分支的边缘体验代理低于无协作基线，应作为负结果保留。场景随机生成和移动模型跨语言同输入对拍、`fixed_direction_power` 旧桥接可选分支、正式 ACK/RLC 体验口径及更充分的收敛验证仍未完成。
+
+`matlab/chasi/chasi_run.m` 是本轮原生入口，调用 MATLAB 生成场景、CSI、求解、评价与保存。原 `experiments/chasi_formal/run_chasi_formal.m` 是保留在工作区的未跟踪 Python 桥接脚本，不能作为原生验证证据。运行命令：在仓库根目录执行 `addpath('matlab/chasi'); summary=chasi_run();`。
