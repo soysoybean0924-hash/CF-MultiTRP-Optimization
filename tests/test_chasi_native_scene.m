@@ -5,6 +5,7 @@ addpath(fullfile(root,'matlab','chasi'));
 cfg = chasi_config(struct('seed',17,'prbUtilization',0.30, ...
     'scheduleMode','precise_shared_rb','decisionTti',0, ...
     'maxInterferenceDistanceM',100));
+assert(isequal(cfg.srsRbCounts,[repmat(16,1,16),17]));
 scene = chasi_generate_scene(cfg);
 assert(isequal(size(scene.trp_xy),[21 2]));
 assert(isequal(size(scene.ue_xy),[210 2]));
@@ -12,6 +13,9 @@ assert(isequal(scene.home(:),repelem((1:21)',10)));
 assert(isequal(size(scene.scheduleMask),[210 17]));
 assert(numel(scene.resources)==17);
 assert(sum([scene.resources.rb_count])==273);
+assert(isequal([scene.resources.srs_rb_count],cfg.srsRbCounts));
+assert(scene.resources(17).srs_rb_start==257);
+assert(sum([scene.resources.srs_rb_count])==273);
 assert(sum([scene.resources.tx_rb_count])==82); % round(0.3*273)
 assert(all(abs(scene.active_prb_ratio - 82/273)<1e-12));
 assert(numel(scene.events)==341);

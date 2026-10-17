@@ -16,8 +16,16 @@ def check(run_dir: Path, branch: str = "matrix_statistical") -> dict[str, object
     assert summary["scene_dimensions"]["users"] == cfg["users"]
     assert summary["scene_dimensions"]["trps"] == 21
     assert summary["scene_dimensions"]["rb"] == 273
-    assert summary["scenario"]["srs_nominal_hop_rb"] == 272
-    assert summary["scenario"]["srs_modeled_group_rb"] == 273
+    scenario = summary["scenario"]
+    if scenario.get("srs_measurement_contract_version") == 2:
+        assert scenario["srs_hop_rb_counts"] == [16] * 16 + [17]
+        assert scenario["srs_total_measured_rb"] == 273
+        assert scenario["srs_nominal_hop_rb"] == 273
+    else:
+        # Saved v3 runs predating the source-image check retain their
+        # historically incorrect nominal 17-by-16 metadata label.
+        assert scenario["srs_nominal_hop_rb"] == 272
+    assert scenario["srs_modeled_group_rb"] == 273
     record = summary["branches"][branch]
     assert record["status"] == "completed"
     assert record["result_schema_version"] == 3

@@ -44,6 +44,14 @@ cfg.users=cfg.trps*cfg.usersPerCell;
 counts=[repmat(16,1,16),17];
 starts=cumsum([1,counts(1:end-1)]);
 cfg.rbGroups=struct('start',num2cell(starts),'count',num2cell(counts));
+% The challenge scene specifies 16 SRS hops of 16 RB and a final 17-RB hop.
+% Keep measurement widths explicit even though they align with data groups.
+cfg.srsRbCounts=counts;
+cfg.srsHopIntervalTti=cfg.srsPeriodTti/cfg.srsHops;
+if cfg.srsHops~=numel(counts) || cfg.srsHopIntervalTti~=fix(cfg.srsHopIntervalTti)
+    error('chasi_config:InvalidSRSTiming',...
+        'SRS period must divide evenly into the 17 configured hops');
+end
 if ~ismember(cfg.usersPerCell,[10 15 20])
     error('chasi_config:InvalidUsersPerCell','usersPerCell must be 10, 15 or 20');
 end

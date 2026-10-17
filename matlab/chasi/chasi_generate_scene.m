@@ -29,6 +29,7 @@ else
 end
 template=struct('H',[],'H_true',[],'C',[],'C_stat',[],'servingMask',[], ...
     'ueIds',[],'home_trp',[],'rb_start',0,'rb_count',0,'tx_rb_count',0, ...
+    'srs_rb_start',0,'srs_rb_count',0, ...
     'resourceWeightNu',0, ...
     'prior_gain',[],'omitted_gain',[],'age_ms',0,'measured',false, ...
     'srs_diagnostic',[]);
@@ -41,7 +42,7 @@ for g=1:cfg.srsHops
     Htrue=H;
     C=complex(zeros(k,cfg.trps,4,4,'single'));
     omitted=zeros(k,cfg.trps,'single');
-    first=(g-1)*20;
+    first=(g-1)*cfg.srsHopIntervalTti;
     measured=cfg.decisionTti>=first;
     if measured
         measuredAt=first+floor((cfg.decisionTti-first)/cfg.srsPeriodTti)*cfg.srsPeriodTti;
@@ -112,6 +113,8 @@ for g=1:cfg.srsHops
     r.servingMask=serve; r.ueIds=ids(:); r.home_trp=home(ids(:));
     r.rb_start=cfg.rbGroups(g).start;
     r.rb_count=cfg.rbGroups(g).count; r.tx_rb_count=txCounts(g);
+    r.srs_rb_start=cfg.rbGroups(g).start;
+    r.srs_rb_count=cfg.srsRbCounts(g);
     r.resourceWeightNu=double(txCounts(g))/cfg.rbTotal;
     r.prior_gain=single(gains(ids,:)); r.omitted_gain=omitted;
     r.age_ms=age; r.measured=measured; r.srs_diagnostic=diagnostics;
@@ -121,7 +124,9 @@ events=repmat(struct('tti',0,'ms',0,'srs_group',0,'csi_rs',false),1,cfg.duration
 for t=0:cfg.durationTti
     events(t+1).tti=t;
     events(t+1).ms=t*cfg.ttiMs;
-    if mod(t,20)==0, events(t+1).srs_group=mod(t/20,cfg.srsHops)+1; end
+    if mod(t,cfg.srsHopIntervalTti)==0
+        events(t+1).srs_group=mod(t/cfg.srsHopIntervalTti,cfg.srsHops)+1;
+    end
     events(t+1).csi_rs=mod(t,cfg.csiRsPeriodTti)==0;
 end
 scheduleMask=false(cfg.users,cfg.srsHops);

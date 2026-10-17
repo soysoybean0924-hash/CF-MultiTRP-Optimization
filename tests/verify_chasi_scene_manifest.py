@@ -66,6 +66,9 @@ def check(run_dir: Path) -> dict[str, float | int | str]:
     for group_idx, group in enumerate(groups):
         assert group["rb_start"] == next_rb
         assert group["rb_count"] == (16 if group_idx < 16 else 17)
+        if "srsRbCounts" in config:
+            assert group["srs_rb_start"] == next_rb
+            assert group["srs_rb_count"] == config["srsRbCounts"][group_idx]
         next_rb += group["rb_count"]
         assert 0 <= group["tx_rb_count"] <= group["rb_count"]
         assert abs(group["resourceWeightNu"] -
@@ -73,7 +76,7 @@ def check(run_dir: Path) -> dict[str, float | int | str]:
         ids = group["ueIds"]
         links = group["serving_trps_by_user"]
         assert len(ids) == len(links) and len(set(ids)) == len(ids)
-        first_tti = group_idx * 20
+        first_tti = group_idx * config.get("srsHopIntervalTti", 20)
         measured = config["decisionTti"] >= first_tti
         assert group["measured"] == measured
         measured_at = (first_tti +
@@ -105,7 +108,10 @@ def check(run_dir: Path) -> dict[str, float | int | str]:
         "max_ue_trp_distance_m": max_ue_trp_distance,
         "geometric_links_beyond_cutoff": links_beyond_cutoff,
         "data_rb": next_rb - 1,
-        "nominal_17_by_16_srs_rb": 17 * 16,
+        "srs_measured_rb": (sum(config["srsRbCounts"])
+                            if "srsRbCounts" in config else None),
+        "historical_nominal_17_by_16_srs_rb": (17 * 16
+                                                 if "srsRbCounts" not in config else None),
         "scope": "saved explicit geometry/identity/resource/time rules; not random-channel parity",
     }
 
