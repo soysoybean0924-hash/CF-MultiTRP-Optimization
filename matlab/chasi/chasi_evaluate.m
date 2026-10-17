@@ -53,22 +53,24 @@ for g = 1:G
     modeledNoise = modeledNoise + K*4*weight;
     if ~isempty(omitted), omittedMax = max(omittedMax,max(omitted)); end
     groupOccupied = false(L,T);
-    for ki = 1:K
-        u = ids(ki);
-        scheduled(u) = true;
-        allocatedRb(u) = allocatedRb(u) + 273*weight;
-        scheduledGroups(u) = scheduledGroups(u) + 1;
+    for localUeIdx = 1:K
+        globalUeId = ids(localUeIdx);
+        scheduled(globalUeId) = true;
+        allocatedRb(globalUeId) = allocatedRb(globalUeId) + 273*weight;
+        scheduledGroups(globalUeId) = scheduledGroups(globalUeId) + 1;
         activeTrp = false(L,1);
         for l = 1:L
-            activeTrp(l) = any(abs(reshape(precoder(l,ki,:,:),[],1)) > 1e-10);
+            activeTrp(l) = any(abs(reshape(precoder(l,localUeIdx,:,:),[],1)) > 1e-10);
         end
-        serviceOccurrences(u) = serviceOccurrences(u) + nnz(activeTrp);
-        weightedPower(u) = weightedPower(u) + ...
-            weight*sum(abs(reshape(precoder(:,ki,:,:),[],1)).^2);
-        usable = busy(u,:) & ~terminal(u,:);
-        volume(u) = volume(u) + sum(double(usable).*demand(u,:)) * ...
-            rr(ki) * (273*weight) * 12*cfg.scsHz * cfg.ttiMs/1000;
-        groupOccupied(activeTrp,:) = groupOccupied(activeTrp,:) | repmat(busy(u,:),nnz(activeTrp),1);
+        serviceOccurrences(globalUeId) = serviceOccurrences(globalUeId) + nnz(activeTrp);
+        weightedPower(globalUeId) = weightedPower(globalUeId) + ...
+            weight*sum(abs(reshape(precoder(:,localUeIdx,:,:),[],1)).^2);
+        usable = busy(globalUeId,:) & ~terminal(globalUeId,:);
+        volume(globalUeId) = volume(globalUeId) + ...
+            sum(double(usable).*demand(globalUeId,:)) * ...
+            rr(localUeIdx) * (273*weight) * 12*cfg.scsHz * cfg.ttiMs/1000;
+        groupOccupied(activeTrp,:) = groupOccupied(activeTrp,:) | ...
+            repmat(busy(globalUeId,:),nnz(activeTrp),1);
     end
     occupied(1:L,:) = occupied(1:L,:) + (273*weight)*double(groupOccupied);
 end

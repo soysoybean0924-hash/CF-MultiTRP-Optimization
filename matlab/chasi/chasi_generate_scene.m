@@ -14,10 +14,10 @@ rxChol=chol(rxCorrelation,'lower');
 [trp,ue,home]=geometry(cfg,rngGeometry);
 [usersByGroup,activeRatio,active,txCounts]=schedule(cfg,rngGeometry,home);
 gains=zeros(cfg.users,cfg.trps);
-for u=1:cfg.users
+for globalUeId=1:cfg.users
     for l=1:cfg.trps
-        delta=ue(u,:)-trp(l,:);
-        gains(u,l)=link_gain(cfg,norm(delta),atan2(delta(2),delta(1)),l,rngGeometry);
+        delta=ue(globalUeId,:)-trp(l,:);
+        gains(globalUeId,l)=link_gain(cfg,norm(delta),atan2(delta(2),delta(1)),l,rngGeometry);
     end
 end
 homeGain=median(gains(sub2ind(size(gains),(1:cfg.users)',home)));
@@ -144,10 +144,10 @@ ue=zeros(cfg.users,2);
 for l=1:cfg.trps
     randUniformAngle=rand(stream,cfg.usersPerCell,1);
     randUniformRadius=rand(stream,cfg.usersPerCell,1);
-    a=mod(l-1,3)*2*pi/3+(randUniformAngle-0.5)*2*pi/3;
+    azimuthRad=mod(l-1,3)*2*pi/3+(randUniformAngle-0.5)*2*pi/3;
     radius=25+125*sqrt(randUniformRadius);
     idx=(l-1)*cfg.usersPerCell+(1:cfg.usersPerCell);
-    ue(idx,:)=trp(l,:)+radius.*[cos(a) sin(a)];
+    ue(idx,:)=trp(l,:)+radius.*[cos(azimuthRad) sin(azimuthRad)];
 end
 end
 
@@ -209,18 +209,18 @@ end
 typ=cfg.channelMode(1:3);
 los=rand(stream)<los_probability(d,typ);
 pl=outdoor_pathloss(d,cfg.frequencyGhz,typ,los);
-if los, sigma=4; elseif strcmp(typ,'umi'), sigma=7.82; else, sigma=6; end
-pl=pl+sigma*randn(stream);
+if los, shadowStdDb=4; elseif strcmp(typ,'umi'), shadowStdDb=7.82; else, shadowStdDb=6; end
+pl=pl+shadowStdDb*randn(stream);
 gain=10^(-pl/10)*sector/(cfg.noiseWattPerRb*cfg.rbTotal);
 end
 
-function p=los_probability(d,typ)
-if d<=18, p=1; return; end
-a=18/d;
+function losProbability=los_probability(d,typ)
+if d<=18, losProbability=1; return; end
+minDistanceRatio=18/d;
 if strcmp(typ,'umi')
-    p=a+(1-a)*exp(-d/36);
+    losProbability=minDistanceRatio+(1-minDistanceRatio)*exp(-d/36);
 else
-    p=a+(1-a)*exp(-d/63); % h_UT=1.5 m; UMa correction vanishes.
+    losProbability=minDistanceRatio+(1-minDistanceRatio)*exp(-d/63); % h_UT=1.5 m; UMa correction vanishes.
 end
 end
 

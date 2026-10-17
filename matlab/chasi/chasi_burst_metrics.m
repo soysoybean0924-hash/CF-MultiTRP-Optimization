@@ -4,16 +4,16 @@ if nargin < 4, ttiMs = 1; end
 validate_masks(delivered,busy,terminal);
 numUEs = size(busy,1); T = size(busy,2);
 rates = []; perUe = cell(numUEs,1); empty = 0; incomplete = 0;
-for u = 1:numUEs
+for globalUeId = 1:numUEs
     ueRates = []; bits = 0; count = 0; open = false;
     for t = 1:T
-        if busy(u,t)
+        if busy(globalUeId,t)
             open = true;
-            if ~terminal(u,t)
-                bits = bits + delivered(u,t); count = count + 1;
+            if ~terminal(globalUeId,t)
+                bits = bits + delivered(globalUeId,t); count = count + 1;
             end
         end
-        if terminal(u,t)
+        if terminal(globalUeId,t)
             if count > 0
                 value = bits/(count*ttiMs/1000)/1e6;
                 ueRates(end+1) = value; %#ok<AGROW>
@@ -25,7 +25,7 @@ for u = 1:numUEs
         end
     end
     if open, incomplete = incomplete + 1; end
-    perUe{u} = ueRates;
+    perUe{globalUeId} = ueRates;
 end
 result = struct('valid_burst_samples',numel(rates), ...
     'bursts_without_valid_tti',empty,'unfinished_bursts_excluded',incomplete, ...

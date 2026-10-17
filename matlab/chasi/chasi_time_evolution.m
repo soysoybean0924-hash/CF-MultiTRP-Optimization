@@ -69,22 +69,22 @@ for t = 0:20:windowTti-20
         oldXy = ueXy; ueXy = ueXy + velocity*(20*cfg.ttiMs/1000);
         for g = 1:G
             ids = resources(g).ueIds(:);
-            for k = 1:numel(ids)
-                u = ids(k);
-                for l = find(linkMask{g}(k,:))
-                    oldD = max(norm(oldXy(u,:)-scene.trp_xy(l,:)),10);
-                    newD = max(norm(ueXy(u,:)-scene.trp_xy(l,:)),10);
-                    newGain = gain{g}(k,l)*(oldD/newD)^3.2;
-                    drift = sqrt(newGain/max(gain{g}(k,l),1e-30));
+            for localUeIdx = 1:numel(ids)
+                globalUeId = ids(localUeIdx);
+                for l = find(linkMask{g}(localUeIdx,:))
+                    oldD = max(norm(oldXy(globalUeId,:)-scene.trp_xy(l,:)),10);
+                    newD = max(norm(ueXy(globalUeId,:)-scene.trp_xy(l,:)),10);
+                    newGain = gain{g}(localUeIdx,l)*(oldD/newD)^3.2;
+                    drift = sqrt(newGain/max(gain{g}(localUeIdx,l),1e-30));
                     z = (randn(stream,4,64)+1i*randn(stream,4,64))/sqrt(2);
                     innovation = sqrt(newGain)*cholRx*z;
-                    truth{g}(k,l,:,:) = reshape(timeCorrelation*drift*reshape(truth{g}(k,l,:,:),4,64) + ...
+                    truth{g}(localUeIdx,l,:,:) = reshape(timeCorrelation*drift*reshape(truth{g}(localUeIdx,l,:,:),4,64) + ...
                         sqrt(max(0,1-timeCorrelation^2))*innovation,1,1,4,64);
-                    est{g}(k,l,:,:) = timeCorrelation*drift*est{g}(k,l,:,:);
-                    priorCov = reshape(cov{g}(k,l,:,:),4,4);
-                    cov{g}(k,l,:,:) = reshape((timeCorrelation*drift)^2*priorCov + ...
+                    est{g}(localUeIdx,l,:,:) = timeCorrelation*drift*est{g}(localUeIdx,l,:,:);
+                    priorCov = reshape(cov{g}(localUeIdx,l,:,:),4,4);
+                    cov{g}(localUeIdx,l,:,:) = reshape((timeCorrelation*drift)^2*priorCov + ...
                         (1-timeCorrelation^2)*newGain*rxCorrelation,1,1,4,4);
-                    gain{g}(k,l) = newGain;
+                    gain{g}(localUeIdx,l) = newGain;
                 end
             end
         end
@@ -124,12 +124,12 @@ for t = 0:20:windowTti-20
     if slow
         for g = 1:G
             resource = resources(g); ids = resource.ueIds(:);
-            for k = 1:numel(ids)
-                u = ids(k); old = find(resource.servingMask(:,k));
+            for localUeIdx = 1:numel(ids)
+                globalUeId = ids(localUeIdx); old = find(resource.servingMask(:,localUeIdx));
                 active = unique(scene.home(ids));
-                distances = vecnorm(scene.trp_xy(active,:)-ueXy(u,:),2,2);
+                distances = vecnorm(scene.trp_xy(active,:)-ueXy(globalUeId,:),2,2);
                 [~,order] = sort(distances); ordered = active(order);
-                proposed = [scene.home(u);ordered(ordered~=scene.home(u))];
+                proposed = [scene.home(globalUeId);ordered(ordered~=scene.home(globalUeId))];
                 proposed = proposed(1:min(cfg.serviceTrps,numel(proposed)));
                 changes = changes + ~isequal(sort(old),sort(proposed));
             end
@@ -346,27 +346,27 @@ perSecond = round(perSecond); [numUEs,T] = size(busy);
 seconds = floor(T/perSecond); samples = nan(numUEs,seconds);
 eligibleCounts = zeros(numUEs,seconds); completedCounts = zeros(numUEs,seconds);
 censoredCross = 0; censoredOpen = 0; terminalOnly = 0; notCompleted = 0;
-for u = 1:numUEs
+for globalUeId = 1:numUEs
     active = false; start = 0; volume = 0; eligible = 0;
     for t = 1:T
-        if busy(u,t) && ~active
+        if busy(globalUeId,t) && ~active
             active = true; start = t; volume = 0; eligible = 0;
         end
         if ~active, continue; end
-        if busy(u,t) && ~terminal(u,t)
-            volume = volume+bits(u,t); eligible = eligible+1;
+        if busy(globalUeId,t) && ~terminal(globalUeId,t)
+            volume = volume+bits(globalUeId,t); eligible = eligible+1;
         end
-        if terminal(u,t)
+        if terminal(globalUeId,t)
             startSecond = floor((start-1)/perSecond)+1;
             endSecond = floor((t-1)/perSecond)+1;
-            if ~completed(u,t), notCompleted = notCompleted+1;
+            if ~completed(globalUeId,t), notCompleted = notCompleted+1;
             elseif eligible==0, terminalOnly = terminalOnly+1;
             elseif startSecond==endSecond && endSecond<=seconds
                 s = startSecond;
-                if isnan(samples(u,s)), samples(u,s)=0; end
-                samples(u,s)=samples(u,s)+volume;
-                eligibleCounts(u,s)=eligibleCounts(u,s)+eligible;
-                completedCounts(u,s)=completedCounts(u,s)+1;
+                if isnan(samples(globalUeId,s)), samples(globalUeId,s)=0; end
+                samples(globalUeId,s)=samples(globalUeId,s)+volume;
+                eligibleCounts(globalUeId,s)=eligibleCounts(globalUeId,s)+eligible;
+                completedCounts(globalUeId,s)=completedCounts(globalUeId,s)+1;
             else, censoredCross = censoredCross+1;
             end
             active = false;

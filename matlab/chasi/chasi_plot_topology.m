@@ -57,12 +57,12 @@ if ~isfield(resource,'ueIds')
     resource.ueIds=resource.ue_ids; % Historical v2 MAT scene conversion.
 end
 colors=lines(max(1,numel(resource.ueIds)));
-for k=1:numel(resource.ueIds)
-    u=resource.ueIds(k);
-    for l=find(servingMask(:,k)).'
-        plot(ax,[scene.trp_xy(l,1),scene.ue_xy(u,1)],...
-            [scene.trp_xy(l,2),scene.ue_xy(u,2)],'--',...
-            'Color',colors(k,:),'LineWidth',.8);
+for localUeIdx=1:numel(resource.ueIds)
+    globalUeId=resource.ueIds(localUeIdx);
+    for l=find(servingMask(:,localUeIdx)).'
+        plot(ax,[scene.trp_xy(l,1),scene.ue_xy(globalUeId,1)],...
+            [scene.trp_xy(l,2),scene.ue_xy(globalUeId,2)],'--',...
+            'Color',colors(localUeIdx,:),'LineWidth',.8);
     end
 end
 for siteId=1:numSites

@@ -13,24 +13,24 @@ if users < 0 || durationTti < 0 || users ~= fix(users) || durationTti ~= fix(dur
 end
 stream = RandStream('mt19937ar','Seed',seed+303);
 busy = false(users,durationTti); tail = busy; terminal = busy;
-for u = 1:users
+for globalUeId = 1:users
     t = 0; % Zero-based position, matching the Python half-open window.
     while t < durationTti
         if strcmp(mode,'legacy_bursts')
             gap = randi(stream,5);
         else
             meanGap = 20*(1-busyFractionTarget)/busyFractionTarget;
-            p = 1/(meanGap+1);
-            gap = floor(log(max(realmin,rand(stream)))/log1p(-p));
+            gapEndProbability = 1/(meanGap+1);
+            gap = floor(log(max(realmin,rand(stream)))/log1p(-gapEndProbability));
         end
         t = t + gap;
         if t >= durationTti, break; end
         lengthTti = randi(stream,[10,30]);
         finish = min(t+lengthTti,durationTti);
-        busy(u,t+1:finish) = true;
+        busy(globalUeId,t+1:finish) = true;
         tailStart = t+floor(0.4*(finish-t));
-        tail(u,tailStart+1:finish) = true;
-        terminal(u,finish) = true;
+        tail(globalUeId,tailStart+1:finish) = true;
+        terminal(globalUeId,finish) = true;
         t = finish;
     end
 end

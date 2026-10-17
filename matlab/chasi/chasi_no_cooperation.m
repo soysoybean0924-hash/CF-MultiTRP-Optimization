@@ -61,7 +61,7 @@ out=chasi_matrix_wmmse(localResources,stateCfg,precoder);
 out.branch='no_cooperation';
 out.optimization_objective=out.estimated_sum_rate;
 out.weighted_proxy=out.estimated_sum_rate;
-out.userWeight=cellfun(@(v) ones(size(v,2),1),precoder, ...
+out.userWeight=cellfun(@(precoderBlock) ones(size(precoderBlock,2),1),precoder, ...
     'UniformOutput',false);
 out.trajectory(1).objective=out.estimated_sum_rate;
 out.trajectory(1).weighted_proxy=out.estimated_sum_rate;

@@ -383,20 +383,20 @@ for k=1:K
         effectiveChannel=complex(zeros(Nr,numStreams));
         for l=1:L
             h=reshape(H(k,l,:,:),Nr,Nt);
-            v=reshape(precoder(l,i,:,:),Nt,numStreams);
-            effectiveChannel=effectiveChannel+h*v;
+            precoderBlock=reshape(precoder(l,i,:,:),Nt,numStreams);
+            effectiveChannel=effectiveChannel+h*precoderBlock;
         end
         rxCovariance=rxCovariance+effectiveChannel*effectiveChannel';
         if i==k, wanted=effectiveChannel; end
     end
     for l=1:L, rxCovariance=rxCovariance+p(l)*reshape(C(k,l,:,:),Nr,Nr); end
-    u=rxCovariance\wanted;
-    e=eye(numStreams)-u'*wanted-wanted'*u+u'*rxCovariance*u;
-    e=(e+e')/2;
-    rxCombiner(k,:,:)=reshape(u,1,Nr,numStreams);
-    mseMatrix(k,:,:)=reshape(e,1,numStreams,numStreams);
-    mseWeight(k,:,:)=reshape(e\eye(numStreams),1,numStreams,numStreams);
-    rate(k)=-real(log(det(e)))/log(2);
+    combinerBlock=rxCovariance\wanted;
+    mseBlock=eye(numStreams)-combinerBlock'*wanted-wanted'*combinerBlock+combinerBlock'*rxCovariance*combinerBlock;
+    mseBlock=(mseBlock+mseBlock')/2;
+    rxCombiner(k,:,:)=reshape(combinerBlock,1,Nr,numStreams);
+    mseMatrix(k,:,:)=reshape(mseBlock,1,numStreams,numStreams);
+    mseWeight(k,:,:)=reshape(mseBlock\eye(numStreams),1,numStreams,numStreams);
+    rate(k)=-real(log(det(mseBlock)))/log(2);
 end
 end
 
@@ -404,14 +404,14 @@ function parts=quadratic(H,C,rxCombiner,mseWeight,userWeights)
 [K,L,Nr,Nt]=size(H); numStreams=size(rxCombiner,3);
 M=complex(zeros(K,Nr,Nr)); B=complex(zeros(L,K,Nt,numStreams)); D=zeros(L,1);
 for k=1:K
-    u=reshape(rxCombiner(k,:,:),Nr,numStreams);
+    combinerBlock=reshape(rxCombiner(k,:,:),Nr,numStreams);
     weightedMse=reshape(mseWeight(k,:,:),numStreams,numStreams)*userWeights(k);
-    m=u*weightedMse*u'; M(k,:,:)=reshape(m,1,Nr,Nr);
+    quadraticBlock=combinerBlock*weightedMse*combinerBlock'; M(k,:,:)=reshape(quadraticBlock,1,Nr,Nr);
     for l=1:L
         h=reshape(H(k,l,:,:),Nr,Nt);
-        B(l,k,:,:)=reshape(h'*u*weightedMse,1,1,Nt,numStreams);
+        B(l,k,:,:)=reshape(h'*combinerBlock*weightedMse,1,1,Nt,numStreams);
         c=reshape(C(k,l,:,:),Nr,Nr);
-        D(l)=D(l)+real(trace(m*c));
+        D(l)=D(l)+real(trace(quadraticBlock*c));
     end
 end
 parts=struct('M',M,'B',B,'D',D);
@@ -438,14 +438,14 @@ y=y.*reshape(mask,L,K,1,1);
 end
 
 function [z,history,converged]=precoder_admm(resources,parts,initial,cfg)
-G=numel(resources); z=initial; x=initial; dual=cellfun(@(v) zeros(size(v),'like',v),z,'UniformOutput',false);
+G=numel(resources); z=initial; x=initial; dual=cellfun(@(precoderBlock) zeros(size(precoderBlock),'like',precoderBlock),z,'UniformOutput',false);
 n=sum(cellfun(@numel,z)); rho=cfg.rho; converged=false; history=struct([]);
 for t=1:cfg.admm_iterations
     new=cell(1,G); cgmax=0;
     for g=1:G
         resource=resources(g); mask=reshape(resource.servingMask,size(resource.servingMask,1),size(resource.servingMask,2),1,1);
         nu=resourceWeight(resource); coefficients=parts{g};
-        apply=@(v) nu*qapply(resource.H,coefficients,v,resource.servingMask)+(rho/2)*v;
+        apply=@(trialPrecoder) nu*qapply(resource.H,coefficients,trialPrecoder,resource.servingMask)+(rho/2)*trialPrecoder;
         rhs=(nu*coefficients.B+(rho/2)*(z{g}-dual{g})).*mask;
         new{g}=cg(apply,rhs,x{g},cfg.cg_iterations,1e-5).*mask;
         residual=apply(new{g})-rhs;
@@ -475,9 +475,9 @@ for t=1:cfg.admm_iterations
         converged=true; break
     end
     if mod(t,10)==0 && primal>10*dualres && rho<10
-        oldrho=rho;rho=2*rho;dual=cellfun(@(v) v*oldrho/rho,dual,'UniformOutput',false);
+        oldrho=rho;rho=2*rho;dual=cellfun(@(dualBlock) dualBlock*oldrho/rho,dual,'UniformOutput',false);
     elseif mod(t,10)==0 && dualres>10*primal && rho>1e-5
-        oldrho=rho;rho=rho/2;dual=cellfun(@(v) v*oldrho/rho,dual,'UniformOutput',false);
+        oldrho=rho;rho=rho/2;dual=cellfun(@(dualBlock) dualBlock*oldrho/rho,dual,'UniformOutput',false);
     end
 end
 end
@@ -489,8 +489,8 @@ target=tol^2*max(1,real(sum(conj(b).*b,'all')));
 for j=1:maxiter
     if rr<=target, break; end
     ap=apply(cgDirection);
-    alpha=rr/max(real(sum(conj(cgDirection).*ap,'all')),1e-30);
-    x=x+alpha*cgDirection; cgResidual=cgResidual-alpha*ap;
+    cgStepSize=rr/max(real(sum(conj(cgDirection).*ap,'all')),1e-30);
+    x=x+cgStepSize*cgDirection; cgResidual=cgResidual-cgStepSize*ap;
     rrnew=real(sum(conj(cgResidual).*cgResidual,'all'));
     cgDirection=cgResidual+(rrnew/max(rr,1e-30))*cgDirection; rr=rrnew;
 end
@@ -541,8 +541,8 @@ else
 end
 end
 
-function s=size4(v)
-s=[size(v,1),size(v,2),size(v,3),size(v,4)];
+function s=size4(array)
+s=[size(array,1),size(array,2),size(array,3),size(array,4)];
 end
 
 function n=cellnorm(c)
