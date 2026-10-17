@@ -1,10 +1,13 @@
 # Results Index
 
-2026-10-15 navigation note: for CHASI saved results, read the per-run
-`summary.json` configuration, source hashes, branch status, and scene manifest
-before comparing metrics. The [source reading navigator](../docs/full_trace_20261014/README.md)
-separates the Python formal chain from old MATLAB `J_true` outputs and native
-MATLAB small-case parity evidence. This note does not change any result label.
+2026-10-17 CHASI note: the current native entry is
+[`matlab/chasi/chasi_run.m`](../matlab/chasi/chasi_run.m). For a saved run,
+read `config.json`, `summary.json`, `scene_manifest.json`, the source commit,
+branch status, and stopping reason before comparing metrics. The
+[current audit](../docs/CHASI_NATIVE_V2_AUDIT.md) indexes 210/420-UE runs and
+their limits. The [older navigator](../docs/full_trace_20261014/README.md)
+describes the historical Python chain and should not be used as the current
+entry instruction. Most raw CHASI outputs remain local and Git-ignored.
 
 This folder contains generated experiment outputs. Most new result files are
 ignored by Git to keep the repository manageable. Older result files may still

@@ -34,6 +34,13 @@ def check(run_dir: Path) -> dict[str, float | int | str]:
             max_site_error = max(max_site_error, math.dist(trp_xy[trp_idx], site_xy))
     assert max_site_error < 1e-9
     counts_by_home = [0] * 21
+    max_ue_trp_distance = 0.0
+    links_beyond_cutoff = 0
+    for point in ue_xy:
+        for trp_point in trp_xy:
+            distance = math.dist(point, trp_point)
+            max_ue_trp_distance = max(max_ue_trp_distance, distance)
+            links_beyond_cutoff += distance > config["maxInterferenceDistanceM"]
     min_radius = float("inf")
     max_radius = 0.0
     max_sector_excess = 0.0
@@ -95,6 +102,8 @@ def check(run_dir: Path) -> dict[str, float | int | str]:
         "min_ue_home_distance_m": min_radius,
         "max_ue_home_distance_m": max_radius,
         "max_sector_boundary_excess_rad": max_sector_excess,
+        "max_ue_trp_distance_m": max_ue_trp_distance,
+        "geometric_links_beyond_cutoff": links_beyond_cutoff,
         "data_rb": next_rb - 1,
         "nominal_17_by_16_srs_rb": 17 * 16,
         "scope": "saved explicit geometry/identity/resource/time rules; not random-channel parity",

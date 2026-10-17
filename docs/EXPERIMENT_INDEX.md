@@ -4,6 +4,15 @@
 
 > **2026-10-14 茶思展示索引：**[七张最终展示图与逐图说明](../experiments/chasi_formal/final_figures_20261014/README.md)读取2026-10-13已有210UE配对静态运行与独立seed22回放，绘图脚本不运行求解器。source data、最终PNG/PDF/SVG和重建的TRP×资源组功率CSV同目录；[输入哈希](../experiments/chasi_formal/final_figures_20261014/final_figure_manifest.json)。这是保存结果的展示核查，**不是新的正式实验或验收通过记录**。
 >
+> **2026-10-17 native CHASI schema-v3 evidence:** `matlab/chasi/chasi_run.m`
+> completed 210- and 420-UE matrix runs with 21 TRP, 64 Tx/TRP, 4 Rx/UE,
+> and 273 data RB, saved locally in
+> `results/chasi_matlab/formal210_20261017_schema3_named_final/` and
+> `results/chasi_matlab/formal420_20261017_schema3_named_final/`.
+> See [the audit](CHASI_NATIVE_V2_AUDIT.md) for field schema, numerical checks, stopping reasons, and
+> physical-model limits. These runs reached iteration caps; `completed`
+> denotes execution and a feasible returned precoder, not convergence.
+
 # Experiment Index
 
 Status values: `PLANNED`, `SMOKE`, `RUNNING`, `COMPLETE`, `ARCHIVED`, `FAILED`.

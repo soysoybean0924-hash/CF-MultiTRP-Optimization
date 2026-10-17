@@ -1,0 +1,131 @@
+{
+  "usersPerCell": 10,
+  "seed": 2.0261011E+7,
+  "rank": 2,
+  "solver": "matrix_statistical",
+  "outerIterations": 2,
+  "admmIterations": 12,
+  "cgIterations": 8,
+  "powerWattPerTrp": 20,
+  "noiseWattPerRb": 1E-10,
+  "pilotSnrDb": -10,
+  "srsMode": "awgn_independent",
+  "srsPilotSequences": 8,
+  "csiRsSnrDb": -3,
+  "srsRxRows": [
+    1,
+    2
+  ],
+  "ageCoherenceMs": 120,
+  "prbUtilization": 0.4,
+  "scheduleMode": "legacy_random_full_groups",
+  "trafficLoad": 0.3,
+  "trafficModel": "legacy_bursts",
+  "timeEvolutionTti": 0,
+  "offeredMbps": 5,
+  "fastPeriodTti": 40,
+  "slowPeriodTti": 340,
+  "usersPerActiveCellRb": 2,
+  "speedKmh": 3,
+  "durationTti": 340,
+  "decisionTti": 340,
+  "ttiMs": 1,
+  "serviceTrps": 2,
+  "frequencyGhz": 3.5,
+  "channelMode": "geometry_correlated_surrogate",
+  "maxInterferenceDistanceM": 750,
+  "epsAbs": 1E-5,
+  "epsRel": 0.0001,
+  "outerRelTol": 0.0001,
+  "outerPrecoderRelTol": 0.005,
+  "pfRateFloorBitsPerSHz": 0.01,
+  "initializationMode": "svd",
+  "initializationSeed": 0,
+  "sites": 7,
+  "sectorsPerSite": 3,
+  "trps": 21,
+  "txPorts": 64,
+  "ueRxPorts": 4,
+  "ueTxPorts": 2,
+  "rbTotal": 273,
+  "bandwidthHz": 1.0E+8,
+  "scsHz": 30000,
+  "srsPeriodTti": 340,
+  "srsHops": 17,
+  "csiRsPeriodTti": 40,
+  "branches": [
+    "matrix_statistical"
+  ],
+  "outputDir": "results\\chasi_matlab\\formal210_20261017_schema3_named_final",
+  "users": 210,
+  "rbGroups": [
+    {
+      "start": 1,
+      "count": 16
+    },
+    {
+      "start": 17,
+      "count": 16
+    },
+    {
+      "start": 33,
+      "count": 16
+    },
+    {
+      "start": 49,
+      "count": 16
+    },
+    {
+      "start": 65,
+      "count": 16
+    },
+    {
+      "start": 81,
+      "count": 16
+    },
+    {
+      "start": 97,
+      "count": 16
+    },
+    {
+      "start": 113,
+      "count": 16
+    },
+    {
+      "start": 129,
+      "count": 16
+    },
+    {
+      "start": 145,
+      "count": 16
+    },
+    {
+      "start": 161,
+      "count": 16
+    },
+    {
+      "start": 177,
+      "count": 16
+    },
+    {
+      "start": 193,
+      "count": 16
+    },
+    {
+      "start": 209,
+      "count": 16
+    },
+    {
+      "start": 225,
+      "count": 16
+    },
+    {
+      "start": 241,
+      "count": 16
+    },
+    {
+      "start": 257,
+      "count": 17
+    }
+  ]
+}

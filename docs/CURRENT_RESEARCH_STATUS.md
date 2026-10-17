@@ -8,11 +8,15 @@ for the explicit-input solver/evaluator parity, 210-UE four-branch native run,
 remaining random-stream and acceptance-metric limits. The older MATLAB
 outer-search paper track described below is a separate model.
 
-2026-10-16 naming and scale follow-up: [the unified symbol and verification audit](CHASI_NATIVE_V2_AUDIT.md)
+2026-10-17 naming and scale follow-up: [the unified symbol and verification audit](CHASI_NATIVE_V2_AUDIT.md)
 links to the [editable 58-formula trace](CHASI_UNIFIED_TRACE.tex) and its PDF.
-The native MATLAB entry completed 210-UE final-field matrix and 420-UE matrix
-scale runs; the latter predates the final MAT field rename. Both matrix runs
-hit the configured outer-iteration cap, and physical acceptance remains open.
+The final renamed-source native MATLAB entry completed 210- and 420-UE
+schema-v3 matrix runs, with true-channel sum SE 68.1867 and 95.1282 bit/s/Hz,
+respectively, and zero recorded power violation. Both hit the configured
+outer-iteration cap, so these are end-to-end feasibility records rather than
+convergence or physical acceptance evidence. The audit
+distinguishes completed native execution, explicit-input numerical parity,
+and unresolved topology, array, SRS, traffic, and dynamic-parity questions.
 
 2026-10-15 historical reading update: this snapshot describes the older MATLAB
 `J_true` ablation track. The then-active CHASI Python entry and MATLAB bridge
