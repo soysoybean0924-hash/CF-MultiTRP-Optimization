@@ -9,8 +9,9 @@ fastPeriod = opt(options,'fastPeriodTti',40);
 slowPeriod = opt(options,'slowPeriodTti',340);
 beamPolicy = char(opt(options,'beamPolicy','estimated_svd'));
 trafficSeed = opt(options,'trafficSeed',cfg.seed);
-if windowTti < 340 || mod(windowTti,20) ~= 0 || offeredMbps <= 0 || ...
-        fastPeriod <= 0 || slowPeriod <= 0 || mod(fastPeriod,20) || mod(slowPeriod,20)
+hopTti = cfg.srsHopIntervalTti;
+if windowTti < cfg.srsPeriodTti || mod(windowTti,hopTti) ~= 0 || offeredMbps <= 0 || ...
+        fastPeriod <= 0 || slowPeriod <= 0 || mod(fastPeriod,hopTti) || mod(slowPeriod,hopTti)
     error('chasi_time_evolution:Options','Invalid time window, load or update period.');
 end
 if ~ismember(beamPolicy,{'frozen','estimated_svd'})
@@ -57,16 +58,16 @@ deliveredTti = zeros(cfg.users,windowTti);
 completedTti = false(cfg.users,windowTti);
 occupiedRbTti = 0; physicalSum = 0; maxViolation = 0;
 fd = (cfg.speedKmh/3.6)*cfg.frequencyGhz*1e9/299792458;
-timeCorrelation = besselj(0,2*pi*fd*20*cfg.ttiMs/1000);
+timeCorrelation = besselj(0,2*pi*fd*hopTti*cfg.ttiMs/1000);
 rxCorrelation = 0.35.^abs((1:4)'-(1:4)); cholRx = chol(rxCorrelation,'lower');
 events = repmat(struct('tti',0,'srs_group',0,'csi_rs',false, ...
     'fast_beam_update',false,'slow_association_review',false, ...
     'association_changes_deferred',0,'mean_displacement_m',0, ...
-    'max_trp_power_watt',0),windowTti/20,1);
+    'max_trp_power_watt',0),windowTti/hopTti,1);
 ticId = tic;
-for t = 0:20:windowTti-20
+for t = 0:hopTti:windowTti-hopTti
     if t > 0
-        oldXy = ueXy; ueXy = ueXy + velocity*(20*cfg.ttiMs/1000);
+        oldXy = ueXy; ueXy = ueXy + velocity*(hopTti*cfg.ttiMs/1000);
         for g = 1:G
             ids = resources(g).ueIds(:);
             for localUeIdx = 1:numel(ids)
@@ -89,7 +90,7 @@ for t = 0:20:windowTti-20
             end
         end
     end
-    srsGroup = mod(t/20,17)+1;
+    srsGroup = mod(t/hopTti,cfg.srsHops)+1;
     csiEvent = mod(t,cfg.csiRsPeriodTti)==0;
     if t > 0
         for g = 1:G
@@ -139,22 +140,22 @@ for t = 0:20:windowTti-20
     for g = 1:G
         ids = resources(g).ueIds(:); K = numel(ids);
         if K == 0, continue; end
-        rbWeight = rb_weight(resources(g)); rb = 273*rbWeight;
+        rbWeight = rb_weight(resources(g)); rb = cfg.rbTotal*rbWeight;
         rr = true_rates(truth{g},precoder{g});
         capacity(ids) = capacity(ids) + rr*rb*12*cfg.scsHz*cfg.ttiMs/1000;
-        physicalSum = physicalSum + sum(rr)*rbWeight*20/windowTti;
-        allocated(ids) = allocated(ids) + rb*20;
+        physicalSum = physicalSum + sum(rr)*rbWeight*hopTti/windowTti;
+        allocated(ids) = allocated(ids) + rb*hopTti;
         for l = 1:L
             tx = false(K,1);
             for k = 1:K
                 tx(k) = any(reshape(abs(precoder{g}(l,k,:,:)),[],1)>1e-10);
             end
             if any(tx)
-                occupiedRbTti = occupiedRbTti + rb*nnz(any(busy(ids(tx),t+(1:20)),1));
+                occupiedRbTti = occupiedRbTti + rb*nnz(any(busy(ids(tx),t+(1:hopTti)),1));
             end
         end
     end
-    for tt = t+(1:20)
+    for tt = t+(1:hopTti)
         demand = ones(cfg.users,1); demand(tail(:,tt)) = 2/7;
         incoming = double(busy(:,tt)).*demand*offeredMbps*1e6*cfg.ttiMs/1000;
         queue = queue + incoming; offered = offered + incoming;
@@ -168,7 +169,7 @@ for t = 0:20:windowTti-20
     end
     powers = power_by_trp(resources,precoder,L);
     maxViolation = max(maxViolation,max(max(powers-cfg.powerWattPerTrp,0)));
-    e = t/20+1;
+    e = t/hopTti+1;
     events(e).tti = t; events(e).srs_group = srsGroup;
     events(e).csi_rs = csiEvent; events(e).fast_beam_update = fast;
     events(e).slow_association_review = slow;
@@ -183,7 +184,8 @@ result = struct();
 result.model = 'mobile RX-correlated Gauss-Markov; J0(2pi fD Delta); not full 38.901';
 if strcmp(beamPolicy,'frozen'), decision = 'initial power/beam frozen';
 else, decision = 'initial matrix WMMSE power; estimated-SVD fast beam refresh'; end
-result.decision = [decision '; association review every 340 TTI with changes deferred'];
+result.decision = sprintf('%s; association review every %d TTI with changes deferred',...
+    decision,slowPeriod);
 result.beam_policy = beamPolicy; result.traffic_seed = trafficSeed;
 result.second_level_burst_filtered_proxy = chasi_second_metrics(deliveredTti,busy,terminal,cfg.ttiMs);
 result.per_burst_throughput_proxy = chasi_burst_metrics(deliveredTti,busy,terminal,cfg.ttiMs);
@@ -196,7 +198,8 @@ result.offered_mbps_per_active_ue = offeredMbps;
 result.fast_period_tti = fastPeriod; result.slow_period_tti = slowPeriod;
 result.configured_srs_snr_db = cfg.pilotSnrDb;
 result.srs_condition_below_minus10_db = cfg.pilotSnrDb < -10;
-result.doppler_hz = fd; result.twenty_tti_fading_correlation = timeCorrelation;
+result.doppler_hz = fd; result.srs_hop_interval_tti = hopTti;
+result.fading_correlation_per_srs_hop = timeCorrelation;
 result.srs_events = numel(events); result.csi_rs_events = nnz([events.csi_rs]);
 result.fast_updates = nnz([events.fast_beam_update]);
 result.slow_reviews = nnz([events.slow_association_review]);

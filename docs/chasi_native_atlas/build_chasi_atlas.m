@@ -203,16 +203,16 @@ case 11
 case 12
     t={'static w/Htrue','optional time step','CSI age update','fast SVD reset','queue replay','online WMMSE'};
     s={'formal default','timeEvolutionTti>0','modeled observation','not full solver','delivered bits','NOT implemented'};
-    footer='Dynamic replay is optional; a fast SVD reset must not be described as online matrix WMMSE or distributed ADMM.';
+    footer='Optional replay step follows configured SRS hop interval (20 TTI by default); fast SVD reset is neither online matrix WMMSE nor distributed ADMM.';
 end
 for i=1:6
     row=ceil(i/3);col=mod(i-1,3)+1;x=17+33*(col-1);y=70-30*(row-1);
     box(a,x,y,27,12,t{i},s{i});
-    if col<3 && ~(n==7 && row==2)
+    if col<3 && ~(n==7 && row==2) && ~(n==12 && i==5)
         arr(a,x+13.6,y,x+19.4,y,'',[.12 .37 .63]);
     end
 end
-if n~=11
+if n~=11 && n~=12
     arr(a,83,64,83,46,'next',[.12 .37 .63]);
 end
 if n==7
@@ -225,6 +225,8 @@ elseif n==6
 elseif n==9
     math(a,50,22,'R_{{\rm SE},kg}=\log_2\det(I+F_{kk}F_{kk}^{H}R_{I,k}^{-1})',15);
 elseif n==12
+    line(a,[83 83 17],[64 53 53],'Color',[.12 .37 .63],'LineWidth',1.5);
+    arr(a,17,53,17,46,'CSI to SVD',[.12 .37 .63]);
     math(a,50,22,'H^{+}=\varphi\sqrt{\beta^{+}/\beta}H+\sqrt{(1-\varphi^2)\beta^{+}}L_{\rm rx}Z',13);
     line(a,[70 96],[31 31],'Color',[.78 .29 .27],'LineStyle','--');
 end

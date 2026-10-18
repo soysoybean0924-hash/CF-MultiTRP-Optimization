@@ -70,7 +70,7 @@
 |---|---|---|---|
 | `sites=7,sectorsPerSite=3,trps=21,usersPerCell=10/15/20` | 站/扇区/UE数 | `geometry`, `schedule`, scene dimensions | 通过规模维度；小区边界待定义 |
 | `txPorts=64,ueRxPorts=4,ueTxPorts=2,rank=2` | DL 发射/接收、UL SRS端口、流数 | H轴、`srsRxRows`、solver | 通过维度；8×4×2物理阵列未实现 |
-| `rbTotal=273,srsHops=17,srsPeriodTti=340` | RB/跳/TTI | `rbGroups`, `srsRbCounts=[16×16,17]`, `srsHopIntervalTti=20` | 通过组级元数据，逐RB波形未实现 |
+| `rbTotal=273,srsHops=17,srsPeriodTti=340` | RB/跳/TTI | `rbGroups`, `srsRbCounts=[16×16,17]`, `srsHopIntervalTti=20`；可选回放用该间隔驱动时间步、SRS组及RB×TTI统计 | 通过组级元数据和非默认170/10 TTI回归，逐RB波形未实现 |
 | `summary.scenario.srs_hop_rb_counts`、`srs_total_measured_rb` | 每跳测量 RB 数组 `[16×16,17]` 与总测量273 RB | `chasi_run.m:77-85`；当前输出不再写含糊的 `srs_nominal_hop_rb` | **通过字段消歧**；旧摘要别名只由 `tests/verify_chasi_saved_run.py` 历史读取规则识别，不进入当前输出 |
 | `prbUtilization=.40,scheduleMode,usersPerActiveCellRb` | 目标占用比例/调度规则 | `schedule` → `tx_rb_count`/`ueIds` | 通过规则路径；正式30–50%范围核验另需全分支统计 |
 | `trafficLoad=.30,trafficModel=legacy_bursts` | 业务忙时目标，名义值 | legacy 模式不使用30%；target模式决定平均空闲 gap | **未通过30%业务验收**；分母/到达定义需材料补足 |
