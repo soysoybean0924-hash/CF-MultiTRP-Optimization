@@ -1,0 +1,4 @@
+# Versions used for the 2026-10-18 offline MATLAB/Python checks (Python 3.9).
+numpy==1.26.4
+scipy==1.13.1
+h5py==3.13.0

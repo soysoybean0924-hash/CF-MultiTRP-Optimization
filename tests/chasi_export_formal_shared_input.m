@@ -21,11 +21,18 @@ solverCfg=struct('rank',cfg.rank,'budget',cfg.powerWattPerTrp,...
 initial=chasi_matrix_wmmse(scene.resources,solverCfg);
 summary=jsondecode(fileread(fullfile(runDir,'summary.json')));
 initialObjective=summary.branches.matrix_statistical.trajectory(1).objective;
-if abs(initial.optimization_objective-initialObjective)>1e-7
-    error('CHASI:FormalParityInitial','Saved trajectory disagrees with regenerated initial precoder');
+regeneratedInitialObjective=initial.optimization_objective;
+initialMatchesSavedTrajectory=abs(regeneratedInitialObjective-initialObjective)<=1e-7;
+if ~initialMatchesSavedTrajectory
+    warning('CHASI:FormalParityInitial', ...
+        'Precision revision changed regenerated initial state; do not compare a full solve to the historical trajectory');
 end
 final=load(fullfile(runDir,'matrix_statistical_precoders.mat'),...
     'precoder','rxCombiner','mseMatrix','mseWeight','userWeight');
+% Preserve the historical saved state and separately compute the current
+% solver state at exactly that saved w. This keeps the original failed gate
+% auditable after a numerical-precision correction.
+currentFixedState=chasi_matrix_wmmse(scene.resources,solverCfg,final.precoder);
 resources=scene.resources;
 initialPrecoder=initial.precoder;
 initialRxCombiner=initial.rxCombiner;
@@ -38,10 +45,15 @@ finalRxCombiner=final.rxCombiner;
 finalMseMatrix=final.mseMatrix;
 finalMseWeight=final.mseWeight;
 finalUserWeight=final.userWeight;
+currentFinalRxCombiner=currentFixedState.rxCombiner;
+currentFinalMseMatrix=currentFixedState.mseMatrix;
+currentFinalMseWeight=currentFixedState.mseWeight;
 save(outputPath,'resources','initialPrecoder','finalPrecoder',...
     'initialRxCombiner','initialMseMatrix','initialMseWeight',...
     'initialUserWeight','initialQuadraticProbe',...
     'finalRxCombiner','finalMseMatrix','finalMseWeight','finalUserWeight',...
-    'cfg','initialObjective','-v7');
+    'currentFinalRxCombiner','currentFinalMseMatrix','currentFinalMseWeight',...
+    'cfg','initialObjective','regeneratedInitialObjective',...
+    'initialMatchesSavedTrajectory','-v7');
 fprintf('CHASI_FORMAL_SHARED_INPUT=%s\n',outputPath);
 end

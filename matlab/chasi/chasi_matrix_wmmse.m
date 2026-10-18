@@ -214,6 +214,12 @@ for g=1:numel(resources)
             error('Resource %d requires explicit H_true for held-out evaluation',g);
         end
     end
+    % Scene storage may be single precision. MATLAB's mixed single/double
+    % matrix products otherwise round H*w before the double-precision MSE
+    % solve, so identical explicit inputs disagree with the Python oracle.
+    resource.H=double(resource.H);
+    resource.C_stat=double(resource.C_stat);
+    if isfield(resource,'H_true'), resource.H_true=double(resource.H_true); end
     switch cfg.branch
         case 'matrix_sum'
             resource.C=resource.C_stat;

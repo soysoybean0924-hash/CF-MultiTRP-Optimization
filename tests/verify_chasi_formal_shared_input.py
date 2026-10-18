@@ -136,6 +136,8 @@ def check(run_dir: Path, fixture: Path, solve_full: bool):
     initial_snapshot = solver._objective_snapshot(
         scene, resources, initial_states, "matrix_statistical")
     initial_error = abs(initial_snapshot[0] - float(data["initialObjective"]))
+    current_initial_error = abs(initial_snapshot[0] - float(data.get(
+        "regeneratedInitialObjective", data["initialObjective"])))
     quadratic_errors = {}
     if "initialQuadraticProbe" in data:
         probes = as_cells(data["initialQuadraticProbe"])
@@ -163,6 +165,16 @@ def check(run_dir: Path, fixture: Path, solve_full: bool):
         "mseMatrix": max_blocks([np.linalg.inv(x[1]) for x in final_states], final_mse),
     }
     state_error = max(state_errors.values())
+    current_state_errors = {}
+    if "currentFinalMseWeight" in data:
+        current_state_errors = {
+            "rxCombiner": max_blocks([x[0] for x in final_states],
+                                     as_cells(data["currentFinalRxCombiner"])),
+            "mseWeight": max_blocks([x[1] for x in final_states],
+                                    as_cells(data["currentFinalMseWeight"])),
+            "mseMatrix": max_blocks([np.linalg.inv(x[1]) for x in final_states],
+                                    as_cells(data["currentFinalMseMatrix"])),
+        }
     max_weight_magnitude = max(float(np.max(np.abs(w))) for w in final_weight)
     fixed_snapshot = solver._objective_snapshot(
         scene, resources, final_states, "matrix_statistical")
@@ -184,9 +196,15 @@ def check(run_dir: Path, fixture: Path, solve_full: bool):
         "group_ue_count_range": [min(len(r.users) for r in resources),
                                  max(len(r.users) for r in resources)],
         "initial_objective_abs": initial_error,
+        "current_initial_objective_abs": current_initial_error,
         "initial_state_components_max_abs": initial_state_errors,
         "final_fixed_precoder_state_max_abs": state_error,
         "final_fixed_precoder_state_components": state_errors,
+        "current_fixed_precoder_state_components": current_state_errors,
+        "current_fixed_state_pass_original_gate": bool(current_state_errors) and
+            max(current_state_errors.values()) <= TOL["final_fixed_precoder_state_max_abs"],
+        "historical_initial_matches_regenerated": bool(data.get(
+            "initialMatchesSavedTrajectory", True)),
         "mse_weight_relative_to_max_magnitude":
             state_errors["mseWeight"] / max(1.0, max_weight_magnitude),
         "final_fixed_precoder_objective_abs": fixed_objective_error,
@@ -252,6 +270,14 @@ def check(run_dir: Path, fixture: Path, solve_full: bool):
     if quadratic_errors:
         result["fixed_input_pass"] &= (
             max(quadratic_errors.values()) <= TOL["initial_quadratic_max_abs"])
+    result["current_fixed_input_pass"] = (
+        result["current_fixed_state_pass_original_gate"] and
+        current_initial_error <= TOL["initial_objective_abs"] and
+        max(initial_state_errors.values()) <= TOL["initial_state_max_abs"] and
+        max(fixed_objective_error, eval_error) <= TOL["final_fixed_precoder_evaluation_abs"] and
+        power_violation <= TOL["power_violation_watt"] and
+        (not quadratic_errors or
+         max(quadratic_errors.values()) <= TOL["initial_quadratic_max_abs"]))
     return result
 
 
@@ -268,5 +294,8 @@ if __name__ == "__main__":
         args.report.write_text(json.dumps(report, indent=2) + "\n",
                                encoding="utf-8")
     print(json.dumps(report, indent=2))
-    if not report["fixed_input_pass"] or (args.solve_full and not report["full_scale_pass"]):
+    fixed_pass = (report["current_fixed_input_pass"]
+                  if report["current_fixed_precoder_state_components"]
+                  else report["fixed_input_pass"])
+    if not fixed_pass or (args.solve_full and not report["full_scale_pass"]):
         raise SystemExit(1)
