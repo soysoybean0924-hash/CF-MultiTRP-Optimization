@@ -73,3 +73,15 @@ The paper-focused experiment matrix is:
 The first formal result should be produced by the default
 `run_controlled_outer_ablation.m` settings, not by the tiny `smoke_codex`
 validation.
+# 2026-10-18 native CHASI SRS-contract evidence
+
+The final field version with 16×16 + 17 SRS RB and 20 TTI/hop completed
+210- and 420-UE native MATLAB matrix runs at
+`results/chasi_matlab/formal210_20261017_srs_contract2/` and
+`results/chasi_matlab/formal420_20261017_srs_contract2/`.
+Both use 7 sites, 21 TRP, 64 Tx/TRP, 4 DL Rx/UE, 273 RB, seed 20261011,
+2 outer / 12 ADMM / 8 CG caps. See
+[validation](CHASI_VALIDATION_20261017.md) and
+[research-source gaps](CHASI_RESEARCH_SOURCE_MAP_20261017.md).
+These are complete end-to-end execution records with feasible saved precoders,
+not convergence, multi-seed science, or physical/business acceptance.

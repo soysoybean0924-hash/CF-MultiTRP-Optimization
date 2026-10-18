@@ -1,0 +1,24 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CHASI MATLAB 图集</title><style>
+body{margin:0;background:#f5f9fb;color:#17324e;font:16px/1.6 system-ui,"Microsoft YaHei",sans-serif}
+main{max-width:1380px;margin:auto;padding:28px}h1{margin:0 0 6px}p{margin:7px 0 14px}
+nav{position:sticky;top:0;background:white;padding:12px;box-shadow:0 2px 9px #cbd8df;z-index:2}
+nav a{margin-right:13px}section{background:white;padding:18px;margin:26px 0;border-radius:9px;box-shadow:0 1px 5px #dbe3e8}
+h2{margin:0 0 7px}img{width:100%;height:auto;border:1px solid #e5ebef}a{color:#1267a1}
+small{color:#526474}</style></head><body><main>
+<h1>CHASI 原生 MATLAB 代码与通信图集</h1>
+<p>图源 <a href="build_chasi_atlas.m">MATLAB 统一生成脚本</a>；公式 <a href="formula_reader.html">按编号阅读</a>，变量 <a href="../CHASI_VARIABLE_ACCEPTANCE_20261017.md">验收表</a>，学习顺序 <a href="README.md">图集索引</a>。代码基线 9527089。图03排版是示意布局，服务边身份来自保存的场景；其他图也不声称产生无线波形。</p>
+<nav><a href="#f01">调用</a><a href="#f02">正式流</a><a href="#f03">网络</a><a href="#f04">阵列</a><a href="#f05">SRS/CSI</a><a href="#f06">决策</a><a href="#f07">WMMSE/ADMM</a><a href="#f08">下行</a><a href="#f09">指标</a><a href="#f10">去向</a><a href="#f11">语言</a><a href="#f12">动态</a></nav>
+<div id="figures"></div>
+<small>PNG 预览和矢量 PDF 均由 build_chasi_atlas.m 导出；本 HTML 只组织既有图件。</small>
+</main><script>
+const figures=[
+['01_calls','正式 MATLAB 函数调用'],['02_formal_flow','原生执行顺序'],
+['03_network','7站21TRP与示例服务/干扰'],['04_ports','物理阵列与矩阵轴'],
+['05_srs_csi','UE—TRP—CPU：SRS/CSI'],['06_resources','关联、调度、rank及功率'],
+['07_wmmse_admm','WMMSE外循环与集中ADMM'],['08_signal','CPU—TRP—UE：下行模型'],
+['09_metrics','真信道SE与体验代理'],['10_lifecycle','变量到保存文件'],
+['11_languages','MATLAB与Python独立对应'],['12_dynamic','动态回放及尚缺在线优化']];
+document.getElementById('figures').innerHTML=figures.map(([stem,title],i)=>
+`<section id="f${String(i+1).padStart(2,'0')}"><h2>${String(i+1).padStart(2,'0')} · ${title}</h2><p><a href="${stem}.pdf">矢量 PDF</a> · <a href="${stem}.png">PNG 预览</a></p><img src="${stem}.png" alt="${title}"></section>`).join('');
+</script></body></html>

@@ -1,5 +1,15 @@
 # Current Research Status
 
+2026-10-18 evidence update: the native MATLAB entry completed the final
+SRS-metadata 210/420-UE matrix runs. Read the
+[validation record](CHASI_VALIDATION_20261017.md),
+[variable acceptance](CHASI_VARIABLE_ACCEPTANCE_20261017.md),
+[58-formula PDF](CHASI_UNIFIED_TRACE.pdf), and
+[12-diagram atlas](chasi_native_atlas/README.md). Both formal-scale runs hit
+the configured outer-iteration limit; the physical array, strict area-uniform
+deployment, traffic-load interpretation and full cross-language scene/dynamic
+parity remain unresolved.
+
 Snapshot date: 2026-09-02.
 
 2026-10-16 CHASI update: the new formal CHASI entry is native MATLAB

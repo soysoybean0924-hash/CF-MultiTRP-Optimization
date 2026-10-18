@@ -1,5 +1,7 @@
 # CHASI MATLAB 主线：命名、模型边界和验证（2026-10-17 v3；含 v2 历史）
 
+> **2026-10-17 原件复核与 SRS 合同 2（覆盖下文旧结论）：** 已实际读取研究材料目录中的 `典型验收场景.png`、`难题1.png`、`用户速率协议定义.png` 和 `202609-系统方案.pdf`。验收场景图明确写 SRS 前16跳各16 RB、最后一跳17 RB、每跳间隔20 ms、完整周期340 ms。因此下文“原图缺失”“末跳仅16 RB”“总测量272 RB”“第273 RB状态无法确定”等当时的历史判断已失效。源码 `9527089` 在 `chasi_config` 显式给出 `srsRbCounts=[16×16,17]`、`srsHopIntervalTti=20`，`chasi_generate_scene` 保存 `srs_rb_start/count`，`chasi_run` 摘要记录总273 RB。该修订只明确组级测量范围和时间，没有生成逐RB SRS波形、证明互易校准或完成3GPP物理阵列。另：默认 `trafficModel=legacy_bursts` 不用 `trafficLoad=.30` 决定到达间隔；下文如称其“控制 burst 生成”应按此更正。当前逐变量验收见 [CHASI_VARIABLE_ACCEPTANCE_20261017.md](CHASI_VARIABLE_ACCEPTANCE_20261017.md)。
+
 > **2026-10-17 v3 字段更新。** 下方原有的 v2 运行数字和字段描述是按
 > 2026-10-16 当时源码保存的历史证据，不代表当前输出字段。保留它们用于
 > 对照，不改写原始结果。当前公式以 [CHASI_UNIFIED_TRACE.tex](CHASI_UNIFIED_TRACE.tex)

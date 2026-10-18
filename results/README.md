@@ -1,5 +1,12 @@
 # Results Index
 
+The latest native MATLAB CHASI runs are
+`chasi_matlab/formal210_20261017_srs_contract2/` and
+`chasi_matlab/formal420_20261017_srs_contract2/` (seed 20261011, 273 data/SRS
+RB). They are local raw outputs. The lightweight
+[validation record](../docs/CHASI_VALIDATION_20261017.md) explains their
+configuration, power feasibility, iteration-cap stopping reason and limits.
+
 2026-10-17 CHASI note: the current native entry is
 [`matlab/chasi/chasi_run.m`](../matlab/chasi/chasi_run.m). For a saved run,
 read `config.json`, `summary.json`, `scene_manifest.json`, the source commit,
