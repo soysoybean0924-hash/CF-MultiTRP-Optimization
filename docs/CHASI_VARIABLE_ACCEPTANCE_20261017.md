@@ -71,7 +71,7 @@
 | `sites=7,sectorsPerSite=3,trps=21,usersPerCell=10/15/20` | 站/扇区/UE数 | `geometry`, `schedule`, scene dimensions | 通过规模维度；小区边界待定义 |
 | `txPorts=64,ueRxPorts=4,ueTxPorts=2,rank=2` | DL 发射/接收、UL SRS端口、流数 | H轴、`srsRxRows`、solver | 通过维度；8×4×2物理阵列未实现 |
 | `rbTotal=273,srsHops=17,srsPeriodTti=340` | RB/跳/TTI | `rbGroups`, `srsRbCounts=[16×16,17]`, `srsHopIntervalTti=20` | 通过组级元数据，逐RB波形未实现 |
-| `summary.scenario.srs_nominal_hop_rb` | 兼容摘要字段，当前值273 RB | `chasi_run.m:77-85`，与 `srs_total_measured_rb` 同值 | **命名仍待清理**：不能读成“每一跳273RB”；本轮保留以便核对历史验证器，优先读显式 `srs_hop_rb_counts` |
+| `summary.scenario.srs_hop_rb_counts`、`srs_total_measured_rb` | 每跳测量 RB 数组 `[16×16,17]` 与总测量273 RB | `chasi_run.m:77-85`；当前输出不再写含糊的 `srs_nominal_hop_rb` | **通过字段消歧**；旧摘要别名只由 `tests/verify_chasi_saved_run.py` 历史读取规则识别，不进入当前输出 |
 | `prbUtilization=.40,scheduleMode,usersPerActiveCellRb` | 目标占用比例/调度规则 | `schedule` → `tx_rb_count`/`ueIds` | 通过规则路径；正式30–50%范围核验另需全分支统计 |
 | `trafficLoad=.30,trafficModel=legacy_bursts` | 业务忙时目标，名义值 | legacy 模式不使用30%；target模式决定平均空闲 gap | **未通过30%业务验收**；分母/到达定义需材料补足 |
 | `powerWattPerTrp=20` | 每TRP跨组模型预算 W | solver `budget` → `project`，评价 power | 模型内部通过；20W来源待定义，设备能耗未实现 |
@@ -98,6 +98,6 @@
 
 ## 本轮数值证据和未完成项
 
-`tests/chasi_export_canonical_parity.m` 与 `tests/verify_chasi_canonical_parity.py` 使用显式公共复数 H/C/服务掩码/初始 w；五套 fixture、外层0/2全部通过：最大目标绝对差 `1.776e-15`，w `6.663e-16`，A `1.671e-16`，Ω `8.882e-16`，E `3.331e-16`，真sum SE `1.804e-16`，功率 `1.11e-16`，ADMM原始残差 `1.087e-16`。这是**求解器显式同输入**证据；拓扑随机样本、估计后验、业务到达的跨语言显式同输入对拍尚未完成。静态正式运行的停止原因必须以各自 `summary.json` 为准。
+`tests/chasi_export_canonical_parity.m` 与 `tests/verify_chasi_canonical_parity.py` 使用显式公共复数 H/C/服务掩码/初始 w；五套 fixture、外层0/2全部通过：最大目标绝对差 `1.776e-15`，w `6.663e-16`，A `1.671e-16`，Ω `8.882e-16`，E `3.331e-16`，真sum SE `1.804e-16`，功率 `1.11e-16`，ADMM原始残差 `1.087e-16`。正式210/420 UE另用保存的同一场景对初始二次项、最终固定状态、ADMM轨迹、完整求解与评价对拍：420过全部预设门槛；210的固定 Ω 最大绝对差 `1.198e-5` 略超 `1e-5`，对应相对差 `1.215e-6`，其余所列层次过阈值。详见 [验证记录](CHASI_VALIDATION_20261017.md)。这些是**求解及保存场景评价的显式同输入**证据；两语言从同随机样本产生拓扑、估计后验、动态业务到达的逐层对拍尚未完成。静态正式运行的停止原因必须以各自 `summary.json` 为准。
 
 代码路径中 `H_true` 参与模拟观测，也进入 `ideal` 分支及最终评价；普通非理想分支的初始化、U/E/Ω及子问题只见 `H`/`C`。不能简单说真实信道仅用于最终评价。没有真实调制符号、SRS/PDSCH波形或物理前传；发射/接收式为协方差等效模型。

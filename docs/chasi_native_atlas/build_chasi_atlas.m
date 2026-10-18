@@ -55,7 +55,7 @@ f=figure('Visible','off','Color','w','Position',[60 60 1600 900],...
 a=axes('Parent',f,'Position',[.04 .045 .92 .91]);
 hold(a,'on');axis(a,[0 100 0 100]);axis(a,'normal');axis(a,'off');
 txt(a,2,96,sprintf('%02d  %s',n,titleText),20,'bold',[.08 .20 .34],'left');
-txt(a,2,91,'MATLAB source: matlab/chasi/ at 9527089; formula source: docs/CHASI_UNIFIED_TRACE.tex',10,'normal',[.4 .46 .51],'left');
+txt(a,2,91,'MATLAB source: matlab/chasi/; formula source: docs/CHASI_UNIFIED_TRACE.tex',10,'normal',[.4 .46 .51],'left');
 end
 function txt(a,x,y,s,z,w,c,align)
 text(a,x,y,s,'Interpreter','none','FontName','Arial','FontSize',z,...
@@ -185,9 +185,9 @@ case 6
     s={'tx_rb_count','ueIds by group','home+nearest active','DL Rx=4 upper bound','masked complex matrix','sum_g nu_g ||w||^2'};
     footer='nu_g = transmitted data RB / 273 enters objective, true rates and cross-group budget once; trafficLoad=.30 is separate.';
 case 7
-    t={'current w / C14','A,E,Omega / C18-C20','eta,Q,B,D / C22-C25','dual,residual / C29','projection z / C28','CG x / C27'};
+    t={'current w / C14','A,E,Omega / C18-C20','eta,Q,B,D / C22-C25','dual,residual / C29-C30','projection z / C29','CG x / C28'};
     s={'outer input','fix w','fix A/Omega','inner stop','cross-group power','linear system'};
-    footer='Return feasible z to outer backtracking; ADMM is centralized. Iteration limit, tolerance stop and convergence proof are distinct.';
+    footer='C30: primal and dual residuals must each meet epsilon plus CG test. Saved 210/420 traces reach inner cap 12 and outer cap 2, not tolerance stop; feasible z is returned.';
 case 9
     t={'Htrue,w / C32','effective channel','log-det R_SE','sum_g nu_g R_SE','busy/tail/terminal','experience proxy'};
     s={'held-out model','coherent TRP sum','bit/s/Hz','per global UE','chasi_traffic','volume/valid time'};
@@ -199,7 +199,7 @@ case 10
 case 11
     t={'MATLAB config','MATLAB scene','MATLAB solver','Python config','Python scenario','Python solver'};
     s={'formal native','formal native','formal native','independent reference','not called by MATLAB','explicit-input parity only'};
-    footer='No formal Python bridge or fallback. Five fixed-input solver fixtures pass; scene/traffic explicit-input parity remains incomplete.';
+    footer='No formal Python bridge. Five tiny fixtures pass; saved 420-UE full solve passes explicit-input parity. 210-UE final Omega misses absolute threshold by 1.98e-6.';
 case 12
     t={'static w/Htrue','optional time step','CSI age update','fast SVD reset','queue replay','online WMMSE'};
     s={'formal default','timeEvolutionTti>0','modeled observation','not full solver','delivered bits','NOT implemented'};
@@ -212,12 +212,14 @@ for i=1:6
         arr(a,x+13.6,y,x+19.4,y,'',[.12 .37 .63]);
     end
 end
-arr(a,83,64,83,46,'next',[.12 .37 .63]);
+if n~=11
+    arr(a,83,64,83,46,'next',[.12 .37 .63]);
+end
 if n==7
     arr(a,69.4,40,63.6,40,'z',[.12 .37 .63]);
     arr(a,36.4,40,30.6,40,'dual',[.12 .37 .63]);
     arr(a,17,46.2,17,63.8,'outer update',[.12 .55 .4],'--');
-    math(a,51,22,'A=F^{-1}T_{kk},\quad\Omega=E^{-1},\quad p_l=\sum_g\nu_g\sum_j\|w_{ljg}\|_F^2',14);
+    math(a,51,22,'\mathrm{res}_{\rm pri}=\|x-z\|_F,\quad\mathrm{res}_{\rm dual}=\rho\|z-z^{\rm old}\|_F\quad\mathrm{(C30)}',14);
 elseif n==6
     math(a,50,22,'b_{kg}\in\{0,1\},\ \chi_{lkg}\in\{0,1\},\ \nu_g=n_g^{\rm tx}/273',15);
 elseif n==9

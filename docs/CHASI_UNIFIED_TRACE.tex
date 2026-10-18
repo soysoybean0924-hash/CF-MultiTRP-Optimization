@@ -8,7 +8,7 @@
 \newcommand{\fe}[5]{\par\begin{minipage}{\linewidth}\subsubsection*{#1\quad #2}\vspace{-3mm}\[\displaystyle #3\]\textbf{含义/输入输出：}#4\\\textbf{源码与例子：}#5\par\end{minipage}\par\medskip}
 \title{CHASI 统一符号、公式与变量去向}
 \author{源码核查版；历史编号 C01--C38、L01--L17、Z01--Z03 保留}
-\date{2026-10-17；v3 字段与符号修订}
+\date{2026-10-18；v3 字段与正式规模同输入复核}
 \begin{document}
 \maketitle
 \section*{阅读前提与符号}
@@ -53,7 +53,7 @@ MATLAB 数组第一轴的 \code{localUeIdx} 通过 \code{resources(g).ueIds(loca
 \fe{C27}{ADMM变量分裂}{\min_{x,z}\ f(x)+I_{\mathcal C}(z)\quad\text{s.t. }x=z,\qquad\mathcal L_\rho=f(x)+I_{\mathcal C}(z)+\frac\rho2\|x-z+y\|_F^2-\frac\rho2\|y\|_F^2}{$x$ 无约束原变量，$z$ 可行副本，$y$ 缩放对偶，$\rho$ 罚参数；均与 $w$ 同形。}{\code{chasi_matrix_wmmse>precoder_admm}；初始化 $x=z=w^{(t)}$、$y=0$。源码还原，旧 PDF 截断修复。}
 \fe{C28}{CG求原变量}{\left(\nu_g\mathcal Q_g+\frac\rho2I\right)x_g=\nu_gB_g+\frac\rho2(z_g-y_g)}{固定 $A,\Omega,\eta,z,y$；CG 只近似解线性系统，内层最大8次默认；服务外块强制0。}{\code{chasi_matrix_wmmse>precoder_admm,cg}；$\rho=.05$ 默认；\code{cgResidual/cgDirection} 是数值迭代量，不是无线功率。}
 \fe{C29}{投影与对偶}{z^{+}=\Pi_{\mathcal C}(x^{+}+y),\quad y^{+}=y+x^{+}-z^{+},\quad z_{lg}=\frac{(x+y)_{lg}}{1+\lambda_l \nu_g}}{$\lambda_l\ge0$ 用二分使每TRP跨组约束满足，非服务块先置0；返回 $z$，不返回不可行 $x$。}{\code{chasi_matrix_wmmse>project,projectedpower,precoder_admm}；预算未超时 $z=x+y$。旧PDF裁切修复。}
-\fe{C30}{内层残差}{\mathrm{res}_{\rm pri}=\|x-z\|_F,\quad \mathrm{res}_{\rm dual}=\rho\|z-z^{\rm old}\|_F,\quad\epsilon_{\rm pri}=\sqrt n\epsilon_{\rm abs}+\epsilon_{\rm rel}\max(\|x\|,\|z\|)}{另有 $\epsilon_{\rm dual}=\sqrt n\epsilon_{\rm abs}+\epsilon_{\rm rel}\rho\|y\|$；还须CG相对残差达阈值才记收敛。}{\code{chasi_matrix_wmmse>precoder_admm}；12次上限先到则保存可行 $z$ 且 \code{converged=false}。源码还原。}
+\fe{C30}{内层残差}{\begin{aligned}\mathrm{res}_{\rm pri}&=\|x-z\|_F,\qquad \mathrm{res}_{\rm dual}=\rho\|z-z^{\rm old}\|_F,\\ \epsilon_{\rm pri}&=\sqrt n\epsilon_{\rm abs}+\epsilon_{\rm rel}\max(\|x\|_F,\|z\|_F),\\ \epsilon_{\rm dual}&=\sqrt n\epsilon_{\rm abs}+\epsilon_{\rm rel}\rho\|y\|_F\end{aligned}}{$n$ 为全部复数预编码元素数；内停还须CG相对残差不超过 $\max(10^{-3},10\epsilon_{\rm rel})$。}{\code{chasi_matrix_wmmse>precoder_admm}；正式210/420运行最后一步原始与对偶残差均超过各自阈值，12次上限先到；返回功率可行 $z$ 并标记未收敛。源码还原，实测数值见验证记录。}
 \fe{C31}{WMMSE回溯与停止}{w^{\rm trial}=w+\tau_{\rm bt}(z-w),\quad\tau_{\rm bt}\in\{1,1/2,\ldots,2^{-11}\},\quad J(w^{\rm trial})\ge J(w)-10^{-7}\max(1,|J(w)|)}{接受后重算 $A,E,\Omega$ 和目标；外轮还检查目标相对变化、预编码相对变化和最近ADMM收敛；默认2次上限。}{\code{chasi_matrix_wmmse} 第41--103行；若无候选提高则保留旧 $w$ 并报告原因。}
 
 \section{真实信道、业务与输出：C32--C38}

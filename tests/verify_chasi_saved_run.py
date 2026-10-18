@@ -20,7 +20,10 @@ def check(run_dir: Path, branch: str = "matrix_statistical") -> dict[str, object
     if scenario.get("srs_measurement_contract_version") == 2:
         assert scenario["srs_hop_rb_counts"] == [16] * 16 + [17]
         assert scenario["srs_total_measured_rb"] == 273
-        assert scenario["srs_nominal_hop_rb"] == 273
+        # Older v2 summaries retained a mislabeled compatibility alias.
+        # Current output omits it; only the explicit widths and total remain.
+        if "srs_nominal_hop_rb" in scenario:
+            assert scenario["srs_nominal_hop_rb"] == 273
     else:
         # Saved v3 runs predating the source-image check retain their
         # historically incorrect nominal 17-by-16 metadata label.

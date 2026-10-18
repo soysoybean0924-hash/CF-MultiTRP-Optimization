@@ -13,6 +13,7 @@ assert(result.scene_dimensions.trps==21 && result.scene_dimensions.users==210);
 assert(result.scenario.srs_measurement_contract_version==2);
 assert(isequal(result.scenario.srs_hop_rb_counts,[repmat(16,1,16),17]));
 assert(result.scenario.srs_total_measured_rb==273);
+assert(~isfield(result.scenario,'srs_nominal_hop_rb'));
 assert(isfile(fullfile(outDir,'summary.json')));
 assert(isfile(fullfile(outDir,'scene.mat')));
 assert(isfile(fullfile(outDir,'matrix_nominal_precoders.mat')));

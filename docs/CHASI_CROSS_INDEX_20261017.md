@@ -21,4 +21,4 @@
 | 旧波束 $W^{old}$、旧速度 V | L01–L17 | `matlab/core/cf_evaluate_candidate.m`, `cf_search.m` | 11 | 不流入正式 `chasi_run`，历史结果独立 |
 | 参考标量接收器 $v_k$ | Z01–Z03 | 2023参考 `WMMSE_ADMM_Func.py` | 11 | 与当前矩阵预编码 w / 接收 A 不同模型，论文原式编号待核实 |
 
-**验证入口：** `tests/test_chasi_native_scene.m`、`test_chasi_srs_timing.m`、`test_chasi_native_entry.m` 核查原生组级模型；`tests/chasi_export_canonical_parity.m` 与 `tests/verify_chasi_canonical_parity.py` 对显式 H/C/初值五组 fixture 做求解器对拍。图与公式只解释代码；通过小例不代表420 UE、协议体验或物理阵列验收。正式运行日志及摘要以本次 `results/chasi_matlab/formal420_20261017_srs_contract2/` 的完成状态为准，不将运行中目录称为完成。
+**验证入口：** `tests/test_chasi_native_scene.m`、`test_chasi_srs_timing.m`、`test_chasi_native_entry.m` 核查原生组级模型；`tests/chasi_export_canonical_parity.m` 与 `tests/verify_chasi_canonical_parity.py` 对显式 H/C/初值五组 fixture 做求解器对拍。正式规模进一步用 `tests/chasi_export_formal_shared_input.m` 和 `tests/verify_chasi_formal_shared_input.py`，从已保存的同一 210/420 场景对初始二次项、固定状态、ADMM 轨迹、完整求解及真信道评价逐层比较；具体误差和一项210 UE Ω门槛未通过见 [验证记录](CHASI_VALIDATION_20261017.md)。图与公式只解释代码；数值对拍不证明协议体验或物理阵列验收。正式运行日志及摘要以 `results/chasi_matlab/formal210_20261017_srs_contract2/` 和 `formal420_20261017_srs_contract2/` 为准。

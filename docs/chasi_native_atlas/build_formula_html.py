@@ -80,7 +80,7 @@ a{{color:#1267a1}}p{{margin:8px 0}}small{{color:#526474}}</style>
 <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 </head><body><main><h1>CHASI 公式—变量—源码阅读版</h1>
 <p>与 <a href="../CHASI_UNIFIED_TRACE.tex">TeX 源</a> 同步生成，覆盖 C01–C38、L01–L17、Z01–Z03。
-正式代码基线 <code>9527089</code>；旧链 L 和参考 Z 均未接入正式入口。
+当前源码对应 <code>matlab/chasi/</code>，数值基线为 2026-10-17 保存的 210/420 UE 正式运行；旧链 L 和参考 Z 均未接入正式入口。
 公式渲染依赖浏览器加载 MathJax；离线阅读请用同目录的可检索 PDF。</p>
 <nav>{nav}</nav>{''.join(cards)}
 <small>生成脚本 build_formula_html.py；浏览器阅读页不参与通信计算。</small></main></body></html>'''
