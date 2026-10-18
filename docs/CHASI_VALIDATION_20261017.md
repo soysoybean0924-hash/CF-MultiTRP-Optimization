@@ -21,6 +21,8 @@
 
 可选动态回放的独立一致性缺陷另行修正：此前 `chasi_time_evolution` 将步长、SRS组编号、RB×TTI统计和 Doppler 时间增量写死为20 TTI/17组，而 `chasi_config` 已允许合法的 `srsPeriodTti=170`、每跳10 TTI。`tests/test_chasi_dynamic_srs_timing.m` 在旧实现先因窗口校验失败；修订后同一显式业务掩码运行退出码0，17个事件的前三个时刻为0/10/20 TTI、组号1/2/3，新增 `srs_hop_interval_tti` 与 `fading_correlation_per_srs_hop` 清楚标注含义。正式默认仍是340/20；这是**非默认配置的实现修复**，不是改变正式求解器或证明动态跨语言等价。可选回放仍无随新 CSI 调用矩阵 WMMSE 的在线闭环，随机信道演化与队列跨语言同显式输入对拍仍待完成。
 
+业务回放的**受限同输入对拍已通过**：`tests/chasi_export_dynamic_shared_replay.m` 用保存的210 UE场景、最终 `precoder` 和同一340 TTI `busy/tail/terminal`，将速度设为0、波束设为 `frozen`；`tests/verify_chasi_dynamic_shared_replay.py` 把该显式业务掩码送入独立 Python 回放。判断前固定的容差为每UE交付量/体验速率/真信道SE各 `1e-4`、PRB比例 `1e-8`、功率违规 `1e-6 W`。17个事件的时刻/SRS组/CSI事件相同，有效TTI、完成及总burst计数相同；复查时每UE交付 Mbit 最大绝对差 `7.1055e-15`，平均体验、时间平均真信道 sum SE、PRB比例及功率违规差均为0。两侧估计 CSI 更新仍使用各自随机数，但在零速度及冻结波束设置下不影响发射容量；**不构成随机 CSI 轨迹或在线 WMMSE 重优化的跨语言等价证明**。共享大 MAT 只保留本地 `tmp/`，不入库。
+
 ## 最终导出与重读补记（2026-10-18）
 
 最终字段版 420 UE 的 `matrix_statistical_precoders.mat` 已由 `chasi_load_precoder_result` 重读并确认 schema 3。基于**保存的同一份** `scene.mat` 导出只读探针后，独立 Python 检查得到：588 条建模链路、37632 个复数列样本，最大相对后验协方差误差 `6.8952e-8`，白化误差协方差相对 Frobenius 误差 `0.008503`。这检查保存的 `H_true/H_est/C` 内部统计一致性，不是两语言共用噪声样本的完整场景对拍。
@@ -39,7 +41,7 @@
 | 最终字段版 210 UE | 当前正式参数 `usersPerCell=10, matrix_statistical`；输出 `results/chasi_matlab/formal210_20261017_srs_contract2/` | MATLAB 批处理退出码0；solver 688.68s；真信道 sum SE 68.1866955652 bit/s/Hz，210/210 UE 按程序定义有效，功率违规0 W | **原生规模端到端通过**；`converged=false`，原因 `max_outer_iterations_with_latest_inexact_admm`，不代表物理验收 |
 | 最终字段版 420 UE | 当前正式参数 `usersPerCell=20, matrix_statistical`；输出 `results/chasi_matlab/formal420_20261017_srs_contract2/` | MATLAB 批处理退出码0；solver 2252.46s；真信道 sum SE 95.1281554963 bit/s/Hz，420/420 UE 按程序定义有效，功率违规0 W；外轮目标26.84295→76.46299→82.85374 | **原生规模端到端通过**；`converged=false`，原因 `max_outer_iterations_with_latest_inexact_admm`，不代表物理验收 |
 | 保存→读回→绘图 | 当前版本 `scene.mat`, `*_precoders.mat`, CSV/JSON，图集源 `build_chasi_atlas.m` | 待420完成后检查，图集未先占用实验MATLAB资源 | **未完成** |
-| 完整场景/业务跨语言显式同输入 | 几何随机样本、信道、SRS噪声、估计、调度、固定到达/队列、在线更新 | 已对**保存的正式场景及业务掩码**完成210/420求解与固定输入评价对拍；两语言各自从同一原始随机样本逐层生成拓扑/测量、动态队列及在线更新仍无同输入证据 | **部分通过，完整要求未通过** |
+| 完整场景/业务跨语言显式同输入 | 几何随机样本、信道、SRS噪声、估计、调度、固定到达/队列、在线更新 | 已对**保存的正式场景及业务掩码**完成210/420求解与固定输入评价；另在210 UE零速度、冻结波束条件下完成固定到达/队列回放对拍。两语言从同一原始随机样本逐层生成拓扑/测量、移动CSI轨迹及在线重求仍无同输入证据 | **部分通过，完整要求未通过** |
 
 本地独立 Python 参考目录 `chasi_formal_implementation/` 当前为工作区既存未跟踪源码，不在本轮改名/提交范围。上述对拍确实在本地执行，但远端只含测试脚本时无法在新克隆中原样重跑 Python 对照；这是**证据可复现性缺口**，不是数值误差。提交前仅暂存本轮自建材料，不擅自纳入整套既存未跟踪实现。
 

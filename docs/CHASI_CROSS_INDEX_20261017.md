@@ -17,7 +17,7 @@
 | $M,B,D,Q$ V28 | C24,C25 | `chasi_matrix_wmmse>quadratic:403`, `qapply:420` | 07 | CG输入系数；不是物理信号，常规输出未单存 |
 | $x,z,u,\rho$ 与CG方向 V29–V31 | C26–C31 | `chasi_matrix_wmmse>precoder_admm:440`, `cg:485`, `project:499` | 07 | `solution.trajectory`→`summary.json`; z是可行返回量 |
 | $R^{true}_{SE},R_{exp}$ V32–V36 | C32–C36 | `chasi_evaluate:43-136,137-205`, `chasi_traffic:1-37` | 09、10 | `*_per_ue.csv`, summary；体验仅代理 |
-| 动态 $\varphi_{Doppler}$ | C37,C38 | `chasi_time_evolution:1-425` | 12 | 默认不执行；`test_chasi_dynamic_srs_timing` 核对非默认跳间隔；SVD重置不是在线WMMSE |
+| 动态 $\varphi_{Doppler}$、队列 $q$ | C37,C38 | `chasi_time_evolution:1-425` | 12 | 默认不执行；`test_chasi_dynamic_srs_timing` 核对非默认跳间隔；`chasi_export_dynamic_shared_replay`/`verify_chasi_dynamic_shared_replay` 对拍210 UE冻结波束业务，非在线WMMSE |
 | 旧波束 $W^{old}$、旧速度 V | L01–L17 | `matlab/core/cf_evaluate_candidate.m`, `cf_search.m` | 11 | 不流入正式 `chasi_run`，历史结果独立 |
 | 参考标量接收器 $v_k$ | Z01–Z03 | 2023参考 `WMMSE_ADMM_Func.py` | 11 | 与当前矩阵预编码 w / 接收 A 不同模型，论文原式编号待核实 |
 

@@ -203,7 +203,7 @@ case 11
 case 12
     t={'static w/Htrue','optional time step','CSI age update','fast SVD reset','queue replay','online WMMSE'};
     s={'formal default','timeEvolutionTti>0','modeled observation','not full solver','delivered bits','NOT implemented'};
-    footer='Optional replay step follows configured SRS hop interval (20 TTI by default); fast SVD reset is neither online matrix WMMSE nor distributed ADMM.';
+    footer='Replay step follows SRS hop interval (default 20 TTI). Saved 210-UE frozen-beam queue parity passes; mobility and online WMMSE remain unverified.';
 end
 for i=1:6
     row=ceil(i/3);col=mod(i-1,3)+1;x=17+33*(col-1);y=70-30*(row-1);
