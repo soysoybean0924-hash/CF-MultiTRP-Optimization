@@ -11,7 +11,7 @@ rngSrs=RandStream('mt19937ar','Seed',cfg.seed+203);
 rngReuse=RandStream('mt19937ar','Seed',cfg.seed+204);
 rxCorrelation=0.35.^abs((1:4)'-(1:4));
 rxChol=chol(rxCorrelation,'lower');
-[trp,ue,home]=geometry(cfg,rngGeometry);
+[trp,ue,home,topology]=geometry(cfg,rngGeometry);
 [usersByGroup,activeRatio,active,txCounts]=schedule(cfg,rngGeometry,home);
 gains=zeros(cfg.users,cfg.trps);
 for globalUeId=1:cfg.users
@@ -134,19 +134,20 @@ for g=1:cfg.srsHops
     scheduleMask(resources(g).ueIds,g)=true;
 end
 scene=struct('config',cfg,'trp_xy',trp,'ue_xy',ue,'home',home, ...
+    'topology',topology, ...
     'scheduleMask',scheduleMask, ...
     'resources',resources,'events',events,'active_prb_ratio',activeRatio, ...
     'calibration',calibration);
 end
 
-function [trp,ue,home]=geometry(cfg,stream)
+function [trp,ue,home,topology]=geometry(cfg,stream)
 angleUniform=zeros(cfg.usersPerCell,cfg.trps);
 radiusUniform=zeros(cfg.usersPerCell,cfg.trps);
 for l=1:cfg.trps
     angleUniform(:,l)=rand(stream,cfg.usersPerCell,1);
     radiusUniform(:,l)=rand(stream,cfg.usersPerCell,1);
 end
-[trp,ue,home]=chasi_geometry_from_samples(cfg,angleUniform,radiusUniform);
+[trp,ue,home,topology]=chasi_geometry_from_samples(cfg,angleUniform,radiusUniform);
 end
 
 function [users,ratio,active,txCounts]=schedule(cfg,stream,home)

@@ -8,7 +8,7 @@
 \newcommand{\fe}[5]{\par\begin{minipage}{\linewidth}\subsubsection*{#1\quad #2}\vspace{-3mm}\[\displaystyle #3\]\textbf{含义/输入输出：}#4\\\textbf{源码与例子：}#5\par\end{minipage}\par\medskip}
 \title{CHASI 统一符号、公式与变量去向}
 \author{源码核查版；历史编号 C01--C38、L01--L17、Z01--Z03 保留}
-\date{2026-10-18；v3 字段与正式规模同输入复核}
+\date{2026-10-19: topology C01/C02 corrected and scene-verified}
 \begin{document}
 \maketitle
 \section*{阅读前提与符号}
@@ -19,8 +19,8 @@ MATLAB 数组第一轴的 \code{localUeIdx} 通过 \code{resources(g).ueIds(loca
 代码别名：$w\leftrightarrow$\code{precoder}，$A\leftrightarrow$\code{rxCombiner}，$E\leftrightarrow$\code{mseMatrix}，$\Omega\leftrightarrow$\code{mseWeight}，$\eta\leftrightarrow$\code{userWeight}，$b\leftrightarrow$\code{scheduleMask}，$\chi\leftrightarrow$\code{servingMask}，$\nu\leftrightarrow$\code{resourceWeightNu}，$k\leftrightarrow$\code{ueIds(localUeIdx)}，$H^{\rm true}\leftrightarrow$\code{H_true}，$\widehat H\leftrightarrow$\code{H}，$C\leftrightarrow$\code{C_stat}。距离为 $d$，频谱效率为 $R_{\rm SE}$，业务速率为 $R_{\rm exp}$；业务忙时指示记 $\iota^{\rm busy}$。导频复用时间相关 $\varphi_{\rm reuse}$、移动多普勒时间相关 $\varphi_{\rm Doppler}$、回溯步长 $\tau_{\rm bt}$、旧功率重加权 $\omega^{\rm sparse}$ 互不复用。每组 $K_g$ 可不同；cell 容器不构成新的数学维度。$H^{\rm true}$ 用于合成观测、\code{ideal} 分支和最终评价；非理想分支优化只见 $\widehat H,C$。误差统计为每发射列相同的 $4\times4$ 接收协方差，即 $I_{64}\otimes C$ 假设。
 
 \section{拓扑、阵列、传播与测量：C01--C13}
-\fe{C01}{七站共址扇区}{s_0=(450,450),\quad s_m=s_0+300(\cos(m\pi/3),\sin(m\pi/3)),\ m=0,\ldots,5}{站址 $s$ 为米；21 TRP 由每站3次复制得到；300 m 是邻站距离。}{\code{chasi_generate_scene>geometry}；例如中心站3个 TRP 坐标相同，主方向相隔120°。项目假设。}
-\fe{C02}{UE 扇区位置}{\theta=2\pi((l-1)\bmod3)/3+(\xi_1-1/2)2\pi/3,\quad d=25+125\sqrt{\xi_2},\quad q_k=s_l+d(\cos\theta,\sin\theta)}{$\xi_1,\xi_2\sim\mathrm{Unif}(0,1)$；$q_k$ 米、$d\in[25,150]$ m；非严格环扇面积均匀。}{\code{chasi_generate_scene>geometry}；$\xi_2=0.25$ 时 $d=87.5$ m。项目假设。}
+\fe{C01}{Seven co-sited sector sites}{\begin{aligned}s_1&=(450,450),\quad D=300\,{\rm m},\\s_{m+2}&=s_1+D(\cos(m\pi/3),\sin(m\pi/3)),\quad m=0,\ldots,5,\\\mathrm{site}(l)&=\lceil l/3\rceil,\quad \phi_l=2\pi((l-1)\bmod3)/3\end{aligned}}{Site coordinates are in metres. Three TRPs share each site. Nearest-neighbour site spacing is 300 m. Absolute origin and boresight angles are project assumptions; sector angular extent is distinct from antenna half-power beamwidth.}{\code{chasi_geometry_from_samples.m} creates the site/sector/cell mapping; \code{chasi_generate_scene.m} saves it in scene.topology. The acceptance image specifies seven sites, three cells per site, and 300 m inter-site spacing only.}
+\fe{C02}{Area-uniform UE position in the assumed annular sector}{\begin{aligned}\theta_k&=\phi_{\mathrm{home}(k)}+(\xi_{\theta,k}-1/2)\,2\pi/3,\\d_k&=\sqrt{d_{\min}^2+(d_{\max}^2-d_{\min}^2)\xi_{r,k}},\\q_k&=s_{\mathrm{site}(\mathrm{home}(k))}+d_k(\cos\theta_k,\sin\theta_k)\end{aligned}}{$\xi_{\theta,k},\xi_{r,k}\sim\mathrm{Unif}(0,1)$; $d_{\min}=25$ m and $d_{\max}=150$ m; $q_k\in\mathbb R^2$ in metres. This default is uniform by area only within the project-assumed 120-degree annular sector. The acceptance image does not define a cell contour.}{\code{chasi_geometry_from_samples.m}. The historical \code{ueSpatialSampling=legacy_sqrt_radius} mode retains $d=25+125\sqrt{\xi_r}$ solely to reproduce prior scenarios; it is not the current default.}
 \fe{C03}{扇区方向增益}{G_{\rm sec}=0.08+0.92\max(\cos\Delta\theta,0)^4}{方位差 $\Delta\theta$ 弧度，输出无量纲，乘入链路增益。}{\code{chasi_generate_scene>link_gain}；正前方 $G=1$，背面 $G=0.08$。系数为项目假设。}
 \fe{C04}{默认归一化增益}{\beta_{kl}=0.025\left(\frac{\max(d_{kl},10)}{100}\right)^{-3.2}G_{\rm sec}}{$d$ 为米，$\beta$ 是默认无量纲 surrogate；不能当标准路径损耗。}{\code{chasi_generate_scene>link_gain}；100m正前方得0.025。项目假设。}
 \fe{C05}{可选 UMi/UMa 子集}{\beta_{kl}=\frac{10^{-PL_{kl}/10}G_{\rm sec}}{\sigma_{\rm RB}^2N_{\rm RB}},\quad PL_{kl}=PL_{\rm LOS/NLOS}(d_{3D},f_c)+X_{\rm sh}}{$d_{3D}$ 米、$f_c$ GHz、$PL$ dB、$\sigma_{\rm RB}^2$ W；LOS/NLOS 分支及阴影单独抽样。}{\code{chasi_generate_scene>los_probability,outdoor_pathloss,link_gain}；默认不调用。项目所写标准子集，非完整 CDL/阵列。}

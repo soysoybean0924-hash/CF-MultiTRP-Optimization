@@ -1,0 +1,40 @@
+[
+  {
+    "seed": 2.0261011E+7,
+    "num_sites": 7,
+    "num_trps": 21,
+    "num_ues": 210,
+    "users_per_cell_min": 10,
+    "users_per_cell_max": 10,
+    "min_site_spacing_m": 299.99999999999994,
+    "min_home_distance_m": 26.771119352864734,
+    "max_home_distance_m": 149.8093730785869,
+    "out_of_boundary_ues": 0,
+    "radial_area_mean": 0.54529111697930843,
+    "radial_area_ks_statistic": 0.078510245527362521,
+    "radial_area_ks_5pct_limit": 0.093848916070560187,
+    "cross_site_service_links": 100,
+    "total_service_links": 588,
+    "scene_generation_seconds": 1.1352071,
+    "sampling": "area_uniform_annular_sector"
+  },
+  {
+    "seed": 2.0261011E+7,
+    "num_sites": 7,
+    "num_trps": 21,
+    "num_ues": 420,
+    "users_per_cell_min": 20,
+    "users_per_cell_max": 20,
+    "min_site_spacing_m": 299.99999999999994,
+    "min_home_distance_m": 26.082342928980427,
+    "max_home_distance_m": 149.97397775294854,
+    "out_of_boundary_ues": 0,
+    "radial_area_mean": 0.51732622372104242,
+    "radial_area_ks_statistic": 0.049340940168811409,
+    "radial_area_ks_5pct_limit": 0.06636120496050027,
+    "cross_site_service_links": 212,
+    "total_service_links": 1176,
+    "scene_generation_seconds": 1.6196365,
+    "sampling": "area_uniform_annular_sector"
+  }
+]

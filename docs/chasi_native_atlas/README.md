@@ -1,5 +1,7 @@
 # CHASI 原生 MATLAB 图集与阅读入口
 
+**2026-10-19 拓扑专项更新：**另见 [真实生成的210 UE、7站21扇区及模型小区边界图](13_cell_layout_seed20261011.pdf)（[PNG](13_cell_layout_seed20261011.png)）和[验收—源码—实测对照](../CHASI_TOPOLOGY_AUDIT_20261019.md)。这张图由 `matlab/chasi/chasi_plot_cell_layout.m` 绘制，边界为项目假设；原图03仍是逻辑网络示意，不能代替实际地理布局。
+
 最终图集：[12 页矢量 PDF](CHASI_ATLAS.pdf) · [HTML 预览](atlas.html)。12 张图的 PNG、单页 PDF 和统一 MATLAB 源码均在本目录。已实际查看导出图；下行泳道中 CPU、TRP、UE 的处理位置及 ADMM 箭头已据此修正。
 
 交互调用图 `interactive_calls.html` 仅为补充候选件。Archify 的结构、来源和交付检查通过，但 Chrome 临时配置清理失败使浏览器检查门槛未通过；本轮验收以 MATLAB 图 01 和本图集 PDF 为准。

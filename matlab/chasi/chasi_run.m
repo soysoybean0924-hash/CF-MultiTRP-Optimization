@@ -65,7 +65,8 @@ for g=1:numel(scene.resources)
     groups(g).serving_trps_by_user=links;
 end
 manifest=struct('indexing','MATLAB one-based','trp_xy_m',scene.trp_xy,...
-    'ue_xy_m',scene.ue_xy,'ue_home_trp',scene.home,'groups',groups);
+    'ue_xy_m',scene.ue_xy,'ue_home_trp',scene.home,...
+    'topology',scene.topology,'groups',groups);
 write_json(fullfile(cfg.outputDir,'scene_manifest.json'),manifest);
 summary=struct();
 summary.language='MATLAB';

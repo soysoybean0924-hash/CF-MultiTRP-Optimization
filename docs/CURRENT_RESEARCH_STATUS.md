@@ -1,5 +1,13 @@
 # Current Research Status
 
+2026-10-19 topology update: the native CHASI geometry now samples UEs
+uniformly by area within its explicitly labeled *project-assumed* 25–150 m,
+120-degree annular sectors. The seven-site/21-TRP mapping and 210/420-UE
+scene-only checks are recorded in
+[the topology audit](CHASI_TOPOLOGY_AUDIT_20261019.md). The acceptance image
+does not specify the cell contour; prior saved performance runs retain the
+legacy nonuniform-radius scenario and are not new-model performance evidence.
+
 2026-10-18 evidence update: the native MATLAB entry completed the final
 SRS-metadata 210/420-UE matrix runs. Read the
 [validation record](CHASI_VALIDATION_20261017.md),

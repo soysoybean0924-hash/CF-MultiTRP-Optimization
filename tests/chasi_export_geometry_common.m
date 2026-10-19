@@ -3,7 +3,9 @@ function chasi_export_geometry_common(outputPath)
 if nargin<1 || isempty(outputPath) || isfile(outputPath)
     error('CHASI:GeometryOutput','A new output MAT path is required');
 end
-cfg=chasi_config(struct('usersPerCell',10));
+% Historical Python parity fixture deliberately uses the old spatial law.
+cfg=chasi_config(struct('usersPerCell',10,...
+    'ueSpatialSampling','legacy_sqrt_radius'));
 angleUniform=reshape(linspace(.01,.99,cfg.users),cfg.usersPerCell,cfg.trps);
 radiusUniform=reshape(linspace(.99,.01,cfg.users),cfg.usersPerCell,cfg.trps);
 [trpXy,ueXy,homeTrp]=chasi_geometry_from_samples(cfg,angleUniform,radiusUniform);
