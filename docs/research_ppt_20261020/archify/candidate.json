@@ -1,0 +1,213 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "正式 MATLAB 数据与调用链（db9d7e3）",
+    "locale": "zh-CN",
+    "output": "docs/research_ppt_20261020/archify/code-chain.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "git@github.com:soysoybean0924-hash/CF-MultiTRP-Optimization.git",
+      "revision": "db9d7e3c71a75f8f9724b743fc78023185b5cddf",
+      "link_mode": "local-only"
+    }
+  },
+  "components": [
+    {
+      "id": "entry",
+      "type": "frontend",
+      "label": "chasi_run",
+      "sublabel": "正式入口 / 分支配置",
+      "pos": [
+        40,
+        80
+      ],
+      "size": [
+        155,
+        70
+      ],
+      "sources": [
+        {
+          "path": "matlab/chasi/chasi_run.m",
+          "line": 1,
+          "end_line": 43
+        }
+      ]
+    },
+    {
+      "id": "scene",
+      "type": "backend",
+      "label": "场景与测量",
+      "sublabel": "真实场景 / H_true, H_est, C",
+      "pos": [
+        320,
+        80
+      ],
+      "size": [
+        185,
+        70
+      ],
+      "sources": [
+        {
+          "path": "matlab/chasi/chasi_generate_scene.m",
+          "line": 1,
+          "end_line": 30
+        },
+        {
+          "path": "matlab/chasi/chasi_geometry_from_samples.m",
+          "line": 1,
+          "end_line": 42
+        }
+      ]
+    },
+    {
+      "id": "rule",
+      "type": "backend",
+      "label": "资源固定规则",
+      "sublabel": "服务、调度、rank",
+      "pos": [
+        630,
+        80
+      ],
+      "size": [
+        185,
+        70
+      ],
+      "sources": [
+        {
+          "path": "matlab/chasi/chasi_generate_scene.m",
+          "line": 112,
+          "end_line": 152
+        }
+      ]
+    },
+    {
+      "id": "solver",
+      "type": "backend",
+      "label": "矩阵 WMMSE + ADMM",
+      "sublabel": "优化复预编码 w",
+      "pos": [
+        940,
+        80
+      ],
+      "size": [
+        210,
+        70
+      ],
+      "sources": [
+        {
+          "path": "matlab/chasi/chasi_run.m",
+          "line": 90,
+          "end_line": 96
+        },
+        {
+          "path": "matlab/chasi/chasi_matrix_wmmse.m",
+          "line": 380,
+          "end_line": 490
+        }
+      ]
+    },
+    {
+      "id": "evaluation",
+      "type": "backend",
+      "label": "真信道评价",
+      "sublabel": "SE / 体验代理 / 功率",
+      "pos": [
+        940,
+        280
+      ],
+      "size": [
+        210,
+        70
+      ],
+      "sources": [
+        {
+          "path": "matlab/chasi/chasi_run.m",
+          "line": 94,
+          "end_line": 109
+        },
+        {
+          "path": "matlab/chasi/chasi_evaluate.m",
+          "line": 1,
+          "end_line": 70
+        }
+      ]
+    },
+    {
+      "id": "store",
+      "type": "database",
+      "label": "结果保存",
+      "sublabel": "scene / precoder / summary",
+      "pos": [
+        630,
+        280
+      ],
+      "size": [
+        185,
+        70
+      ],
+      "sources": [
+        {
+          "path": "matlab/chasi/chasi_run.m",
+          "line": 43,
+          "end_line": 43
+        },
+        {
+          "path": "matlab/chasi/chasi_run.m",
+          "line": 109,
+          "end_line": 146
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "call-scene",
+      "from": "entry",
+      "to": "scene",
+      "label": "生成场景"
+    },
+    {
+      "id": "scene-rule",
+      "from": "scene",
+      "to": "rule",
+      "label": "测量与几何"
+    },
+    {
+      "id": "rule-solver",
+      "from": "rule",
+      "to": "solver",
+      "label": "固定掩码"
+    },
+    {
+      "id": "solver-eval",
+      "from": "solver",
+      "to": "evaluation",
+      "label": "新预编码 w"
+    },
+    {
+      "id": "eval-save",
+      "from": "evaluation",
+      "to": "store",
+      "label": "指标摘要"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "amber",
+      "title": "实现边界",
+      "items": [
+        "ADMM 在单个 MATLAB 进程内集中运行",
+        "正式入口不调用旧 cf_search"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "验证边界",
+      "items": [
+        "210/420 UE 旧场景保存运行达到迭代上限",
+        "新面积均匀拓扑仅有场景核查，未重跑完整优化"
+      ]
+    }
+  ]
+}

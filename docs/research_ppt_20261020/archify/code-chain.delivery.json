@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "2f69fb55-151b-41f8-bc99-7c84839a9fc5",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\sypxx\\Documents\\CF mMIMO TRP\\chasi-research-ppt-20261020\\docs\\research_ppt_20261020\\archify\\candidate.json",
+  "output": "C:\\Users\\sypxx\\Documents\\CF mMIMO TRP\\chasi-research-ppt-20261020\\docs\\research_ppt_20261020\\archify\\code-chain.html",
+  "specification": {
+    "sha256": "48fef540ac839c0f7f47a696b1691bedeb470ec0a87439a34a9b89ddda6f20f8",
+    "bytes": 4519
+  },
+  "artifact": {
+    "sha256": "2452dd2a253dd8daad605e5669dd081220224741714ffb17f46a637141d6aefe",
+    "bytes": 814319
+  }
+}

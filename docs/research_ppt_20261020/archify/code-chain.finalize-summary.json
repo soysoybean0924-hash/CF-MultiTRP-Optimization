@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\sypxx\\Documents\\CF mMIMO TRP\\chasi-research-ppt-20261020\\docs\\research_ppt_20261020\\archify\\candidate.json",
+    "sha256": "48fef540ac839c0f7f47a696b1691bedeb470ec0a87439a34a9b89ddda6f20f8",
+    "bytes": 4519
+  },
+  "artifact": {
+    "path": "C:\\Users\\sypxx\\Documents\\CF mMIMO TRP\\chasi-research-ppt-20261020\\docs\\research_ppt_20261020\\archify\\code-chain.html",
+    "sha256": "2452dd2a253dd8daad605e5669dd081220224741714ffb17f46a637141d6aefe",
+    "bytes": 814319
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\sypxx\\Documents\\CF mMIMO TRP\\chasi-research-ppt-20261020\\docs\\research_ppt_20261020\\archify\\code-chain.finalize.json",
+    "summaryReceipt": "C:\\Users\\sypxx\\Documents\\CF mMIMO TRP\\chasi-research-ppt-20261020\\docs\\research_ppt_20261020\\archify\\code-chain.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\sypxx\\Documents\\CF mMIMO TRP\\chasi-research-ppt-20261020\\docs\\research_ppt_20261020\\archify\\code-chain.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.1.0",
+    "availableVersion": "3.1.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-15T13:57:38.799Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 9041
+}
