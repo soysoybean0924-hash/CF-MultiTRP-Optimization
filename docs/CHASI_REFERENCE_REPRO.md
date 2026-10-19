@@ -8,6 +8,8 @@ Python 3.9 离线环境按 `tests/requirements_chasi_reference.txt` 安装 NumPy
 
 ## 可在干净检出中直接运行的小例
 
+2026-10-19 在提交 `a550537` 的**独立稀疏 Git 工作树**实际检出 `chasi_formal_implementation`、`matlab/chasi` 与 `tests`，重跑 `py -3.9 -m chasi_formal_implementation.test_srs_hop_timing`、`py -3.9 -m chasi_formal_implementation.test_v_reference`、`matlab -batch "addpath('matlab/chasi','tests'); chasi_export_geometry_common('clean_geometry.mat')"` 与 `py -3.9 tests/verify_chasi_geometry_common.py clean_geometry.mat`，均退出0；独立 SLSQP 固定子问题目标差 `6.200e-10`，严格 ADMM 残差未过，显式几何坐标差 `1.137e-13 m`。该检出只证明小例和参考模块可从已提交源重建，**没有在干净检出中重跑210/420 UE大场景**，其结果以主工作区原生运行和同显式输入报告为准。临时工作树检查后移除，不保留仓库副本。
+
 ```powershell
 py -3.9 -m pip install -r tests/requirements_chasi_reference.txt
 matlab -batch "addpath('tests'); chasi_export_canonical_parity('tmp/chasi_clean_canonical')"
