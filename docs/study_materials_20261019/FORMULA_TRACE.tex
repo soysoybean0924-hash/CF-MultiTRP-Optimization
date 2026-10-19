@@ -1,0 +1,188 @@
+\documentclass[11pt,a4paper]{ctexart}
+\usepackage[margin=22mm]{geometry}
+\usepackage{amsmath,amssymb,booktabs,longtable,hyperref,xcolor}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+\newcommand{\code}[1]{\path{#1}}
+\newcommand{\fe}[5]{\par\begin{minipage}{\linewidth}\subsubsection*{#1\quad #2}\vspace{-3mm}\[\displaystyle #3\]\textbf{含义/输入输出：}#4\\\textbf{源码与例子：}#5\par\end{minipage}\par\medskip}
+\title{茶思公式合集：物理量、源码与证据}
+\author{学习与逐式溯源版；保留 C01--C38、L01--L17、Z01--Z03}
+\date{2026-10-19；代码基线 3efa44c；材料不等于正式验收}
+\begin{document}
+\maketitle
+\section*{证据边界与阅读顺序}
+原始任务要求来自用户提供的三张图：难题1、典型验收场景、用户速率协议定义。系统方案 PDF 是方法方案；研究主题分析 PDF 是研究路径讨论。先读 C01--C13 的正式场景，再读 C14--C38 的当前实现，最后读独立旧链 L01--L17 与参考 Z01--Z03。图和方案中的分布式 TRP 计算、最坏情况鲁棒椭球、协议级体验和共同基线比较尚无当前正式入口的运行证据。
+
+当前源码为提交 \code{3efa44cb92a27562b05076d9c49a3c7d5fb352ba} 的独立检出；本合集不包含另一会话后续未提交修复。状态依据见同目录 \code{EVIDENCE_AND_STATUS.md}。旧报告中的行号会漂移；函数名、数组轴和本合集给出的源码定位以此提交为准。
+\section*{阅读前提与符号}
+本文件记录\code{matlab/chasi/chasi_run.m} 的正式入口和独立旧链，所有物理信号式均注明是否仅作模型等效计算。$g$ 为资源组，$l$ 为 TRP，$k$ 为当前接收 UE 的全局编号，$j$ 为求和中的全局 UE；仅在写明 $j\ne k$ 时排除当前 UE。
+
+MATLAB 数组第一轴的 \code{localUeIdx} 通过 \code{resources(g).ueIds(localUeIdx)} 显式映射到 $k$，求和 UE 同理映射到 $j$。$N_{\rm RB}=273$，$N_t=64$，$N_r=4$，当前流数 $r_{kg}=2$（上限 $\min(N_t,N_r)$）。$H_{klg}\in\mathbb C^{4\times64}$，$w_{ljg}\in\mathbb C^{64\times r_{jg}}$ 已含发射幅度，$A_{kg}\in\mathbb C^{4\times r_{kg}}$，$E_{kg},\Omega_{kg}\in\mathbb C^{r_{kg}\times r_{kg}}$。$p$ 由 $w$ 的范数导出，发送式不再乘 $\sqrt p$。$b_{kg}\in\{0,1\}$ 是调度，$\chi_{lkg}\in\{0,1\}$ 是服务关联，$\nu_g=n_g^{\rm tx}/N_{\rm RB}$ 是资源组无量纲权重。验收原图明确 SRS 最后一次跳频测量 17 RB；当前实现为组级统计观测，没有生成逐 RB 波形。
+
+代码别名：$w\leftrightarrow$\code{precoder}，$A\leftrightarrow$\code{rxCombiner}，$E\leftrightarrow$\code{mseMatrix}，$\Omega\leftrightarrow$\code{mseWeight}，$\eta\leftrightarrow$\code{userWeight}，$b\leftrightarrow$\code{scheduleMask}，$\chi\leftrightarrow$\code{servingMask}，$\nu\leftrightarrow$\code{resourceWeightNu}，$k\leftrightarrow$\code{ueIds(localUeIdx)}，$H^{\rm true}\leftrightarrow$\code{H_true}，$\widehat H\leftrightarrow$\code{H}，$C\leftrightarrow$\code{C_stat}。距离为 $d$，频谱效率为 $R_{\rm SE}$，业务速率为 $R_{\rm exp}$；业务忙时指示记 $\iota^{\rm busy}$。导频复用时间相关 $\varphi_{\rm reuse}$、移动多普勒时间相关 $\varphi_{\rm Doppler}$、回溯步长 $\tau_{\rm bt}$、旧功率重加权 $\omega^{\rm sparse}$ 互不复用。每组 $K_g$ 可不同；cell 容器不构成新的数学维度。$H^{\rm true}$ 用于合成观测、\code{ideal} 分支和最终评价；非理想分支优化只见 $\widehat H,C$。误差统计为每发射列相同的 $4\times4$ 接收协方差，即 $I_{64}\otimes C$ 假设。
+
+\section{拓扑、阵列、传播与测量：C01--C13}
+\fe{C01}{七站共址扇区}{s_0=(450,450),\quad s_m=s_0+300(\cos(m\pi/3),\sin(m\pi/3)),\ m=0,\ldots,5}{站址 $s$ 为米；21 TRP 由每站3次复制得到；300 m 是邻站距离。}{\code{chasi_generate_scene>geometry}；例如中心站3个 TRP 坐标相同，主方向相隔120°。项目假设。}
+\fe{C02}{UE 扇区位置}{\theta=2\pi((l-1)\bmod3)/3+(\xi_1-1/2)2\pi/3,\quad d=25+125\sqrt{\xi_2},\quad q_k=s_l+d(\cos\theta,\sin\theta)}{$\xi_1,\xi_2\sim\mathrm{Unif}(0,1)$；$q_k$ 米、$d\in[25,150]$ m；非严格环扇面积均匀。}{\code{chasi_generate_scene>geometry}；$\xi_2=0.25$ 时 $d=87.5$ m。项目假设。}
+\fe{C03}{扇区方向增益}{G_{\rm sec}=0.08+0.92\max(\cos\Delta\theta,0)^4}{方位差 $\Delta\theta$ 弧度，输出无量纲，乘入链路增益。}{\code{chasi_generate_scene>link_gain}；正前方 $G=1$，背面 $G=0.08$。系数为项目假设。}
+\fe{C04}{默认归一化增益}{\beta_{kl}=0.025\left(\frac{\max(d_{kl},10)}{100}\right)^{-3.2}G_{\rm sec}}{$d$ 为米，$\beta$ 是默认无量纲 surrogate；不能当标准路径损耗。}{\code{chasi_generate_scene>link_gain}；100m正前方得0.025。项目假设。}
+\fe{C05}{可选 UMi/UMa 子集}{\beta_{kl}=\frac{10^{-PL_{kl}/10}G_{\rm sec}}{\sigma_{\rm RB}^2N_{\rm RB}},\quad PL_{kl}=PL_{\rm LOS/NLOS}(d_{3D},f_c)+X_{\rm sh}}{$d_{3D}$ 米、$f_c$ GHz、$PL$ dB、$\sigma_{\rm RB}^2$ W；LOS/NLOS 分支及阴影单独抽样。}{\code{chasi_generate_scene>los_probability,outdoor_pathloss,link_gain}；默认不调用。项目所写标准子集，非完整 CDL/阵列。}
+\fe{C06}{小尺度真信道}{R_{\rm rx}[m,n]=0.35^{|m-n|},\quad H^{\rm true}_{klg}=\sqrt{\beta_{kl}}\,\operatorname{chol}_{\rm lower}(R_{\rm rx})\Xi_{klg},\quad \Xi_{mn}\sim\mathcal{CN}(0,1)}{$R_{\rm rx}[4,4]$，$\Xi,H[4,64]$；下三角因子 $LL^H=R_{\rm rx}$；$H$ 按组独立抽样，未建8×4×2物理阵列。}{\code{chasi_generate_scene} 第12--13行及组循环；例：同一 TRP 的相邻接收行相关系数0.35。}
+\fe{C07}{RB与跨组权重}{n^{\rm data}_g=n^{\rm SRS}_g=16\ (g\le16),\quad n^{\rm data}_{17}=n^{\rm SRS}_{17}=17,\quad \nu_g=n^{\rm tx}_g/273}{数据与 SRS 测量均覆盖273 RB；$\nu_g$ 是实际发射数据 RB 比例，既不是业务负载也不是 SRS 测量比例。}{\code{chasi_config} 的 \code{rbGroups/srsRbCounts}、\code{chasi_generate_scene} 的 \code{rb_count/srs_rb_count/tx_rb_count}、\code{chasi_matrix_wmmse>resourceWeight}；来源：典型验收场景.png 的末跳17 RB。}
+\fe{C08}{RB开启规则}{N_{\rm target}=\operatorname{round}(\rho_{\rm PRB}273),\quad \mathrm{active}_{lg}\in\{0,1\}}{$\rho_{\rm PRB}=.4$ 默认；随机整组或共同精确 RB 规则产生组开启。}{\code{chasi_generate_scene>schedule}；.4 给约109个目标RB，与业务30\%不同。}
+\fe{C09}{调度与服务}{b_{kg}=\mathbf1\{k\in\mathcal K_g\},\quad \chi_{lkg}=\mathbf1\{l\in\mathcal S_{kg}\}}{$b[N_{\rm UE},17]$、$\chi_g[21,K_g]$；每开启小区抽取2/3/4个 UE；服务为 home 加可用最近 TRP。}{\code{chasi_generate_scene>schedule} 与组循环；例如 $b_{k,3}=1$ 且 $\chi_{1,k,3}=\chi_{4,k,3}=1$。固定规则。}
+\fe{C10}{CSI/SRS噪声与年龄}{C_0=\beta R_{\rm rx},\quad n_c=\frac{\beta}{10^{\gamma_c/10}}e^{2t_c/\tau},\quad n_s=\frac{\beta}{10^{\gamma_s/10}}e^{2t_s/\tau}}{$C_0,C$ 为 $[4,4]$ 归一化协方差；$t_c,t_s,\tau$ ms，$\gamma$ dB。}{\code{chasi_generate_scene} 组循环；10ms更旧的观测增大噪声方差。项目假设。}
+\fe{C11}{独立观测后验}{C_{\rm post}=\left(C_0^{-1}+I_4/n_c+P_{\rm srs}^HP_{\rm srs}/n_s\right)^{-1},\quad \widehat H=C_{\rm post}\left(Y_c/n_c+P_{\rm srs}^HY_s/n_s\right)}{$P_{\rm srs}[2,4]$ 只选两行，$P_{\rm srs}^HP_{\rm srs}[4,4]$；$Y_c[4,64],Y_s[2,64]$；未测组省略 SRS 项；输出 $\widehat H[4,64],C_{\rm post}[4,4]$。}{\code{chasi_generate_scene} 的独立模式，\code{calibrate} 用5000列独立样本核查；例：仅第1、2行获得附加 SRS 精度。源码还原。}
+\fe{C12}{复用导频条件更新}{\Sigma_{\mathcal P}=\sigma_s^2I+\sum_{j\in\mathcal P}\left(\varphi_{\rm reuse}^2C_j+(1-\varphi_{\rm reuse}^2)\beta_jR_{\rm rx}\right)_{\rm rows},\quad \widehat H_k^+=\widehat H_k+\varphi_{\rm reuse} C_k[:,\mathrm{rows}]\Sigma_{\mathcal P}^{-1}(Y-\widehat Y)}{$k$ 为当前更新UE，$j$ 为同导频求和UE，$\mathcal P$ 是同导频集合；$\Sigma_{\mathcal P}[2,2]$ 对应源码局部 \code{S}，$Y,\widehat Y[2,64]$ 为观测与预测叠加，$\varphi_{\rm reuse}=e^{-t_s/\tau}$；输出边际 $4\times4$ 后验，未保存跨UE协方差。}{\code{chasi_generate_scene>reuse_update}；两UE复用时观察包含两者叠加，不能按 C11 独立噪声解释。项目高斯假设。}
+\fe{C13}{远链截断}{d_{kl}>750\mathrm m\ \land\ \chi_{lkg}=0\ \Rightarrow\ H_{klg}=0,\quad \mathrm{omittedGain}_{klg}=\beta_{kl}}{真/估计 H 均为零；遗失增益只进诊断，不补回实际干扰。当前静态七站几何最远站距600m、UE偏移至多150m，理论上没有超750m链路。}{\code{chasi_generate_scene} 组循环，\code{chasi_evaluate} 仅报期望遗漏/噪声比；保存的210/420 UE场景分别检出0条超界链路。项目假设。}
+
+\section{初始化、发送、接收与目标：C14--C23}
+\fe{C14}{初始复预编码}{w^{(0)}_{lkg}=\operatorname{svdRight}_{1:r}(\widehat H_{klg}),\quad w^{(0)}\leftarrow\Pi_{\mathcal C}(w^{(0)})}{初始每块 $[64,r]$，经跨组功率投影后含幅度；服务集外恒零。}{\code{chasi_matrix_wmmse} 第1--39行；例：rank2 取两个右奇异向量。非最终优化。}
+\fe{C15}{等效TRP发射}{\mathbb E[s_js_{j'}^H]=\delta_{jj'}I,\quad x_{lg}=\sum_{j:\chi_{ljg}=1}w_{ljg}s_{jg}}{$j,j'$ 是两个发射UE身份，$s_j[r,1]$ 单位协方差，$x_l[64,1]$；不再乘 $\sqrt p$。}{\code{chasi_matrix_wmmse>state,qapply} 只运算二阶量，未生成数据符号或 OFDM 波形。教学信号式。}
+\fe{C16}{多TRP到UE}{y_{kg}=\sum_l H_{klg}x_{lg}+n_{kg},\quad F_{kjg}=\sum_lH_{klg}w_{ljg}}{$y[4,1]$，$F[4,r]$；同一 UE 的服务 TRP 先相干求和，不是逐站功率相加。}{\code{chasi_matrix_wmmse>state,trueRates}；两服务TRP时 $F=H_{k1}w_{1j}+H_{k2}w_{2j}$。模型等效。}
+\fe{C17}{接收协方差}{p_{lg}=\sum_j\|w_{ljg}\|_F^2,\quad R^{yy}_{kg}=I_4+\sum_jF_{kjg}F_{kjg}^H+\sum_lp_{lg}C_{klg}}{$p_{lg}$ W，$R^{yy}[4,4]$ 为噪声归一化模型；末项只用于统计分支。}{\code{chasi_matrix_wmmse>state}；若某站没有波束则其误差项为零。从源码还原，修复旧 PDF 截断。}
+\fe{C18}{MMSE接收矩阵}{A_{kg}=(R^{yy}_{kg})^{-1}F_{kkg}}{$A[4,r]$，接收统计与期望有效信道进入；代码用反斜杠求解。}{\code{chasi_matrix_wmmse>state}；rank2 时4×4系统右侧4×2。}
+\fe{C19}{MSE与权重}{E_{kg}=I_r-A^HF_{kkg}-F_{kkg}^HA+A^HR^{yy}A,\quad\Omega_{kg}=E_{kg}^{-1}}{$E,\Omega[r,r]$ Hermitian；与发射波束 $w$ 不同。}{\code{chasi_matrix_wmmse>state}；若 $E=.5I_2$ 则 $\Omega=2I_2$。保存 H/C 为 single，\code{prepareResources} 在求解前转为 double；旧混合精度保存状态的失败记录仍保留。}
+\fe{C20}{组内估计频谱效率}{R^{\rm SE,est}_{kg}=-\log_2\det E_{kg}}{单位 bit/s/Hz；仅在 MMSE 接收及当前高斯模型下与互信息式相联。}{\code{chasi_matrix_wmmse>state}；$E=.5I_2$ 给2 bit/s/Hz。}
+\fe{C21}{全局UE组率}{R^{\rm est}_k=\sum_{g:k\in\mathcal K_g}\nu_gR^{\rm SE,est}_{kg}}{$k$ 全局身份，$\nu_g=n_g^{\rm tx}/273$；输出 $[N_{\rm UE},1]$ bit/s/Hz。}{\code{chasi_matrix_wmmse>objectiveSnapshot}；同一 UE 两组各1 bit/s/Hz时按各组权重相加。}
+\fe{C22}{PF及导数权重}{\begin{aligned}\mathcal K&=\{k:\exists g,\ b_{kg}=1\},\\J_{\rm PF}&=\sum_{k\in\mathcal K}\log(1+R^{\rm est}_k/f),\\\eta_k&=\frac{1/(R^{\rm est}_k+f)}{\operatorname{median}_{j\in\mathcal K}[1/(R^{\rm est}_j+f)]}\end{aligned}}{$f=.01$ bit/s/Hz 为 floor；$\eta$ 无量纲公共尺度归一，按 \code{ueIds(localUeIdx)} 映射回每组。}{\code{chasi_matrix_wmmse>objectiveSnapshot} PF 分支；小速率UE权重较大，但不保证边缘率提高。项目目标。}
+\fe{C23}{非PF目标}{J_{\rm sum}=\sum_g \nu_g\sum_kR^{\rm SE,est}_{kg},\quad J_{\rm edge}=\sum_g\nu_g\sum_k\eta^{\rm fixed}_{kg}R^{\rm SE,est}_{kg}}{理想/名义/统计默认分支用求和；edge权重来自 home 大尺度增益且截在[.25,8]。}{\code{chasi_matrix_wmmse>objectiveSnapshot,prepareResources}；两个分支的数值不可当同一目标比较。}
+
+\section{WMMSE 外轮与集中式 ADMM：C24--C31}
+以下 $M,B,D,Q$ 是固定 $A,\Omega,\eta$ 后的\textbf{优化系数与算子}，不是新发射、接收信号。函数调用者为 \code{chasi_run}→\code{chasi_matrix_wmmse}；返回 \code{solution.precoder} 给 \code{chasi_evaluate}，其余诊断给保存层。
+\fe{C24}{二次系数}{M_{kg}=A_{kg}(\eta_{kg}\Omega_{kg})A_{kg}^H,\quad B_{lkg}=\widehat H_{klg}^HA_{kg}(\eta_{kg}\Omega_{kg}),\quad D_{lg}=\sum_k\operatorname{tr}(M_{kg}C_{klg})}{$M[4,4]$、$B[64,r]$、$D$ 标量；固定接收器和MSE权重，构造预编码子问题。}{\code{chasi_matrix_wmmse>quadratic}：输入 \code{H,C,rxCombiner,mseWeight,userWeights}；如 $C=0$ 则 $D=0$。从源码还原。}
+\fe{C25}{隐式二次算子}{[\mathcal Q_g(X)]_{lj}=\sum_k\widehat H_{klg}^HM_{kg}\left(\sum_m\widehat H_{kmg}X_{mj}\right)+D_{lg}X_{lj}}{$X,w,\mathcal Q(X)$ 同形 $[L,K_g,64,r]$，非服务块置零；$k$ 是受扰接收UE，$j$ 是当前被更新的发射UE，$m$ 是 TRP 求和下标。}{\code{chasi_matrix_wmmse>qapply(H,parts,x,mask)}；两个站的 $X$ 先通过各站 H 求和再左乘 M。旧PDF公式求和下标截断在此修复。}
+\fe{C26}{固定接收器的预编码问题}{\begin{aligned}\min_{w\in\mathcal C}\quad&\sum_g\nu_g\left[\operatorname{Re}\langle w_g,\mathcal Q_g(w_g)\rangle-2\operatorname{Re}\langle B_g,w_g\rangle\right],\\\mathcal C:\quad&\chi_{lkg}=0\Rightarrow w_{lkg}=0,\\&\sum_g\nu_g\sum_j\|w_{ljg}\|_F^2\le P_l\end{aligned}}{仅子问题局部二次优化，$P_l=20$ W 默认；内积定义为 $\langle X,Y\rangle=\operatorname{tr}(X^HY)$，其中 $X,Y$ 是同形试探矩阵，不复用接收器 $A$。}{\code{chasi_matrix_wmmse>quadratic,qapply,precoder_admm,project}；例：两组权重16/273与17/273共同耗费同一TRP预算。源码还原；非全局最优保证。}
+\fe{C27}{ADMM变量分裂}{\min_{x,z}\ f(x)+I_{\mathcal C}(z)\quad\text{s.t. }x=z,\qquad\mathcal L_\rho=f(x)+I_{\mathcal C}(z)+\frac\rho2\|x-z+y\|_F^2-\frac\rho2\|y\|_F^2}{$x$ 无约束原变量，$z$ 可行副本，$y$ 缩放对偶，$\rho$ 罚参数；均与 $w$ 同形。}{\code{chasi_matrix_wmmse>precoder_admm}；初始化 $x=z=w^{(t)}$、$y=0$。源码还原，旧 PDF 截断修复。}
+\fe{C28}{CG求原变量}{\left(\nu_g\mathcal Q_g+\frac\rho2I\right)x_g=\nu_gB_g+\frac\rho2(z_g-y_g)}{固定 $A,\Omega,\eta,z,y$；CG 只近似解线性系统，内层最大8次默认；服务外块强制0。}{\code{chasi_matrix_wmmse>precoder_admm,cg}；$\rho=.05$ 默认；\code{cgResidual/cgDirection} 是数值迭代量，不是无线功率。}
+\fe{C29}{投影与对偶}{z^{+}=\Pi_{\mathcal C}(x^{+}+y),\quad y^{+}=y+x^{+}-z^{+},\quad z_{lg}=\frac{(x+y)_{lg}}{1+\lambda_l \nu_g}}{$\lambda_l\ge0$ 用二分使每TRP跨组约束满足，非服务块先置0；返回 $z$，不返回不可行 $x$。}{\code{chasi_matrix_wmmse>project,projectedpower,precoder_admm}；预算未超时 $z=x+y$。旧PDF裁切修复。}
+\fe{C30}{内层残差}{\begin{aligned}\mathrm{res}_{\rm pri}&=\|x-z\|_F,\qquad \mathrm{res}_{\rm dual}=\rho\|z-z^{\rm old}\|_F,\\ \epsilon_{\rm pri}&=\sqrt n\epsilon_{\rm abs}+\epsilon_{\rm rel}\max(\|x\|_F,\|z\|_F),\\ \epsilon_{\rm dual}&=\sqrt n\epsilon_{\rm abs}+\epsilon_{\rm rel}\rho\|y\|_F\end{aligned}}{$n$ 为全部复数预编码元素数；内停还须CG相对残差不超过 $\max(10^{-3},10\epsilon_{\rm rel})$。}{\code{chasi_matrix_wmmse>precoder_admm}；正式210/420运行最后一步原始与对偶残差均超过各自阈值，12次上限先到；返回功率可行 $z$ 并标记未收敛。源码还原，实测数值见验证记录。}
+\fe{C31}{WMMSE回溯与停止}{w^{\rm trial}=w+\tau_{\rm bt}(z-w),\quad\tau_{\rm bt}\in\{1,1/2,\ldots,2^{-11}\},\quad J(w^{\rm trial})\ge J(w)-10^{-7}\max(1,|J(w)|)}{接受后重算 $A,E,\Omega$ 和目标；外轮还检查目标相对变化、预编码相对变化和最近ADMM收敛；默认2次上限。}{\code{chasi_matrix_wmmse} 第41--103行；若无候选提高则保留旧 $w$ 并报告原因。}
+
+\section{真实信道、业务与输出：C32--C38}
+\fe{C32}{真信道组频谱效率}{\begin{aligned}F^{\rm true}_{kj}&=\sum_lH^{\rm true}_{kl}w_{lj},\\R^{\rm SE,true}_k&=\log_2\det\left(I+\sum_jF^{\rm true}_{kj}F^{\rm true,H}_{kj}\right)\\&\quad-\log_2\det\left(I+\sum_{j\ne k}F^{\rm true}_{kj}F^{\rm true,H}_{kj}\right)\end{aligned}}{bit/s/Hz；同一预编码、真实 H、无估计协方差惩罚。}{\code{chasi_evaluate>true_rates} 与 \code{chasi_matrix_wmmse>trueRates}；两用户时另一用户项只入第二个行列式。}
+\fe{C33}{RB聚合与容量代理}{R^{\rm physical}_k=\sum_g\nu_gR^{\rm SE,true}_{kg},\quad c_{kgt}=R^{\rm SE,true}_{kg}n_g^{\rm tx}(12\Delta f)\Delta t}{前者 bit/s/Hz，后者 bit/TTI；$\Delta f=30$ kHz，$\Delta t=1$ ms。}{\code{chasi_evaluate} 主循环；16RB、1 bit/s/Hz、1ms 给5760 bit。}
+\fe{C34}{有效忙时体验代理}{\begin{aligned}N_k^{\rm valid}&=\mathbf1\{\exists g:b_{kg}=1\}\sum_t\iota_{kt}^{\rm busy}(1-\iota_{kt}^{\rm terminal}),\\c_{kt}&=\sum_{g:b_{kg}=1}c_{kgt},\\R_{{\rm exp},k}&=\frac{\sum_t\iota_{kt}^{\rm busy}(1-\iota_{kt}^{\rm terminal})c_{kt}\kappa_{kt}}{N_k^{\rm valid}\Delta t}\end{aligned}}{$\kappa=1$ 普通、$2/7$ 尾段；$R_{\rm exp}$ bit/s 再除 $10^6$ 得Mbps；无有效样本为NaN。}{\code{chasi_evaluate}；末TTI不入分母。容量/业务代理，不是RLC ACK。}
+\fe{C35}{分位数与缺样本}{\operatorname{Quantile}_q=x_{(\lfloor v\rfloor+1)}+(v-\lfloor v\rfloor)(x_{(\lceil v\rceil+1)}-x_{(\lfloor v\rfloor+1)}),\quad v=(n-1)q/100}{线性插值经验分位；有效UE集合与无样本置零集合是两个不同分母。}{\code{chasi_evaluate>percentile_or_nan,cdf_candidates}；两个数1、3的5\%分位为1.1。}
+\fe{C36}{完整业务样本代理}{R^{\rm burst}=\frac{\sum_{t\in\mathcal T_{\rm eligible}}\mathrm{deliveredBits}_t}{|\mathcal T_{\rm eligible}|\Delta t}}{$\mathcal T_{\rm eligible}$ 排除终止与空缓冲；340 TTI 窗不足完整UE秒；不是已确认协议吞吐。}{\code{chasi_burst_metrics,chasi_second_metrics}；仅含一个终止TTI的 burst 无有效分母。}
+\fe{C37}{可选移动队列回放}{q_{t}^{+}=q_t+a_t,\quad D_t^{\rm delivered}=\min(q_t^+,c_t),\quad q_{t+1}=q_t^+-D_t^{\rm delivered}}{队列 bit，$a$ 到达、$c$ 物理容量代理；非正式默认静态求解，回放可独立记录。}{\code{chasi_time_evolution} TTI循环；到达10 bit、容量6 bit，则留下4 bit。}
+\fe{C38}{可选时间相关与更新}{\varphi_{\rm Doppler}=J_0(2\pi f_D\Delta t),\quad H_{t+\Delta t}=\varphi_{\rm Doppler}\sqrt{\beta_{t+\Delta t}/\beta_t}H_t+\sqrt{1-\varphi_{\rm Doppler}^2}\,\sqrt{\beta_{t+\Delta t}}L_{\rm rx}Z}{速度默认3 km/h；$\Delta t$ 由 \code{srsHopIntervalTti} 乘 \code{ttiMs} 得到，正式配置为20 ms；逐组SRS/CSI更新。}{\code{chasi_time_evolution}；可选 \code{online\_wmmse} 在快周期用新估计 H/C 重求 $w$，服务集、调度、rank 不变；仅1 UE确定性小例核查，非正式移动验收。项目Gauss--Markov假设。}
+
+\section*{C24--C38 实际函数接口与去向}
+\begingroup\small\sloppy
+以下局部函数均在所示文件中定义。\code{resources(g).ueIds(localUeIdx)}
+将组内数组轴映射到全局 $k$；\code{H/C/precoder} 在不同函数间不改变
+天线轴次序。$M,B,D,\mathcal Q,x,z,y$ 是优化系数、算子、副本和对偶量，
+不表示新增的物理发射信号。输出 MAT 的 $w,A,E,\Omega,\eta$ 字段名分别为
+\code{precoder/rxCombiner/mseMatrix/mseWeight/userWeight}。
+
+\subsubsection*{C24 二次系数。}\code{chasi_matrix_wmmse.m:409} 的
+\code{quadratic(H,C,rxCombiner,mseWeight,userWeights)} 由外轮调用；
+输入 $H[K_g,L,4,64],C[K_g,L,4,4],A,\Omega,\eta$，
+输出 \code{parts.M/B/D} 的维度依次为 $[K_g,4,4]$、
+$[L,K_g,64,r]$、$[L,1]$；下一消费者为 C25--C28。
+
+\subsubsection*{C25 隐式算子。}\code{chasi_matrix_wmmse.m:426} 的
+\code{qapply(H,parts,x,mask)} 由 CG 及诊断调用；
+输入 $x[L,K_g,64,r]$ 与 $\chi[L,K_g]$，计算跨 TRP 的
+$H^HMH$ 与 $Dx$；输出同形算子结果，传给 C28。
+
+\subsubsection*{C26--C27 子问题和分裂。}\code{chasi_matrix_wmmse.m:446} 的
+\code{precoder_admm(resources,parts,initial,cfg)} 由外轮调用；
+输入 $\nu_g,\chi_{lkg},P_l,\rho$ 和可行初始 $w$；
+输出可行副本 \code{z}、\code{history} 和 \code{converged}，
+下一消费者为 C31 回溯。$x,z,y$ 不是无线信号。
+
+\subsubsection*{C28 CG。}\code{chasi_matrix_wmmse.m:491} 的
+\code{cg(apply,b,x,maxiter,tol)} 由 ADMM 调用；
+输入隐式线性算子、右端、初值及迭代阈值，以复数共轭内积
+近似解线性系统；输出 $x[L,K_g,64,r]$ 给 C29。
+
+\subsubsection*{C29 功率投影。}\code{chasi_matrix_wmmse.m:505,524} 的
+\code{project(resources,x,budget)} 和
+\code{projectedpower(resources,x,l,lambda)} 由 ADMM 调用；
+服务外块归零，按 $\nu_g$ 二分每 TRP 的跨组乘子；
+输出可行 $z$ 及投影功率，下一步更新对偶并返回外轮。
+
+\subsubsection*{C30 内层停止。}\code{chasi_matrix_wmmse.m:446} 的
+\code{precoder_admm} 消费 $x,z,y,\rho$ 与 CG 相对残差，
+分别判断阈值和迭代上限；\code{history.primal/dual/cg_relative}
+进入 \code{solution.trajectory}，由 \code{chasi_run} 写入
+\code{summary.json}。达到上限不等于收敛。
+
+\subsubsection*{C31 外轮停止。}\code{chasi_matrix_wmmse.m:1} 的
+\code{chasi_matrix_wmmse(resources,cfg,initialPrecoder)}
+由 \code{chasi_run} 调用；输入 $\widehat H,C,\chi,\nu,r,P$，
+重算 $A,E,\Omega,\eta$ 并回溯 $w$；输出
+\code{solution.precoder} 给 C32--C34 和 MAT 文件。
+
+\subsubsection*{C32 真信道频谱效率。}\code{chasi_evaluate.m:137} 的
+\code{true_rates(h,precoder)} 由 \code{chasi_evaluate} 调用；
+输入 $H^{\rm true}[K_g,L,4,64]$ 和 $w[L,K_g,64,r]$，
+输出每组 $R_{\rm SE}[K_g,1]$ 给 C33。此处是协方差计算，非波形解码。
+
+\subsubsection*{C33 RB 聚合。}\code{chasi_evaluate.m:1} 的
+\code{chasi_evaluate(scene,solution,traffic)} 由
+\code{chasi_run} 调用；消费 $R_{\rm SE},\nu_g,n_g^{\rm tx},
+\Delta f,\Delta t$，输出每 UE 物理率和容量代理给 C34，
+并保存到 \code{summary.json} 与 \code{per_ue.csv}。
+
+\subsubsection*{C34 体验代理。}同一 \code{chasi_evaluate} 消费
+$b_{kg}$、忙时和终止 TTI 掩码、尾段需求权；按有效 UE 秒
+计算体验 Mbps、有效计数和缺样本，供 C35 和 JSON/CSV 使用。
+这是正式调用的业务代理，协议级 ACK 口径尚未证实。
+
+\subsubsection*{C35 分位与缺样本。}\code{chasi_evaluate.m:160,168} 的
+\code{percentile_or_nan(x,percentile)} 和
+\code{cdf_candidates(values,missing)} 消费有效 UE 率及缺样本数；
+输出线性分位、缺样本置零两套 CDF 候选，写入 \code{summary.json}。
+
+\subsubsection*{C36 独立完成样本检查。}
+\code{chasi_burst_metrics(delivered,busy,terminal,ttiMs)} 和
+\code{chasi_second_metrics(...)} 分别在同名 MATLAB 文件第1行；
+消费显式交付量、业务掩码和时长，输出独立样本代理。
+\code{chasi_run} 未调用，不是正式 ACK 口径。
+
+\subsubsection*{C37--C38 可选动态回放。}
+\code{chasi_time_evolution.m:1} 的
+\code{chasi_time_evolution(scene,solution,options,traffic)}
+仅在入口配置开启时调用；消费静态解、移动真/估计 $H$、
+SRS/CSI 事件和队列到达；输出回放轨迹及可选 MAT/JSON。
+默认快波束为 SVD 重置；可选 \code{online\_wmmse} 在固定服务与调度下重求矩阵预编码，目前仅有1 UE确定性小例证据。
+\endgroup
+
+\clearpage\section{旧 MATLAB 独立链：L01--L17}
+旧链来自 \code{matlab/core/cf_evaluate_candidate.m}，为保持当前字母一致，旧 DU 下标也记 $l$、旧全局 UE 下标记 $k$；这只重写教学符号，不改历史源码。其 $w^{\rm old}$ 的轴序 `[Tx,stream,DU,UE,RBG]`；虽与新 $w$ 同属预编码，但服务/调度、信道、功率约束与率定义不同，\textbf{不存在正式转换接口}。以下仅把旧式改写成统一符号，不表示算法已合并。旧 Q 为预设接收方向，记 $q^{\rm old}$，不能当作新 MMSE $A$。
+\fe{L01}{旧合成信道}{H^{\rm old}_{lk g}=\left(\frac{\max(d,d_{\min})}{d_0}\right)^{-\gamma/2}Z\quad(\text{可再全局RMS归一})}{旧 DU/UE/RBG 轴，非 C06 的真实场景 H。}{\code{cf_generate_scenario}；距离加倍时幅度按 $2^{-\gamma/2}$ 缩小。项目假设。}
+\fe{L02}{旧SRS误差}{e=\operatorname{clip}\!\left(\frac{m}{1+10^{\mathrm{Presinr}_{\rm dB}/10}}\right),\quad\widehat H=\sqrt{1-e}H+\sqrt e\,\operatorname{RMS}(H)Z}{Presinr dB、缺测乘子 $m$；不是 C11 的两端口矩阵后验。}{\code{cf_apply_srs_measurement_model}；低Presinr使 $e$ 增大。}
+\fe{L03}{九维外层候选}{x\in[0,1]^9\mapsto(\beta_{\rm PF},K_{\rm conn},\tau_b,\rho_{\rm link},\rho_{\rm power},r_{\max},\tau_r,p_{\rm repair},K_{\rm repair})}{外层归一化候选，经线性/对数/取整映射；不同于新WMMSE外轮。}{\code{cf_decode_candidate}；第2分量控制候选服务DU个数。}
+\fe{L04}{旧关联、rank、方向}{b^{\rm old}_{lkg}=\mathbf1\{l\in\mathrm{topK}_{l'}\|\widehat H_{l'kg}\|\},\quad r_{kg}=1+\mathbf1\{\sigma_2^2/(\sigma_1^2+\varepsilon)\ge\tau_r\}}{旧 $b[R,U,G]$ 混合候选关联与调度；$q^{\rm old}$ 取拼接H的左奇异向量。}{\code{cf_evaluate_candidate>buildInitialState}；谱第二值小时rank1。}
+\fe{L05}{旧MRT样式初值}{w^{\rm old}_{lksg}=\frac{\widehat H_{lkg}^Hq^{\rm old}_{ksg}}{\|\widehat H_{lkg}^Hq^{\rm old}_{ksg}\|+\varepsilon}\quad\text{后续功率缩放}}{先是单位方向，功率缩放及内轮后成为含幅度波束；新 $w$ 无直接赋值。}{\code{cf_evaluate_candidate>buildInitialState,normalizeAllDUPower}；4维接收方向乘 $4\times N_t$ 的H得 $N_t$ 列向量。}
+\fe{L06}{旧流级SINR}{z_{ks,jt}=h^{\rm eff,H}_{ks}w^{\rm old}_{jt},\quad\mathrm{SINR}_{ks}=\frac{|z_{ks,ks}|^2}{\sum_{jt}|z_{ks,jt}|^2-|z_{ks,ks}|^2+\sigma^2+\varepsilon}}{先用 $q^{\rm old}$ 投影为标量；与 C32 的多流logdet不同。}{\code{cf_evaluate_candidate>computeMetrics}；另一UE同RB的波束贡献进分母。}
+\fe{L07}{旧调度目标}{\mathrm{WPS}_{ks}=\delta_k\ln(1+\mathrm{SINR}_{ks}),\quad J_{\rm true}=\sum_{\rm scheduled,k,g,s}\log_2(1+\mathrm{SINR}_{ksg})}{WPS 为旧内轮辅助项，不是 MSE 权重；$J_{\rm true}$ 是旧外层主目标。}{\code{cf_evaluate_candidate>computeMetrics,cf_compute_true_objective}。}
+\fe{L08}{旧二次变换量}{\zeta_{ks}=\frac{\sqrt{\delta_k(1+\mathrm{SINR}_{ks})}\,z_{ks,ks}}{P_{\rm signal}+P_{\rm interf}+\sigma^2+\varepsilon}}{$\zeta$ 是旧标量复辅助量，不是新接收矩阵 $A$。}{\code{cf_evaluate_candidate} 内轮开头；信号幅度为零时 $\zeta=0$。}
+\fe{L09}{旧再加权}{\vartheta^{\rm sparse}_{lkg}=\frac1{p_{lkg}+\varepsilon_{\rm sparse}},\quad\delta_k=\frac1{(\overline R_k+\varepsilon_{\rm PF})^{\beta_{\rm PF}}},\quad\overline R\leftarrow.85\overline R+.15R}{旧功率稀疏权重、PF历史速率；不同于新 $\eta_k$。}{\code{cf_evaluate_candidate} 内轮；弱率UE的 $\delta$ 增大。}
+\fe{L10}{旧闭式波束更新}{T=\sum_{k,s}|\zeta_{ks}|^2h^{\rm eff}_{ks}h^{\rm eff,H}_{ks}+(\mathrm{penalty}+\mathrm{reg})I,\quad w^{\rm old,new}=T^{-1}\left(\zeta^*\sqrt{\delta(1+\mathrm{SINR})}h^{\rm eff}\right)}{这里 $T$ 是旧局部线性系统，非新接收矩阵A；旧代码按DU/RBG更新。}{\code{cf_evaluate_candidate>updateBeamformers}；正则化保证数值可解。旧PDF截断修复。}
+\fe{L11}{旧每DU/组功率}{p_{lkg}=\sum_s\|w^{\rm old}_{lksg}\|^2,\quad\sum_kp_{lkg}>P_{\max}\Rightarrow w\leftarrow w\sqrt{P_{\max}/\sum_kp_{lkg}}}{旧功率约束逐 DU/RBG，非 C26 跨组20W。}{\code{cf_evaluate_candidate>powerFromBeamformer,normalizeAllDUPower}；超限4倍时波束幅度乘1/2。}
+\fe{L12}{旧最终关联}{b^{\rm final}_{lkg}=\mathbf1\{p_{lkg}>\tau_b\}\quad\text{再做可选弱用户修复/归一}}{旧 $b$ 来自功率阈值，与新 $b_{kg}$ 的组调度语义不同。}{\code{cf_evaluate_candidate>repairWeakUsers} 等；功率低于阈值的服务被删除。}
+\fe{L13}{旧公平诊断}{\mathrm{Jain}=\frac{(\sum_kR_k)^2}{N_{\rm UE}\sum_kR_k^2+\varepsilon}}{无量纲；5/10分位旧实现为排序索引，非 C35 线性插值。}{\code{cf_evaluate_candidate>computeMetrics}；相同速率给接近1。}
+\fe{L14}{旧体验率代理}{R^{\rm exp,old}=\mathrm{ThpVolDl}/\mathrm{ThpTimeDl}}{按旧有效调度、缓冲及尾部样本选择；轴可能为RBG，非正式UE秒。}{\code{cf_compute_experience_rate}；无样本按旧规则置0。}
+\fe{L15}{旧目标与评分}{\mathrm{Objective}=\mathrm{proposed.SumRate},\quad\mathrm{Score}=\mathrm{benefit}-\mathrm{cost}-\mathrm{penalty}}{Objective 驱动旧搜索；Score 仅工程诊断/并列，真值重算用同一旧波束。}{\code{cf_evaluate_candidate} 第158--188行与 \code{evaluateOnTrueChannel}。}
+\fe{L16}{旧条件原生适配}{H^{\rm native}=H^{\rm old}_{\rm est}/\sqrt{\sigma^2},\quad C^{\rm native}=C^{\rm old}/\sigma^2}{只有旧候选显式启用时将其资源送矩阵求解器；不构成正式 CHASI 场景。}{\code{cf_chasi_native_resources,cf_evaluate_chasi_native_candidate}；输入旧 H 并不等于 C06 的正式 H。}
+\fe{L17}{旧外层搜索}{\begin{aligned}x^{\star}_{\rm old}&=\operatorname*{arg\,max}_{x\in\mathcal X_{\rm GA/PSO/SRACOS}}J_{\rm old}(x),\\J_{\rm old}&=\sum_{\rm scheduled,k,g,s}\log_2(1+\mathrm{SINR}^{\rm old}_{ksg}),\\J_{\rm adapter}&=\sum_{k\in\mathcal K}\log(1+R^{\rm est}_k/f)\quad\text{(仅启用可选适配时)}\end{aligned}}{旧路径常规 \code{ObjectiveName=J_true}；仅 \code{cfg.chasiNative.enabled} 时目标名改为 PF 聚合。两者同名输出字段 \code{BestObjective} 不表示同一数学目标。粒子速度与通信预编码无关。}{\code{cf_search} 开头及 \code{cf_chasi_native_resources}；正式 \code{chasi_run} 不调用 \code{cf_search}。}
+
+\clearpage\section{2023参考仓库：Z01--Z03（未进入正式入口）}
+原仓库 \code{WMMSE_ADMM_Func.py} 为固定 MR 方向、单流标量模型。此处是源码关系索引；论文原式号尚未核实，不能把下式编号当论文编号。
+\fe{Z01}{固定方向功率}{\begin{aligned}\mu_{lk}&=\sqrt{p_{lk}},\quad w^{\rm ref}_{lk}=\mu_{lk}f^{\rm MR}_{lk},\\\mathrm{SINR}_k&=\frac{|\sum_l\mu_{lk}a_{lk}|^2}{\sum_{i,l,m}\mu_{li}B_{k,i,lm}\mu_{mi}+\sigma_k^2}\end{aligned}}{$f^{\rm MR}$ 固定方向，$\mu$ 只调幅度；并非当前自由复矩阵 $w$。}{\code{WMMSE_ADMM_Func.py} 第17--131行；两个AP同相时分子先叠幅度。}
+\fe{Z02}{参考标量接收与权重}{v_k=\sqrt{n_k}/D_k^{\rm ref},\quad e_k=1-n_k/D_k^{\rm ref},\quad\omega_k=e_k^{-1}}{$v_k$ 是接收器标量，不是当前旧记号 V 或当前 $w$；$D_k^{\rm ref}$ 是参考式分母，非距离；$\omega$ 是MSE权重。}{同上；$e=.5$ 时 $\omega=2$。}
+\fe{Z03}{参考ADMM投影}{q_l=\Pi_{\|\cdot\|_2\le\sqrt{P_l}}(\mu_l+g_l),\quad\mathrm{stop}:\ \|\mu-q\|_F/\|\mu\|_F\le\varepsilon}{每AP欧氏球，$g$ 为对偶；不同于当前跨组加权投影与双残差停止。}{同上；超球半径2倍则投影幅度减半。}
+
+\clearpage\section{非均匀误差与拟研究鲁棒性：R01--R04}
+本节新编号不改变旧编号。R01--R02 是当前\code{matrix_statistical}分支的等效统计模型；R03--R04 是待标定的研究假设，不能由 $C$ 自动推出。
+\fe{R01}{观测质量到条件协方差}{\begin{aligned}n_{s,klg}&=\beta_{kl}10^{-\gamma_{s,klg}/10}e^{2t_{s,g}/\tau},\\ C_{klg}&=\left(C_{0,kl}^{-1}+n_{c,klg}^{-1}I_4+n_{s,klg}^{-1}P_{\rm srs}^{H}P_{\rm srs}\right)^{-1}\end{aligned}}{$\gamma_s$ dB、年龄 $t_s$ ms；$C_{klg}\in\mathbb C^{4\times4}$，无量纲噪声归一化协方差。质量、年龄、链路增益的非同一数值导致非均匀 $C$。复用导频时改用 C12，不可直接套独立式。}{\code{chasi_generate_scene.m:47-112} 生成 $\widehat H,C$；输入见 C10--C12，输出供 R02；项目高斯假设，已有静态后验诊断，未做现场 SRS 校准。}
+\fe{R02}{统计误差进入求解}{\begin{aligned}R^{yy}_{kg}&=I+\sum_jF_{kjg}F_{kjg}^{H}+\sum_l p_{lg}C_{klg},\\D_{lg}&=\sum_k\operatorname{tr}(A_{kg}\eta_{kg}\Omega_{kg}A_{kg}^{H}C_{klg})\end{aligned}}{$R^{yy}[4,4]$、$D$ 为标量；$p_{lg}$ W，$A[4,r]$，$\Omega[r,r]$。误差项分别进入接收/MSE 和预编码二次项；不是最坏情况优化。}{\code{chasi_matrix_wmmse>state:380,quadratic:409}；\code{matrix_statistical} 使用每链路 $C$；保存场景同输入求解对拍见验证记录。}
+\fe{R03}{候选椭球定义}{\mathcal U_{klg}(\alpha)=\{\Delta H:\operatorname{vec}(\Delta H)^{H}\Sigma_{klg}^{-1}\operatorname{vec}(\Delta H)\le\chi^2_{d,1-\alpha}\}}{$\Sigma[256,256]$ 若完整矢量化 $4\times64$ 复信道；半径与覆盖率须用独立测量校准。仅 $4\times4$ 的边际 $C$ 不给出该完整联合协方差或有效椭球半径。}{当前正式入口无此集合、无 $\alpha$ 标定、无最坏情况内层；源自系统方案研究方向，项目拟议数学定义。}
+\fe{R04}{拟研究风险目标}{\max_{w\in\mathcal C}\ \min_{\Delta H\in\mathcal U(\alpha)}J_{\rm PF}(w;\widehat H+\Delta H)}{此为一种待评估的风险形式，$J_{\rm PF}$ 必须与 C22 的分支、同一调度和功率口径绑定；内层求解、可扩展性及体验 KPI 尚无实现/验证。}{拟研究；不可把 R04 画成 \code{chasi_run} 当前调用路径。}
+
+\end{document}
