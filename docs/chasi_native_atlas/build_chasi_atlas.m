@@ -199,11 +199,11 @@ case 10
 case 11
     t={'MATLAB config','MATLAB scene','MATLAB solver','Python config','Python scenario','Python solver'};
     s={'formal native','formal native','formal native','independent reference','not called by MATLAB','explicit-input parity only'};
-    footer='No formal Python bridge. Five tiny fixtures pass; saved 420-UE full solve passes explicit-input parity. 210-UE final Omega misses absolute threshold by 1.98e-6.';
+    footer='No formal Python bridge. Old saved 210-UE Omega fails 1e-5 gate; double-precision MATLAB recomputation passes the same gate. New full runs still hit iteration caps.';
 case 12
-    t={'static w/Htrue','optional time step','CSI age update','fast SVD reset','queue replay','online WMMSE'};
-    s={'formal default','timeEvolutionTti>0','modeled observation','not full solver','delivered bits','NOT implemented'};
-    footer='Replay step follows SRS hop interval (default 20 TTI). Saved 210-UE frozen-beam queue parity passes; mobility and online WMMSE remain unverified.';
+    t={'static w/Htrue','optional time step','CSI age update','fast SVD reset','true H rate + queue','online WMMSE'};
+    s={'formal default','timeEvolutionTti>0','modeled observation','optional shortcut','delivered bits','validated: 1-UE mini'};
+    footer='Configured SRS hop time. Frozen 210-UE queue parity passes; online WMMSE uses new CSI but fixed schedule/association/rank. Formal mobile validation pending.';
 end
 for i=1:6
     row=ceil(i/3);col=mod(i-1,3)+1;x=17+33*(col-1);y=70-30*(row-1);
@@ -227,8 +227,9 @@ elseif n==9
 elseif n==12
     line(a,[83 83 17],[64 53 53],'Color',[.12 .37 .63],'LineWidth',1.5);
     arr(a,17,53,17,46,'CSI to SVD',[.12 .37 .63]);
+    arr(a,83,64,83,46,'CSI to WMMSE',[.12 .37 .63]);
+    arr(a,69.4,40,63.6,40,'updated w',[.12 .55 .4]);
     math(a,50,22,'H^{+}=\varphi\sqrt{\beta^{+}/\beta}H+\sqrt{(1-\varphi^2)\beta^{+}}L_{\rm rx}Z',13);
-    line(a,[70 96],[31 31],'Color',[.78 .29 .27],'LineStyle','--');
 end
 foot(a,footer);
 end

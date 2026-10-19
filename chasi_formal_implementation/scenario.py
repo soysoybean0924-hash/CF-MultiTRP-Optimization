@@ -36,6 +36,23 @@ class Scenario:
 
 
 def _geometry(cfg, rng):
+    angles=np.empty((21,cfg.users_per_cell))
+    radii=np.empty_like(angles)
+    for l in range(21):
+        angles[l]=rng.random(cfg.users_per_cell)
+        radii[l]=rng.random(cfg.users_per_cell)
+    return _geometry_from_samples(cfg,angles,radii)
+
+
+def _geometry_from_samples(cfg, angle_uniform, radius_uniform):
+    """Pure 21-TRP topology map; uniform draws are [TRP, UE per cell]."""
+    if (np.shape(angle_uniform)!=(21,cfg.users_per_cell) or
+            np.shape(radius_uniform)!=(21,cfg.users_per_cell) or
+            not np.all(np.isfinite(angle_uniform)) or
+            not np.all(np.isfinite(radius_uniform)) or
+            np.any((angle_uniform<0)|(angle_uniform>1)) or
+            np.any((radius_uniform<0)|(radius_uniform>1))):
+        raise ValueError('invalid geometry uniform samples')
     center = np.array([450.0, 450.0])
     sites = [center]
     sites += [center + 300.0 * np.array([np.cos(i*np.pi/3), np.sin(i*np.pi/3)]) for i in range(6)]
@@ -45,8 +62,8 @@ def _geometry(cfg, rng):
     ux = np.zeros((cfg.users, 2))
     for l in range(21):
         angle = (l % 3) * 2*np.pi/3
-        a = angle + rng.uniform(-np.pi/3, np.pi/3, cfg.users_per_cell)
-        radius = 25 + 125*np.sqrt(rng.random(cfg.users_per_cell))
+        a = angle + (angle_uniform[l]-.5)*(2*np.pi/3)
+        radius = 25 + 125*np.sqrt(radius_uniform[l])
         ux[l*cfg.users_per_cell:(l+1)*cfg.users_per_cell] = xy[l] + radius[:, None] * np.stack((np.cos(a), np.sin(a)), axis=1)
     return xy, ux, home
 
@@ -181,6 +198,7 @@ def generate(cfg):
     srs_reference_gain=float(np.median(gains[np.arange(cfg.users),home]))
     reuse_rng=np.random.default_rng(cfg.seed+204)
     resources = []
+    hop_tti = cfg.srs_period_tti // cfg.srs_hops
     for g, ((rb_start, rb_count), users) in enumerate(zip(cfg.rb_groups, users_by_group)):
         k_count = len(users)
         serve = np.zeros((21, k_count), bool)
@@ -188,7 +206,7 @@ def generate(cfg):
         h_true = np.zeros_like(h_est)
         err = np.zeros((k_count, 21, 4, 4), np.complex64)
         omitted_gain = np.zeros((k_count,21),np.float32)
-        first_measurement = g * 20
+        first_measurement = g * hop_tti
         measured = cfg.decision_tti >= first_measurement
         if measured:
             cycles = (cfg.decision_tti-first_measurement)//cfg.srs_period_tti
@@ -257,8 +275,8 @@ def generate(cfg):
     # Traffic remains the half-open window [0, duration_tti).
     for t in range(cfg.duration_tti+1):
         event = {"tti": t, "ms": t*cfg.tti_ms}
-        if t % 20 == 0:
-            event["srs_group"] = (t//20) % 17
+        if t % hop_tti == 0:
+            event["srs_group"] = (t//hop_tti) % cfg.srs_hops
         if t % cfg.csi_rs_period_tti == 0:
             event["csi_rs"] = True
         events.append(event)

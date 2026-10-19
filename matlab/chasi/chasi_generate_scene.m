@@ -140,20 +140,13 @@ scene=struct('config',cfg,'trp_xy',trp,'ue_xy',ue,'home',home, ...
 end
 
 function [trp,ue,home]=geometry(cfg,stream)
-site=[450 450];
-angles=(0:5)'*pi/3;
-site=[site;site+300*[cos(angles) sin(angles)]];
-trp=repelem(site,cfg.sectorsPerSite,1);
-home=repelem((1:cfg.trps)',cfg.usersPerCell);
-ue=zeros(cfg.users,2);
+angleUniform=zeros(cfg.usersPerCell,cfg.trps);
+radiusUniform=zeros(cfg.usersPerCell,cfg.trps);
 for l=1:cfg.trps
-    randUniformAngle=rand(stream,cfg.usersPerCell,1);
-    randUniformRadius=rand(stream,cfg.usersPerCell,1);
-    azimuthRad=mod(l-1,3)*2*pi/3+(randUniformAngle-0.5)*2*pi/3;
-    radius=25+125*sqrt(randUniformRadius);
-    idx=(l-1)*cfg.usersPerCell+(1:cfg.usersPerCell);
-    ue(idx,:)=trp(l,:)+radius.*[cos(azimuthRad) sin(azimuthRad)];
+    angleUniform(:,l)=rand(stream,cfg.usersPerCell,1);
+    radiusUniform(:,l)=rand(stream,cfg.usersPerCell,1);
 end
+[trp,ue,home]=chasi_geometry_from_samples(cfg,angleUniform,radiusUniform);
 end
 
 function [users,ratio,active,txCounts]=schedule(cfg,stream,home)

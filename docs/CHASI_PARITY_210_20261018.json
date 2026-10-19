@@ -1,0 +1,71 @@
+{
+  "users": 210,
+  "input": "tmp\\chasi_formal_shared_210_current.mat",
+  "h_axis_order": "local UE, TRP, DL Rx, TRP Tx",
+  "group_ue_count_range": [
+    10,
+    26
+  ],
+  "initial_objective_abs": 1.7763568394002505e-15,
+  "current_initial_objective_abs": 1.7763568394002505e-15,
+  "initial_state_components_max_abs": {
+    "rxCombiner": 5.013320832966251e-16,
+    "mseWeight": 5.329070520048885e-15,
+    "mseMatrix": 5.551115123126265e-16
+  },
+  "final_fixed_precoder_state_max_abs": 2.3092638912203256e-14,
+  "final_fixed_precoder_state_components": {
+    "rxCombiner": 4.2599383682148185e-16,
+    "mseWeight": 2.3092638912203256e-14,
+    "mseMatrix": 5.828670879892967e-16
+  },
+  "current_fixed_precoder_state_components": {
+    "rxCombiner": 4.2599383682148185e-16,
+    "mseWeight": 2.3092638912203256e-14,
+    "mseMatrix": 5.828670879892967e-16
+  },
+  "current_fixed_state_pass_original_gate": true,
+  "historical_initial_matches_regenerated": true,
+  "mse_weight_relative_to_max_magnitude": 2.341703212984838e-15,
+  "final_fixed_precoder_objective_abs": 7.105427357601002e-15,
+  "final_fixed_precoder_evaluation_abs": 9.030654126718218e-07,
+  "power_violation_watt": 0.0,
+  "initial_quadratic_components_max_abs": {
+    "M": 4.163341424538919e-16,
+    "B": 9.305364597889227e-16,
+    "D": 5.551115123125783e-17,
+    "quadraticAppliedToPrecoder": 8.326672684688674e-16
+  },
+  "tolerances": {
+    "initial_objective_abs": 1e-06,
+    "final_fixed_precoder_state_max_abs": 1e-05,
+    "initial_state_max_abs": 1e-05,
+    "final_fixed_precoder_evaluation_abs": 0.0001,
+    "full_objective_abs": 0.0001,
+    "full_precoder_max_abs": 0.002,
+    "full_true_sum_se_abs": 0.0001,
+    "power_violation_watt": 1e-06,
+    "initial_quadratic_max_abs": 0.0001,
+    "admm_trace_max_abs": 0.0001,
+    "cg_trace_max_abs": 0.001
+  },
+  "python_solver_seconds": 39.6617812,
+  "full_objective_abs": 7.105427357601002e-15,
+  "full_precoder_max_abs": 2.8315040608995664e-14,
+  "full_true_sum_se_abs": 9.030654126718218e-07,
+  "python_stop_reason": "max_outer_iterations_with_latest_inexact_admm",
+  "matlab_stop_reason": "max_outer_iterations_with_latest_inexact_admm",
+  "full_trace_components_max_abs": {
+    "objective": 7.105427357601002e-15,
+    "accepted_step": 0.0,
+    "precoder_change": 5.551115123125783e-17,
+    "primal": 8.326672684688674e-16,
+    "dual": 1.1102230246251565e-16,
+    "eps_primal": 3.469446951953614e-18,
+    "eps_dual": 0.0,
+    "cg_relative": 2.91518247258829e-16
+  },
+  "full_scale_pass": true,
+  "fixed_input_pass": true,
+  "current_fixed_input_pass": true
+}

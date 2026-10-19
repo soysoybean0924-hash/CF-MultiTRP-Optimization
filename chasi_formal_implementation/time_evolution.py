@@ -45,12 +45,13 @@ def simulate(scene,solution,window_tti=1000,offered_mbps=5.0,
              fast_period_tti=40,slow_period_tti=340,beam_policy='estimated_svd',
              traffic_seed=None):
     cfg=scene.config
-    if window_tti<340 or window_tti%20:
-        raise ValueError('window_tti must be >=340 and divisible by 20')
+    hop_tti=cfg.srs_period_tti//cfg.srs_hops
+    if window_tti<cfg.srs_period_tti or window_tti%hop_tti:
+        raise ValueError('window_tti must cover one SRS period and align to hop interval')
     if offered_mbps<=0:
         raise ValueError('offered_mbps must be positive')
-    if fast_period_tti<=0 or slow_period_tti<=0 or fast_period_tti%20 or slow_period_tti%20:
-        raise ValueError('update periods must align to 20-TTI hopping blocks')
+    if fast_period_tti<=0 or slow_period_tti<=0 or fast_period_tti%hop_tti or slow_period_tti%hop_tti:
+        raise ValueError('update periods must align to SRS hopping blocks')
     if beam_policy not in ('frozen','estimated_svd'):
         raise ValueError('unknown beam_policy')
     if traffic_seed is None:
@@ -85,14 +86,14 @@ def simulate(scene,solution,window_tti=1000,offered_mbps=5.0,
     physical_sum=0.0
     events=[]
     f_d=(cfg.speed_kmh/3.6)*cfg.frequency_ghz*1e9/299792458.0
-    alpha=float(j0(2*np.pi*f_d*20*cfg.tti_ms/1000))
+    alpha=float(j0(2*np.pi*f_d*hop_tti*cfg.tti_ms/1000))
     chol=np.linalg.cholesky(RX)
     link_masks=[np.any(abs(x)>0,axis=(2,3)) for x in truth]
     max_violation=0.0
-    for t in range(0,window_tti,20):
+    for t in range(0,window_tti,hop_tti):
         if t:
             old_xy=ue_xy.copy()
-            ue_xy+=velocity*(20*cfg.tti_ms/1000)
+            ue_xy+=velocity*(hop_tti*cfg.tti_ms/1000)
             for gi,r in enumerate(resources):
                 if not len(r.users):continue
                 for ki,u in enumerate(r.users):
@@ -107,7 +108,7 @@ def simulate(scene,solution,window_tti=1000,offered_mbps=5.0,
                         est[gi][ki,l]=alpha*drift*est[gi][ki,l]
                         cov[gi][ki,l]=(alpha*drift)**2*cov[gi][ki,l]+(1-alpha*alpha)*new_gain*RX
                         gain[gi][ki,l]=new_gain
-        srs_group=(t//20)%17
+        srs_group=(t//hop_tti)%cfg.srs_hops
         csi_event=(t%cfg.csi_rs_period_tti==0)
         if t:
             for gi,r in enumerate(resources):
@@ -146,14 +147,14 @@ def simulate(scene,solution,window_tti=1000,offered_mbps=5.0,
             if not len(r.users):continue
             rr=rates(truth[gi].astype(complex),v[gi])
             capacity[r.users]+=rr*(273*_weight(r))*12*cfg.scs_hz*cfg.tti_ms/1000
-            physical_sum+=float(np.sum(rr)*_weight(r))*20/window_tti
-            allocated_rb_tti[r.users]+=(273*_weight(r))*20
+            physical_sum+=float(np.sum(rr)*_weight(r))*hop_tti/window_tti
+            allocated_rb_tti[r.users]+=(273*_weight(r))*hop_tti
             tx=np.any(abs(v[gi])>1e-10,axis=(2,3))
             for l in range(cfg.trps):
                 if np.any(tx[l]):
                     occupied_rb_tti+=(273*_weight(r))*np.count_nonzero(
-                        np.any(busy[r.users,t:t+20][tx[l]],axis=0))
-        for tt in range(t,t+20):
+                        np.any(busy[r.users,t:t+hop_tti][tx[l]],axis=0))
+        for tt in range(t,t+hop_tti):
             incoming=busy[:,tt]*np.where(tail[:,tt],2/7,1)*offered_mbps*1e6*cfg.tti_ms/1000
             queue+=incoming
             offered+=incoming

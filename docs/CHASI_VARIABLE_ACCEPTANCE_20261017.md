@@ -1,10 +1,14 @@
 # CHASI 原生 MATLAB 变量与参数验收
 
-源码基线：`9527089`（SRS 末跳修订）；正式入口 `matlab/chasi/chasi_run.m:1`。本表只对 `matlab/chasi/` 的正式链下结论；旧 `matlab/core/` 和独立 Python 参考链的同名字段不自动继承此语义。状态“通过”指静态维度/消费者核查及本轮小例运行，不意味着华为物理验收。行号指该基线源码。
+求解双精度基线：`9b591cc`；本轮又把显式随机样本几何映射接入正式场景，并在正式入口增加可选动态 `timeEvolutionBeamPolicy`。正式入口 `matlab/chasi/chasi_run.m:1`。本表只对 `matlab/chasi/` 的正式链下结论；旧 `matlab/core/` 和独立 Python 参考链的同名字段不自动继承此语义。状态“通过”指静态维度/消费者核查及本轮小例运行，不意味着华为物理验收。下表旧行号来自 `9527089`，精度和几何修订会移动行号；阅读以函数名为准。
 
 ## 阅读规则
 
 `g=1..17` 为资源组，`l=1..21` 为 TRP，`k=1..N_UE` 为全局接收 UE，`j` 为求和中的全局数据 UE。组内 `localUeIdx=1..K_g` 通过 `resources(g).ueIds(localUeIdx)` 映射到全局 `k` 或 `j`。MATLAB 数组为一基索引。`H(k,l,:,:)` 表示 `[4 Rx,64 Tx]`；`precoder(l,localUeIdx,:,:)` 表示 `[64 Tx,r]`。`'` 是复共轭转置，`.'` 才是普通转置。
+
+**存储／运算精度边界：**场景为节省内存把 `H`、`H_true` 存为 `complex single`，`C_stat` 存为 `single`（维度、物理含义不变）；当前 `chasi_matrix_wmmse>prepareResources` 在进入初始化、A/E/Ω、二次项与 ADMM 之前把这些字段转换为 `double`。`w,A,E,Omega` 的数值运算与输出为复双精度。旧 `2026-10-17` 已保存 Ω 仍反映混合精度版本，其210 UE固定状态对拍超原门槛；新同输入重算和修复版210 UE运行须分开评价，详见验证记录。真信道评价 `chasi_evaluate` 消费原场景 H_true 的存储值并在矩阵运算中使用其现有路径，不能把场景的 single 存储误写成“物理信道只有单精度”。
+
+**场景与动态字段：**正式 `chasi_generate_scene>geometry` 按原顺序生成 `[usersPerCell,21]` 的角度/半径均匀样本，`chasi_geometry_from_samples` 将其映射到站、TRP、UE位置与 `home`；同样的显式样本与 Python 参考几何映射对拍，坐标最大差 `1.137e-13 m`。`timeEvolutionBeamPolicy` 仅在 `timeEvolutionTti>0` 时消费，默认 `estimated_svd`；`online_wmmse` 在新 CSI 后重求 `precoder`，记录 `online_wmmse_update`、`online_wmmse_reason` 和 `online_wmmse_precoder_change` 到回放事件及 MAT。该在线小例尚未覆盖正式规模或动态关联/调度/rank 反馈。
 
 ## 正式链通信变量全生命周期
 

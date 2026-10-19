@@ -1,5 +1,5 @@
 function result = chasi_time_evolution(scene,solution,options,traffic)
-%CHASI_TIME_EVOLUTION Mobile fading, pilot updates, frozen/fast beams, queue.
+%CHASI_TIME_EVOLUTION Mobile fading, pilot updates, optional online WMMSE, queue.
 %   This is the RX-correlated Gauss-Markov surrogate, not TR 38.901 7.5.
 if nargin < 3, options = struct(); end
 cfg = scene.config;
@@ -14,8 +14,13 @@ if windowTti < cfg.srsPeriodTti || mod(windowTti,hopTti) ~= 0 || offeredMbps <= 
         fastPeriod <= 0 || slowPeriod <= 0 || mod(fastPeriod,hopTti) || mod(slowPeriod,hopTti)
     error('chasi_time_evolution:Options','Invalid time window, load or update period.');
 end
-if ~ismember(beamPolicy,{'frozen','estimated_svd'})
+if ~ismember(beamPolicy,{'frozen','estimated_svd','online_wmmse'})
     error('chasi_time_evolution:BeamPolicy','Unknown beam policy.');
+end
+if strcmp(beamPolicy,'online_wmmse') && ...
+        (~isfield(solution,'branch') || ~startsWith(string(solution.branch),'matrix_'))
+    error('chasi_time_evolution:OnlineBranch',...
+        'Online WMMSE requires a saved matrix solver branch.');
 end
 if nargin < 4 || isempty(traffic)
     [busy,tail,terminal] = chasi_traffic(cfg.users,windowTti,trafficSeed, ...
@@ -63,7 +68,9 @@ rxCorrelation = 0.35.^abs((1:4)'-(1:4)); cholRx = chol(rxCorrelation,'lower');
 events = repmat(struct('tti',0,'srs_group',0,'csi_rs',false, ...
     'fast_beam_update',false,'slow_association_review',false, ...
     'association_changes_deferred',0,'mean_displacement_m',0, ...
-    'max_trp_power_watt',0),windowTti/hopTti,1);
+    'max_trp_power_watt',0,'online_wmmse_update',false,...
+    'online_wmmse_reason','','online_wmmse_converged',false,...
+    'online_wmmse_precoder_change',0),windowTti/hopTti,1);
 ticId = tic;
 for t = 0:hopTti:windowTti-hopTti
     if t > 0
@@ -117,9 +124,29 @@ for t = 0:hopTti:windowTti-hopTti
         end
     end
     fast = strcmp(beamPolicy,'estimated_svd') && t>0 && mod(t,fastPeriod)==0;
+    online = strcmp(beamPolicy,'online_wmmse') && t>0 && mod(t,fastPeriod)==0;
     slow = t>0 && mod(t,slowPeriod)==0;
     if fast
         precoder = fast_svd(resources,est,precoder,cfg.powerWattPerTrp);
+    end
+    if online
+        currentResources=resources;
+        for g=1:G
+            currentResources(g).H=est{g};
+            currentResources(g).H_true=truth{g};
+            currentResources(g).C=cov{g};
+            currentResources(g).C_stat=cov{g};
+            currentResources(g).prior_gain=gain{g};
+        end
+        updated=chasi_matrix_wmmse(currentResources,...
+            chasi_solver_config(cfg,char(solution.branch)),precoder);
+        changeSquared=0; baseSquared=0;
+        for g=1:G
+            changeSquared=changeSquared+sum(abs(updated.precoder{g}-precoder{g}).^2,'all');
+            baseSquared=baseSquared+sum(abs(precoder{g}).^2,'all');
+        end
+        onlinePrecoderChange=sqrt(changeSquared)/max(1,sqrt(baseSquared));
+        precoder=updated.precoder;
     end
     changes = 0;
     if slow
@@ -172,6 +199,12 @@ for t = 0:hopTti:windowTti-hopTti
     e = t/hopTti+1;
     events(e).tti = t; events(e).srs_group = srsGroup;
     events(e).csi_rs = csiEvent; events(e).fast_beam_update = fast;
+    events(e).online_wmmse_update = online;
+    if online
+        events(e).online_wmmse_reason = updated.reason;
+        events(e).online_wmmse_converged = updated.converged;
+        events(e).online_wmmse_precoder_change = onlinePrecoderChange;
+    end
     events(e).slow_association_review = slow;
     events(e).association_changes_deferred = changes;
     events(e).mean_displacement_m = mean(vecnorm(ueXy-scene.ue_xy,2,2));
@@ -183,6 +216,8 @@ zeroExperience = experience; zeroExperience(~validUsers) = 0;
 result = struct();
 result.model = 'mobile RX-correlated Gauss-Markov; J0(2pi fD Delta); not full 38.901';
 if strcmp(beamPolicy,'frozen'), decision = 'initial power/beam frozen';
+elseif strcmp(beamPolicy,'online_wmmse')
+    decision = 'matrix WMMSE recomputed at fast period using updated CSI; schedule/service/rank fixed';
 else, decision = 'initial matrix WMMSE power; estimated-SVD fast beam refresh'; end
 result.decision = sprintf('%s; association review every %d TTI with changes deferred',...
     decision,slowPeriod);
@@ -202,6 +237,7 @@ result.doppler_hz = fd; result.srs_hop_interval_tti = hopTti;
 result.fading_correlation_per_srs_hop = timeCorrelation;
 result.srs_events = numel(events); result.csi_rs_events = nnz([events.csi_rs]);
 result.fast_updates = nnz([events.fast_beam_update]);
+result.online_wmmse_updates = nnz([events.online_wmmse_update]);
 result.slow_reviews = nnz([events.slow_association_review]);
 result.deferred_association_changes = sum([events.association_changes_deferred]);
 result.users_with_valid_samples = nnz(validUsers);

@@ -4,7 +4,7 @@
 
 交互调用图 `interactive_calls.html` 仅为补充候选件。Archify 的结构、来源和交付检查通过，但 Chrome 临时配置清理失败使浏览器检查门槛未通过；本轮验收以 MATLAB 图 01 和本图集 PDF 为准。
 
-代码基础为已保存的 `9527089` 数值运行，本次又核查并消歧摘要字段；原始公式源 [CHASI_UNIFIED_TRACE.tex](../CHASI_UNIFIED_TRACE.tex)，[可检索 PDF](../CHASI_UNIFIED_TRACE.pdf)，[按编号跳转的 HTML](formula_reader.html)；变量与参数 [验收表](../CHASI_VARIABLE_ACCEPTANCE_20261017.md)，正式规模同输入误差见 [验证记录](../CHASI_VALIDATION_20261017.md)。图源统一为 [build_chasi_atlas.m](build_chasi_atlas.m)，MATLAB 执行 `addpath('docs/chasi_native_atlas'); build_chasi_atlas`，生成各图 PNG 预览和矢量 PDF。图是教学布局；真实抽样坐标和真实服务关联只认运行所得 `scene_manifest.json`。
+图 01–10 最初依据 `9527089` 数值运行制作；图 11–12 又按 `9b591cc` 双精度修复、正式210/420 UE实测和可选动态1 UE小例更新。原始公式源 [CHASI_UNIFIED_TRACE.tex](../CHASI_UNIFIED_TRACE.tex)，[可检索 PDF](../CHASI_UNIFIED_TRACE.pdf)，[按编号跳转的 HTML](formula_reader.html)；变量与参数 [验收表](../CHASI_VARIABLE_ACCEPTANCE_20261017.md)，正式规模同输入误差见 [验证记录](../CHASI_VALIDATION_20261017.md)。图源统一为 [build_chasi_atlas.m](build_chasi_atlas.m)，MATLAB 执行 `addpath('docs/chasi_native_atlas'); build_chasi_atlas`，生成各图 PNG 预览和矢量 PDF。图是教学布局；真实抽样坐标和真实服务关联只认运行所得 `scene_manifest.json`。
 
 | 图 | 要回答的问题 | 公式 | 源码入口与核查边界 |
 |---|---|---|---|
@@ -18,8 +18,8 @@
 | [08 下行泳道](08_signal.pdf) | 谁算预编码，谁发送，UE怎样接收？ | C15–C19,C32 | `chasi_matrix_wmmse.m:374-400`; `chasi_evaluate.m:137-154`；仅协方差等效计算 |
 | [09 指标](09_metrics.pdf) | 真信道如何进入SE、业务代理和5%？ | C32–C38 | `chasi_evaluate.m:43-136,137-205`；非正式TS28.554证明 |
 | [10 生命周期](10_lifecycle.pdf) | 变量最后保存到何处？ | C01–C38 | `chasi_run.m:39-142`；v3 MAT字段分离 w 与 Ω |
-| [11 语言对应](11_languages.pdf) | MATLAB 与 Python 是否桥接？ | C14–C31,L01–L17,Z01–Z03 | 两条独立链；正式420 UE同场景求解对拍通过，210 UE Ω绝对门槛未过；场景随机生成尚未对拍 |
-| [12 动态边界](12_dynamic.pdf) | 回放与真正在线优化的界线？ | C37,C38 | `chasi_time_evolution.m:1-425`；SRS步长按配置，210 UE零速度/冻结波束业务回放同输入对拍通过；在线WMMSE重求未实现 |
+| [11 语言对应](11_languages.pdf) | MATLAB 与 Python 是否桥接？ | C14–C31,L01–L17,Z01–Z03 | 两条独立链；历史210 UE保存 Ω 绝对门槛未过，双精度修复后同一 w 重算已过，修复版210 UE全链已运行但未收敛；场景随机生成尚未对拍 |
+| [12 动态边界](12_dynamic.pdf) | 回放与在线优化的实际界线？ | C37,C38 | `chasi_time_evolution.m`；SRS步长按配置，210 UE零速度/冻结波束业务回放同输入对拍通过；可选在线WMMSE已在1 UE确定性小例核查，正式移动规模及资源重新决策未验证 |
 
 上述 PDF 同名 PNG 便于预览。重要箭头的含义：蓝实线为程序／数组更新，灰实线为逻辑前传，绿虚线为无线服务或已验证传递，红点线为干扰或尚缺映射；各图脚注说明例外。物理箭头并不表示代码中产生了波形。
 

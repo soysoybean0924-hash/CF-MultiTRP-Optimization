@@ -1,0 +1,64 @@
+{
+  "input": "tmp\\chasi_formal_shared_210_current.mat",
+  "users": 210,
+  "scope": "fixed initial A/Omega; same explicit H/C/w; no outer update",
+  "fixed_objective_start": -20.646929697487806,
+  "runs": [
+    {
+      "admm_cap": 12,
+      "actual_iterations": 12,
+      "converged": false,
+      "seconds": 18.303335099999998,
+      "fixed_objective": -35.284834614483195,
+      "fixed_objective_change": -14.637904916995389,
+      "primal": 0.0,
+      "eps_primal": 0.015935338878919264,
+      "dual": 0.09172731541930901,
+      "eps_dual": 0.008889724405177026,
+      "cg_relative": 2.8772105041567846e-05,
+      "max_power_violation_watt": 0.0
+    },
+    {
+      "admm_cap": 24,
+      "actual_iterations": 24,
+      "converged": false,
+      "seconds": 35.9931285,
+      "fixed_objective": -36.45039547330567,
+      "fixed_objective_change": -15.803465775817862,
+      "primal": 0.011104910768351203,
+      "eps_primal": 0.017039053089150834,
+      "dual": 0.027169293217038638,
+      "eps_dual": 0.008894557414256841,
+      "cg_relative": 1.3653637342921455e-05,
+      "max_power_violation_watt": 0.0
+    },
+    {
+      "admm_cap": 48,
+      "actual_iterations": 48,
+      "converged": false,
+      "seconds": 60.29277330000001,
+      "fixed_objective": -36.60062066466985,
+      "fixed_objective_change": -15.953690967182041,
+      "primal": 0.005112758299020096,
+      "eps_primal": 0.017237473955338686,
+      "dual": 0.009962649636649204,
+      "eps_dual": 0.008895088351164161,
+      "cg_relative": 1.818147183083749e-05,
+      "max_power_violation_watt": 0.0
+    },
+    {
+      "admm_cap": 96,
+      "actual_iterations": 52,
+      "converged": true,
+      "seconds": 62.43884250000001,
+      "fixed_objective": -36.60747566476212,
+      "fixed_objective_change": -15.960545967274314,
+      "primal": 0.0037978820642562126,
+      "eps_primal": 0.017246201157284792,
+      "dual": 0.008734104515829226,
+      "eps_dual": 0.008895124631844494,
+      "cg_relative": 1.9853401461900627e-05,
+      "max_power_violation_watt": 0.0
+    }
+  ]
+}

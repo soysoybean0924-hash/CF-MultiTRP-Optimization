@@ -63,6 +63,8 @@ class Config:
         assert 1 <= self.rank <= min(self.tx_ports, self.ue_rx_ports)
         assert self.trps == self.sites * self.sectors_per_site
         assert self.rb_total == 16 * 16 + 17
+        assert self.srs_hops == len(self.rb_groups)
+        assert self.srs_period_tti > 0 and self.srs_period_tti % self.srs_hops == 0
         assert 0.30 <= self.prb_utilization <= 0.50
         assert self.schedule_mode in ("legacy_random_full_groups","precise_shared_rb")
         assert self.solver in ("matrix_statistical", "matrix_edge_weighted",
