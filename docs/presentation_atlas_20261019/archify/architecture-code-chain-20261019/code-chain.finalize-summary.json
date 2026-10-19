@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\sypxx\\Documents\\CF mMIMO TRP\\chasi-study-materials-20261019\\docs\\presentation_atlas_20261019\\archify\\architecture-code-chain-20261019\\candidate.json",
+    "sha256": "7e50c88349372d71c0448353bbdbd3c627add32f26051f97ecb6a9df5661aabb",
+    "bytes": 2706
+  },
+  "artifact": {
+    "path": "C:\\Users\\sypxx\\Documents\\CF mMIMO TRP\\chasi-study-materials-20261019\\docs\\presentation_atlas_20261019\\archify\\architecture-code-chain-20261019\\code-chain.html",
+    "sha256": "1240eca51585266e2a585f22fb9a1404b3d3edf41d7c0a25190ee4ad94b72981",
+    "bytes": 814209
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\sypxx\\Documents\\CF mMIMO TRP\\chasi-study-materials-20261019\\docs\\presentation_atlas_20261019\\archify\\architecture-code-chain-20261019\\code-chain.finalize.json",
+    "summaryReceipt": "C:\\Users\\sypxx\\Documents\\CF mMIMO TRP\\chasi-study-materials-20261019\\docs\\presentation_atlas_20261019\\archify\\architecture-code-chain-20261019\\code-chain.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\sypxx\\Documents\\CF mMIMO TRP\\chasi-study-materials-20261019\\docs\\presentation_atlas_20261019\\archify\\architecture-code-chain-20261019\\code-chain.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.1.0",
+    "availableVersion": "3.1.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-15T13:57:38.799Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 14007
+}

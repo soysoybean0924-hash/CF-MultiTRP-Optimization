@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="1152pt" height="648pt" viewBox="0 0 1152 648" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-10-19T17:31:17.311535</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.9.4, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 648 
+L 1152 648 
+L 1152 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 183.06 561.7512 
+L 997.74 561.7512 
+Q 1004.436 561.7512 1004.436 555.0984 
+L 1004.436 537.3576 
+Q 1004.436 530.7048 997.74 530.7048 
+L 183.06 530.7048 
+Q 176.364 530.7048 176.364 537.3576 
+L 176.364 555.0984 
+Q 176.364 561.7512 183.06 561.7512 
+z
+" clip-path="url(#p965be6e359)" style="fill: #f5f8fa"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 187.524 463.068 
+L 324.792 463.068 
+Q 332.604 463.068 332.604 455.3064 
+L 332.604 206.9352 
+Q 332.604 199.1736 324.792 199.1736 
+L 187.524 199.1736 
+Q 179.712 199.1736 179.712 206.9352 
+L 179.712 455.3064 
+Q 179.712 463.068 187.524 463.068 
+z
+" clip-path="url(#p965be6e359)" style="fill: #fff5f3; stroke: #e9c4c1; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 363.294 463.068 
+L 517.86 463.068 
+Q 525.672 463.068 525.672 455.3064 
+L 525.672 206.9352 
+Q 525.672 199.1736 517.86 199.1736 
+L 363.294 199.1736 
+Q 355.482 199.1736 355.482 206.9352 
+L 355.482 455.3064 
+Q 355.482 463.068 363.294 463.068 
+z
+" clip-path="url(#p965be6e359)" style="fill: #fff2da; stroke: #e9d7aa; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 555.804 354.96 
+L 710.37 354.96 
+Q 718.182 354.96 718.182 347.1984 
+L 718.182 207.4896 
+Q 718.182 199.728 710.37 199.728 
+L 555.804 199.728 
+Q 547.992 199.728 547.992 207.4896 
+L 547.992 347.1984 
+Q 547.992 354.96 555.804 354.96 
+z
+" clip-path="url(#p965be6e359)" style="fill: #eaf3f9; stroke: #c5dceb; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 555.804 463.068 
+L 710.37 463.068 
+Q 718.182 463.068 718.182 455.3064 
+L 718.182 377.6904 
+Q 718.182 369.9288 710.37 369.9288 
+L 555.804 369.9288 
+Q 547.992 369.9288 547.992 377.6904 
+L 547.992 455.3064 
+Q 547.992 463.068 555.804 463.068 
+z
+" clip-path="url(#p965be6e359)" style="fill: #f5f8fa; stroke: #d8e1e8; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 573.102 449.208 
+L 684.702 449.208 
+Q 693.63 449.208 693.63 440.3376 
+L 693.63 438.6744 
+Q 693.63 429.804 684.702 429.804 
+L 573.102 429.804 
+Q 564.174 429.804 564.174 438.6744 
+L 564.174 440.3376 
+Q 564.174 449.208 573.102 449.208 
+z
+" clip-path="url(#p965be6e359)" style="fill: #f1ecf8"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 749.43 463.068 
+L 864.936 463.068 
+Q 872.748 463.068 872.748 455.3064 
+L 872.748 206.9352 
+Q 872.748 199.1736 864.936 199.1736 
+L 749.43 199.1736 
+Q 741.618 199.1736 741.618 206.9352 
+L 741.618 455.3064 
+Q 741.618 463.068 749.43 463.068 
+z
+" clip-path="url(#p965be6e359)" style="fill: #f1ecf8; stroke: #d8cce8; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 901.206 463.068 
+L 996.066 463.068 
+Q 1003.878 463.068 1003.878 455.3064 
+L 1003.878 206.9352 
+Q 1003.878 199.1736 996.066 199.1736 
+L 901.206 199.1736 
+Q 893.394 199.1736 893.394 206.9352 
+L 893.394 455.3064 
+Q 893.394 463.068 901.206 463.068 
+z
+" clip-path="url(#p965be6e359)" style="fill: #e6f4f0; stroke: #bbdcd5; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 916.272 446.436 
+L 979.326 446.436 
+Q 988.254 446.436 988.254 437.5656 
+L 988.254 435.9024 
+Q 988.254 427.032 979.326 427.032 
+L 916.272 427.032 
+Q 907.344 427.032 907.344 435.9024 
+L 907.344 437.5656 
+Q 907.344 446.436 916.272 446.436 
+z
+" clip-path="url(#p965be6e359)" style="fill: #fff2da"/>
+   </g>
+   <g id="line2d_1">
+    <path d="M 177.48 143.1792 
+L 1003.32 143.1792 
+" clip-path="url(#p965be6e359)" style="fill: none; stroke: #d8e1e8; stroke-width: 1.3; stroke-linecap: square"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 337.39182 331.6752 
+Q 345.158456 331.6752 350.465417 331.6752 
+" clip-path="url(#p965be6e359)" style="fill: none; stroke: #246c9c; stroke-width: 2.2; stroke-linecap: round"/>
+    <path d="M 344.065417 328.4752 
+L 350.465417 331.6752 
+L 344.065417 334.8752 
+z
+" clip-path="url(#p965be6e359)" style="fill: #246c9c; stroke: #246c9c; stroke-width: 2.2; stroke-linecap: round"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 529.900321 331.6752 
+Q 537.387275 331.6752 542.414555 331.6752 
+" clip-path="url(#p965be6e359)" style="fill: none; stroke: #246c9c; stroke-width: 2.2; stroke-linecap: round"/>
+    <path d="M 536.014555 328.4752 
+L 542.414555 331.6752 
+L 536.014555 334.8752 
+z
+" clip-path="url(#p965be6e359)" style="fill: #246c9c; stroke: #246c9c; stroke-width: 2.2; stroke-linecap: round"/>
+   </g>
+   <g id="patch_13">
+    <path d="M 722.410049 280.6704 
+Q 730.455578 280.6704 736.041433 280.6704 
+" clip-path="url(#p965be6e359)" style="fill: none; stroke: #246c9c; stroke-width: 2.2; stroke-linecap: round"/>
+    <path d="M 729.641433 277.4704 
+L 736.041433 280.6704 
+L 729.641433 283.8704 
+z
+" clip-path="url(#p965be6e359)" style="fill: #246c9c; stroke: #246c9c; stroke-width: 2.2; stroke-linecap: round"/>
+   </g>
+   <g id="patch_14">
+    <path d="M 875.864544 331.6752 
+Q 883.071478 331.6752 887.818737 331.6752 
+" clip-path="url(#p965be6e359)" style="fill: none; stroke: #246c9c; stroke-width: 2.2; stroke-linecap: round"/>
+    <path d="M 881.418737 328.4752 
+L 887.818737 331.6752 
+L 881.418737 334.8752 
+z
+" clip-path="url(#p965be6e359)" style="fill: #246c9c; stroke: #246c9c; stroke-width: 2.2; stroke-linecap: round"/>
+   </g>
+   <g id="text_1">
+    <text style="fill: #a81e22; font: 700 29px 'Microsoft YaHei'; text-anchor: start" x="177.48" y="112.333284" transform="rotate(-0 177.48 112.333284)">01  研究框架｜把测量不准转化为可检验的资源优化问题</text>
+   </g>
+   <g id="text_2">
+    <text style="fill: #53677a; font: 13px 'Microsoft YaHei'; text-anchor: start" x="178.596" y="134.008078" transform="rotate(-0 178.596 134.008078)">茶思原始任务 → 正式场景 → 方法分工 → 非均匀鲁棒机制 → 协议评价</text>
+   </g>
+   <g id="text_3">
+    <text style="fill: #17324d; font: 700 14px 'Microsoft YaHei'; text-anchor: start" x="190.314" y="550.083469" transform="rotate(-0 190.314 550.083469)">核心判断：场景与指标来自原始验收材料；方法方案和当前实现的边界需要分别陈述。</text>
+   </g>
+   <g id="text_4">
+    <text style="fill: #53677a; font: 10px 'Microsoft YaHei'; text-anchor: end" x="993.834" y="548.981906" transform="rotate(-0 993.834 548.981906)">01 / 06</text>
+   </g>
+   <g id="text_5">
+    <text style="fill: #a81e22; font: 700 13px 'Microsoft YaHei'; text-anchor: start" x="180.27" y="174.479278" transform="rotate(-0 180.27 174.479278)">01</text>
+   </g>
+   <g id="text_6">
+    <text style="fill: #17324d; font: 700 18px 'Microsoft YaHei'; text-anchor: start" x="207.054" y="175.856231" transform="rotate(-0 207.054 175.856231)">困难</text>
+   </g>
+   <g id="text_7">
+    <text style="fill: #b97911; font: 700 13px 'Microsoft YaHei'; text-anchor: start" x="349.344" y="174.479278" transform="rotate(-0 349.344 174.479278)">02</text>
+   </g>
+   <g id="text_8">
+    <text style="fill: #17324d; font: 700 18px 'Microsoft YaHei'; text-anchor: start" x="376.128" y="175.856231" transform="rotate(-0 376.128 175.856231)">目标</text>
+   </g>
+   <g id="text_9">
+    <text style="fill: #246c9c; font: 700 13px 'Microsoft YaHei'; text-anchor: start" x="548.55" y="174.479278" transform="rotate(-0 548.55 174.479278)">03</text>
+   </g>
+   <g id="text_10">
+    <text style="fill: #17324d; font: 700 18px 'Microsoft YaHei'; text-anchor: start" x="575.334" y="175.856231" transform="rotate(-0 575.334 175.856231)">方法</text>
+   </g>
+   <g id="text_11">
+    <text style="fill: #7154a0; font: 700 13px 'Microsoft YaHei'; text-anchor: start" x="741.06" y="174.479278" transform="rotate(-0 741.06 174.479278)">04</text>
+   </g>
+   <g id="text_12">
+    <text style="fill: #17324d; font: 700 18px 'Microsoft YaHei'; text-anchor: start" x="767.844" y="175.856231" transform="rotate(-0 767.844 175.856231)">创新</text>
+   </g>
+   <g id="text_13">
+    <text style="fill: #117a70; font: 700 13px 'Microsoft YaHei'; text-anchor: start" x="893.394" y="174.479278" transform="rotate(-0 893.394 174.479278)">05</text>
+   </g>
+   <g id="text_14">
+    <text style="fill: #17324d; font: 700 18px 'Microsoft YaHei'; text-anchor: start" x="920.178" y="175.856231" transform="rotate(-0 920.178 175.856231)">验证</text>
+   </g>
+   <g id="text_15">
+    <text style="fill: #a81e22; font: 700 18px 'Microsoft YaHei'; text-anchor: start" x="195.336" y="227.969831" transform="rotate(-0 195.336 227.969831)">非理想 SRS / CSI</text>
+   </g>
+   <g id="text_16">
+    <text style="fill: #17324d; font: 700 15px 'Microsoft YaHei'; text-anchor: start" x="197.01" y="272.604459" transform="rotate(-0 197.01 272.604459)">链路质量不同</text>
+   </g>
+   <g id="text_17">
+    <text style="fill: #53677a; font: 12px 'Microsoft YaHei'; text-anchor: start" x="197.01" y="291.736688" transform="rotate(-0 197.01 291.736688)">协同权重难可信</text>
+   </g>
+   <g id="text_18">
+    <text style="fill: #17324d; font: 700 15px 'Microsoft YaHei'; text-anchor: start" x="197.01" y="333.588459" transform="rotate(-0 197.01 333.588459)">边缘 UE 易受扰</text>
+   </g>
+   <g id="text_19">
+    <text style="fill: #53677a; font: 12px 'Microsoft YaHei'; text-anchor: start" x="197.01" y="352.720688" transform="rotate(-0 197.01 352.720688)">体验与能耗冲突</text>
+   </g>
+   <g id="text_20">
+    <text style="fill: #17324d; font: 700 15px 'Microsoft YaHei'; text-anchor: start" x="197.01" y="394.572459" transform="rotate(-0 197.01 394.572459)">21 TRP、海量变量</text>
+   </g>
+   <g id="text_21">
+    <text style="fill: #53677a; font: 12px 'Microsoft YaHei'; text-anchor: start" x="197.01" y="413.704688" transform="rotate(-0 197.01 413.704688)">低时延实现困难</text>
+   </g>
+   <g id="text_22">
+    <text style="fill: #b97911; font: 700 17px 'Microsoft YaHei'; text-anchor: start" x="372.78" y="229.357641" transform="rotate(-0 372.78 229.357641)">验收目标 ≠ 研究困难</text>
+   </g>
+   <g id="text_23">
+    <text style="fill: #17324d; font: 700 15px 'Microsoft YaHei'; text-anchor: start" x="373.896" y="272.604459" transform="rotate(-0 373.896 272.604459)">边缘体验</text>
+   </g>
+   <g id="text_24">
+    <text style="fill: #53677a; font: 11.5px 'Microsoft YaHei'; text-anchor: start" x="373.896" y="292.153392" transform="rotate(-0 373.896 292.153392)">50% PRB 下达到理想参考 80%</text>
+   </g>
+   <g id="text_25">
+    <text style="fill: #17324d; font: 700 15px 'Microsoft YaHei'; text-anchor: start" x="373.896" y="339.686859" transform="rotate(-0 373.896 339.686859)">平均体验</text>
+   </g>
+   <g id="text_26">
+    <text style="fill: #53677a; font: 11.5px 'Microsoft YaHei'; text-anchor: start" x="373.896" y="359.235792" transform="rotate(-0 373.896 359.235792)">损失 &lt; 10%（原图目标）</text>
+   </g>
+   <g id="text_27">
+    <text style="fill: #17324d; font: 700 15px 'Microsoft YaHei'; text-anchor: start" x="373.896" y="406.214859" transform="rotate(-0 373.896 406.214859)">辐射功率</text>
+   </g>
+   <g id="text_28">
+    <text style="fill: #53677a; font: 11.5px 'Microsoft YaHei'; text-anchor: start" x="373.896" y="425.763792" transform="rotate(-0 373.896 425.763792)">相对独立功控降低 &gt; 30%</text>
+   </g>
+   <g id="text_29">
+    <text style="fill: #246c9c; font: 700 17px 'Microsoft YaHei'; text-anchor: start" x="564.732" y="232.332844" transform="rotate(-0 564.732 232.332844)">快层｜WMMSE</text>
+   </g>
+   <g id="text_30">
+    <text style="fill: #17324d; font: 12.5px 'Microsoft YaHei'; text-anchor: start" x="564.732" y="264.154383" transform="rotate(-0 564.732 264.154383)">ADMM 优化复矩阵 w</text>
+   </g>
+   <g id="text_31">
+    <text style="fill: #246c9c; font: 700 12.5px 'Microsoft YaHei'; text-anchor: start" x="564.732" y="289.102383" transform="rotate(-0 564.732 289.102383)">当前集中式实现</text>
+   </g>
+   <g id="text_32">
+    <text style="fill: #17324d; font: 700 15px 'Microsoft YaHei'; text-anchor: start" x="564.732" y="395.842978" transform="rotate(-0 564.732 395.842978)">慢层｜GA / PSO</text>
+   </g>
+   <g id="text_33">
+    <text style="fill: #53677a; font: 11.5px 'Microsoft YaHei'; text-anchor: start" x="564.732" y="418.002192" transform="rotate(-0 564.732 418.002192)">SRACOS；正式入口未调用</text>
+   </g>
+   <g id="text_34">
+    <text style="fill: #7154a0; font: 700 10.5px 'Microsoft YaHei'; text-anchor: middle" x="628.902" y="442.397602" transform="rotate(-0 628.902 442.397602)">独立链 / 拟议接入</text>
+   </g>
+   <g id="text_35">
+    <text style="fill: #7154a0; font: 700 18px 'Microsoft YaHei'; text-anchor: start" x="757.242" y="227.969831" transform="rotate(-0 757.242 227.969831)">质量感知</text>
+   </g>
+   <g id="text_36">
+    <text style="fill: #17324d; font: 700 14px 'Microsoft YaHei'; text-anchor: start" x="757.242" y="272.883469" transform="rotate(-0 757.242 272.883469)">SRS 质量</text>
+   </g>
+   <g id="text_37">
+    <text style="fill: #53677a; font: 11.5px 'Microsoft YaHei'; text-anchor: start" x="757.242" y="291.044592" transform="rotate(-0 757.242 291.044592)">决定链路可信度</text>
+   </g>
+   <g id="text_38">
+    <text style="fill: #17324d; font: 700 14px 'Microsoft YaHei'; text-anchor: start" x="757.242" y="334.976269" transform="rotate(-0 757.242 334.976269)">非均匀误差</text>
+   </g>
+   <g id="text_39">
+    <text style="fill: #53677a; font: 11.5px 'Microsoft YaHei'; text-anchor: start" x="757.242" y="353.306298" transform="rotate(-0 757.242 353.306298)">C_stat 进入计算</text>
+   </g>
+   <g id="text_40">
+    <text style="fill: #17324d; font: 700 14px 'Microsoft YaHei'; text-anchor: start" x="757.242" y="397.069069" transform="rotate(-0 757.242 397.069069)">鲁棒对照</text>
+   </g>
+   <g id="text_41">
+    <text style="fill: #53677a; font: 11.5px 'Microsoft YaHei'; text-anchor: start" x="757.242" y="415.230192" transform="rotate(-0 757.242 415.230192)">椭球 / 最坏情形待研</text>
+   </g>
+   <g id="text_42">
+    <text style="fill: #117a70; font: 700 18px 'Microsoft YaHei'; text-anchor: start" x="907.902" y="227.969831" transform="rotate(-0 907.902 227.969831)">验证</text>
+   </g>
+   <g id="text_43">
+    <text style="fill: #17324d; font: 700 13.5px 'Microsoft YaHei'; text-anchor: start" x="907.344" y="274.408973" transform="rotate(-0 907.344 274.408973)">协议 5%</text>
+   </g>
+   <g id="text_44">
+    <text style="fill: #53677a; font: 11px 'Microsoft YaHei'; text-anchor: start" x="907.344" y="291.461297" transform="rotate(-0 907.344 291.461297)">边缘体验</text>
+   </g>
+   <g id="text_45">
+    <text style="fill: #17324d; font: 700 13.5px 'Microsoft YaHei'; text-anchor: start" x="907.344" y="337.610573" transform="rotate(-0 907.344 337.610573)">平均体验</text>
+   </g>
+   <g id="text_46">
+    <text style="fill: #53677a; font: 11px 'Microsoft YaHei'; text-anchor: start" x="907.344" y="354.662897" transform="rotate(-0 907.344 354.662897)">与功率</text>
+   </g>
+   <g id="text_47">
+    <text style="fill: #17324d; font: 700 13.5px 'Microsoft YaHei'; text-anchor: start" x="907.344" y="401.366573" transform="rotate(-0 907.344 401.366573)">规模 / 时延</text>
+   </g>
+   <g id="text_48">
+    <text style="fill: #53677a; font: 11px 'Microsoft YaHei'; text-anchor: start" x="907.344" y="418.418897" transform="rotate(-0 907.344 418.418897)">收敛 / 对拍</text>
+   </g>
+   <g id="text_49">
+    <text style="fill: #b97911; font: 700 10.5px 'Microsoft YaHei'; text-anchor: middle" x="947.799" y="439.625602" transform="rotate(-0 947.799 439.625602)">尚未验收</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p965be6e359">
+   <rect x="144" y="77.76" width="892.8" height="498.96"/>
+  </clipPath>
+ </defs>
+</svg>
