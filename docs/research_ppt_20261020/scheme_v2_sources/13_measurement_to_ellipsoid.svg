@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1223" height="570" viewBox="0 0 1223 570"><defs><marker id="arr" markerWidth="8" markerHeight="7" refX="7" refY="3.5" orient="auto"><path d="M0 0 L8 3.5 L0 7 Z" fill="#124a8f"/></marker></defs><rect width="100%" height="100%" fill="white"/><text x="18.0" y="34.5" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="23.5" font-weight="700" fill="#092b56">SRS 测量误差 → CSI 偏差 → 协同波束与干扰预测失准 → 边缘体验风险</text>
+<rect x="10.0" y="68.0" width="572.0" height="134.0" rx="13.0" fill="#f4f9fd" stroke="#124a8f" stroke-width="1.3"/>
+<text x="35.0" y="103.9" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="23.1" font-weight="700" fill="#092b56">第一层：不同 UE–TRP 链路的误差规模</text>
+<text x="35.0" y="163.3" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="20.0" font-weight="400" fill="#000000">原文用 SRS SINR、距离、速度和 NLOS 构造链路误差方差；函数 f 与量纲尚未标定。</text>
+<rect x="634.0" y="68.0" width="573.0" height="134.0" rx="13.0" fill="#f4f9fd" stroke="#1c7663" stroke-width="1.3"/>
+<text x="658.0" y="103.9" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="23.1" font-weight="700" fill="#092b56">第二层：一条链路内的方向差异</text>
+<text x="658.0" y="163.8" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="20.0" font-weight="400" fill="#000000">Q 的特征值描述各方向误差；对角形式只在选定坐标基中成立。</text>
+<line x1="584.0" y1="136.0" x2="630.0" y2="136.0" stroke="#124a8f" stroke-width="2.5"  marker-end="url(#arr)"/>
+<rect x="11.0" y="232.0" width="1195.0" height="158.0" rx="13.0" fill="#e0ecf6" stroke="#124a8f" stroke-width="1.3"/>
+<text x="39.0" y="265.5" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="22.1" font-weight="700" fill="#092b56">原文的单接收向量椭球</text>
+<text x="40.0" y="365.4" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="20.2" font-weight="400" fill="#000000">Δh∈ℂ⁶⁴；Q∈ℂ⁶⁴×⁶⁴。若 Q 是统计协方差，置信边界还需要尺度 τ；原文固定为 1。</text>
+<rect x="12.0" y="406.0" width="1191.0" height="80.0" rx="13.0" fill="#fff7eb" stroke="#df7b27" stroke-width="1.3"/>
+<text x="39.0" y="452.6" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="20.9" font-weight="700" fill="#000000">当前代码用 H∈ℂ⁴×⁶⁴、Cᵣₓ∈ℂ⁴×⁴；扩展为 256 维矩阵误差集合需推导，尚未实现。</text></svg>

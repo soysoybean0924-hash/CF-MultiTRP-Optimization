@@ -1,0 +1,17 @@
+% original_ellipsoid
+\[\Delta\mathbf{h}_{kn}^{H}\mathbf{Q}_{kn}^{-1}\Delta\mathbf{h}_{kn}\leq 1\]
+
+% calibrated_ellipsoid
+\[\mathcal{U}_{kn}(\tau)=\{\Delta\mathbf{h}:\Delta\mathbf{h}^{H}(\tau\mathbf{Q}_{kn})^{-1}\Delta\mathbf{h}\leq1\}\]
+
+% proposal_objective
+\[\sum_k U_{\alpha}(R_k(\mathbf{w}))-\lambda_{\mathrm{link}}\sum_{l,k}\|\mathbf{w}_{lk,:}\|_F-\lambda_{\mathrm{on}}\sum_l s_l\]
+
+% minmax_core
+\[\max_{\mathbf{w}}\min_{\Delta\mathbf{H}\in\mathcal{U}}\sum_k U_{\alpha}(R_k(\mathbf{w},\widehat{\mathbf{H}}+\Delta\mathbf{H}))\]
+
+% shared_power
+\[p_l=\sum_g\nu_g\sum_k\|\mathbf{w}_{lkg}\|_F^2\leq s_lP_l\]
+
+% admm_residuals
+\[r^{t+1}=\|\mathbf{x}^{t+1}-\mathbf{z}^{t+1}\|,\quad d^{t+1}=\rho\|\mathbf{z}^{t+1}-\mathbf{z}^t\|\]

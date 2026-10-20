@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\sypxx\\Documents\\CF mMIMO TRP\\chasi-research-ppt-20261020\\docs\\research_ppt_20261020\\archify\\scheme-boundary-20261020\\candidate.json",
+    "sha256": "9dc17006c1c8095be40fecb45cb1fe34a4ab3dbc7432ab990e56f04c3dbb6a9e",
+    "bytes": 4821
+  },
+  "artifact": {
+    "path": "C:\\Users\\sypxx\\Documents\\CF mMIMO TRP\\chasi-research-ppt-20261020\\docs\\research_ppt_20261020\\archify\\scheme-boundary-20261020\\current-boundary.html",
+    "sha256": "db5b17146d8f58f760c7c7b6c33bdf214a77c2dab7024d5f1d756aa74467b7d3",
+    "bytes": 814734
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\sypxx\\Documents\\CF mMIMO TRP\\chasi-research-ppt-20261020\\docs\\research_ppt_20261020\\archify\\scheme-boundary-20261020\\current-boundary.finalize.json",
+    "summaryReceipt": "C:\\Users\\sypxx\\Documents\\CF mMIMO TRP\\chasi-research-ppt-20261020\\docs\\research_ppt_20261020\\archify\\scheme-boundary-20261020\\current-boundary.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\sypxx\\Documents\\CF mMIMO TRP\\chasi-research-ppt-20261020\\docs\\research_ppt_20261020\\archify\\scheme-boundary-20261020\\current-boundary.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.1.0",
+    "availableVersion": "3.1.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-15T13:57:38.799Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 16360
+}

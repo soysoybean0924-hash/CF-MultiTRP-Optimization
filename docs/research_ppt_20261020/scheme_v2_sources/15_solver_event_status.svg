@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1223" height="580" viewBox="0 0 1223 580"><defs><marker id="arr" markerWidth="8" markerHeight="7" refX="7" refY="3.5" orient="auto"><path d="M0 0 L8 3.5 L0 7 Z" fill="#124a8f"/></marker></defs><rect width="100%" height="100%" fill="white"/><rect x="10.0" y="8.0" width="834.0" height="130.0" rx="13.0" fill="#e0ecf6" stroke="#124a8f" stroke-width="1.3"/>
+<text x="36.0" y="41.6" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="22.2" font-weight="700" fill="#092b56">WMMSE 外轮：当前 w → A 接收器 → E、Ω 权重 → 固定量求 w</text>
+<text x="36.0" y="128.0" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="17.7" font-weight="400" fill="#000000">上式是原文最坏情形设想；当前统计 C 尚未转化成这个内层问题。</text>
+<line x1="423.0" y1="140.0" x2="423.0" y2="167.0" stroke="#124a8f" stroke-width="2.5"  marker-end="url(#arr)"/>
+<rect x="10.0" y="169.0" width="834.0" height="208.0" rx="13.0" fill="#fff7eb" stroke="#df7b27" stroke-width="1.3"/>
+<text x="36.0" y="204.5" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="22.1" font-weight="700" fill="#092b56">ADMM 内轮：固定 A、Ω；每轮更新 x → z → y → 双残差</text>
+<rect x="32.0" y="238.0" width="178.0" height="90.0" rx="13.0" fill="#f4f9fd" stroke="#df7b27" stroke-width="1.3"/>
+<text x="121.0" y="264.3" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="19.9" font-weight="700" fill="#092b56">x：波束</text>
+<text x="121.0" y="305.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="17.4" font-weight="400" fill="#000000">拟加链路组稀疏</text>
+<rect x="233.0" y="238.0" width="178.0" height="90.0" rx="13.0" fill="#f4f9fd" stroke="#df7b27" stroke-width="1.3"/>
+<text x="322.0" y="264.3" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="19.9" font-weight="700" fill="#092b56">消息门</text>
+<text x="322.0" y="305.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="17.4" font-weight="400" fill="#000000">m 与缓存比较</text>
+<rect x="434.0" y="238.0" width="178.0" height="90.0" rx="13.0" fill="#f4f9fd" stroke="#df7b27" stroke-width="1.3"/>
+<text x="523.0" y="264.3" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="19.9" font-weight="700" fill="#092b56">z：副本</text>
+<text x="523.0" y="305.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="17.4" font-weight="400" fill="#000000">联合功率投影</text>
+<rect x="635.0" y="238.0" width="178.0" height="90.0" rx="13.0" fill="#f4f9fd" stroke="#df7b27" stroke-width="1.3"/>
+<text x="724.0" y="264.3" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="19.9" font-weight="700" fill="#092b56">y：对偶</text>
+<text x="724.0" y="305.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="17.4" font-weight="400" fill="#000000">按 x−z 更新</text>
+<line x1="212.0" y1="284.0" x2="230.0" y2="284.0" stroke="#df7b27" stroke-width="2.5" stroke-dasharray="8 6" marker-end="url(#arr)"/>
+<line x1="413.0" y1="284.0" x2="431.0" y2="284.0" stroke="#df7b27" stroke-width="2.5" stroke-dasharray="8 6" marker-end="url(#arr)"/>
+<line x1="614.0" y1="284.0" x2="632.0" y2="284.0" stroke="#df7b27" stroke-width="2.5" stroke-dasharray="8 6" marker-end="url(#arr)"/>
+<text x="36.0" y="356.4" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="18.7" font-weight="700" fill="#000000">原始残差 ‖x−z‖；对偶残差 ρ‖z⁺−z‖；触发变化 ‖m−缓存‖：三者不同。</text>
+<line x1="24.0" y1="384.0" x2="24.0" y2="417.0" stroke="#df7b27" stroke-width="2.5"  marker-end="url(#arr)"/>
+<rect x="10.0" y="419.0" width="834.0" height="76.0" rx="13.0" fill="#e0ecf6" stroke="#124a8f" stroke-width="1.3"/>
+<text x="36.0" y="461.8" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="20.0" font-weight="700" fill="#000000">返回可行 z → 检查外层停止；s 阈值判决后重优化并复查速率与功率。</text>
+<line x1="845.0" y1="455.0" x2="859.0" y2="455.0" stroke="#124a8f" stroke-width="2.5"  marker-end="url(#arr)"/>
+<line x1="859.0" y1="455.0" x2="859.0" y2="73.0" stroke="#124a8f" stroke-width="2.5"  marker-end="url(#arr)"/>
+<line x1="859.0" y1="73.0" x2="846.0" y2="73.0" stroke="#124a8f" stroke-width="2.5"  marker-end="url(#arr)"/>
+<rect x="879.0" y="9.0" width="327.0" height="486.0" rx="13.0" fill="#f4f9fd" stroke="#124a8f" stroke-width="1.3"/>
+<text x="1042.5" y="43.7" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="22.6" font-weight="700" fill="#092b56">当前实现状态</text>
+<rect x="897.0" y="69.0" width="290.0" height="30.0" rx="2.0" fill="#1c7663" stroke="#1c7663" stroke-width="1.3"/>
+<text x="1041.5" y="88.2" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="18.3" font-weight="700" fill="#ffffff">已实现</text>
+<text x="906.0" y="137.2" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="16.8" font-weight="400" fill="#000000">矩阵 WMMSE、统计 C、集中式 ADMM</text>
+<rect x="897.0" y="169.0" width="290.0" height="30.0" rx="2.0" fill="#124a8f" stroke="#124a8f" stroke-width="1.3"/>
+<text x="1041.5" y="188.2" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="18.3" font-weight="700" fill="#ffffff">部分证据</text>
+<text x="906.0" y="237.2" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="16.8" font-weight="400" fill="#000000">同输入对拍与功率可行；正式规模未收敛</text>
+<rect x="897.0" y="269.0" width="290.0" height="30.0" rx="2.0" fill="#df7b27" stroke="#df7b27" stroke-width="1.3"/>
+<text x="1041.5" y="288.2" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="18.3" font-weight="700" fill="#ffffff">未实现</text>
+<text x="906.0" y="337.2" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="16.8" font-weight="400" fill="#000000">椭球最坏情况、稀疏/休眠、本地 TRP、触发</text>
+<rect x="897.0" y="369.0" width="290.0" height="30.0" rx="2.0" fill="#b12a30" stroke="#b12a30" stroke-width="1.3"/>
+<text x="1041.5" y="388.2" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="18.3" font-weight="700" fill="#ffffff">未接通</text>
+<text x="906.0" y="437.2" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="16.8" font-weight="400" fill="#000000">历史 GA/PSO 搜索 → 新求解器</text>
+<text x="28.0" y="542.8" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="19.9" font-weight="700" fill="#092b56">原文尚未定义：本地耦合拆分、发送对象与缓存、触发后共识/对偶更新及收敛条件。</text></svg>

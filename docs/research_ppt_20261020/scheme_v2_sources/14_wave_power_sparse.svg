@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1223" height="580" viewBox="0 0 1223 580"><defs><marker id="arr" markerWidth="8" markerHeight="7" refX="7" refY="3.5" orient="auto"><path d="M0 0 L8 3.5 L0 7 Z" fill="#124a8f"/></marker></defs><rect width="100%" height="100%" fill="white"/><text x="16.0" y="34.0" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="23.4" font-weight="700" fill="#092b56">完整波束 w 同时决定发射方向与幅度；功率 p 由波束范数导出。</text>
+<rect x="10.0" y="59.0" width="1203.0" height="82.0" rx="13.0" fill="#e0ecf6" stroke="#124a8f" stroke-width="1.3"/>
+<text x="28.0" y="170.2" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="19.8" font-weight="400" fill="#000000">公平效用 − 链路组稀疏 − TRP 激活代价；分开两种惩罚系数是解释修正。</text>
+<rect x="12.0" y="199.0" width="372.0" height="167.0" rx="13.0" fill="#f4f9fd" stroke="#124a8f" stroke-width="1.3"/>
+<text x="36.0" y="238.0" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="23.4" font-weight="700" fill="#092b56">波束与功率</text>
+<text x="36.0" y="311.9" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="20.4" font-weight="400" fill="#000000">wₗₖg∈ℂ⁶⁴×ʳ；pₗ 是所有资源组的加权发射功率。</text>
+<rect x="413.0" y="199.0" width="373.0" height="167.0" rx="13.0" fill="#f4f9fd" stroke="#1c7663" stroke-width="1.3"/>
+<text x="436.0" y="238.0" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="23.4" font-weight="700" fill="#092b56">链路组 vs 整 TRP</text>
+<text x="436.0" y="313.9" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="20.2" font-weight="400" fill="#000000">‖wₗₖ,:‖ 归零只删一条服务链；sₗ=0 才约束整台 TRP 不发射。</text>
+<rect x="817.0" y="199.0" width="385.0" height="167.0" rx="13.0" fill="#f4f9fd" stroke="#df7b27" stroke-width="1.3"/>
+<text x="840.0" y="238.0" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="23.4" font-weight="700" fill="#092b56">限制与后处理</text>
+<text x="840.0" y="313.9" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="20.2" font-weight="400" fill="#000000">边缘最低速率、关联可行性；sₗ 松弛判阈后须重优化并复查。</text>
+<rect x="14.0" y="393.0" width="1185.0" height="78.0" rx="13.0" fill="#e0ecf6" stroke="#124a8f" stroke-width="1.3"/>
+<text x="30.0" y="508.6" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="19.5" font-weight="700" fill="#000000">任务目标：边缘体验、体验损失 &lt;10%、空口发射功率降 &gt;30%；参照与分母须按原始材料核定，当前无新版效果证据。</text></svg>

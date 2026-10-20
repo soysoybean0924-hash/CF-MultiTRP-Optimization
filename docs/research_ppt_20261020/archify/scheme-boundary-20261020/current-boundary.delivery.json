@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "09807341-7c93-43e0-8577-0ac6b9d2e497",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\sypxx\\Documents\\CF mMIMO TRP\\chasi-research-ppt-20261020\\docs\\research_ppt_20261020\\archify\\scheme-boundary-20261020\\candidate.json",
+  "output": "C:\\Users\\sypxx\\Documents\\CF mMIMO TRP\\chasi-research-ppt-20261020\\docs\\research_ppt_20261020\\archify\\scheme-boundary-20261020\\current-boundary.html",
+  "specification": {
+    "sha256": "9dc17006c1c8095be40fecb45cb1fe34a4ab3dbc7432ab990e56f04c3dbb6a9e",
+    "bytes": 4821
+  },
+  "artifact": {
+    "sha256": "db5b17146d8f58f760c7c7b6c33bdf214a77c2dab7024d5f1d756aa74467b7d3",
+    "bytes": 814734
+  }
+}
