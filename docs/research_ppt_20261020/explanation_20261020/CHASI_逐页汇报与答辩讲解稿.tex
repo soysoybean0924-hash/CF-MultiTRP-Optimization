@@ -1,0 +1,491 @@
+\documentclass[11pt,a4paper]{ctexart}
+\usepackage[margin=18mm,headheight=15pt]{geometry}
+\usepackage{amsmath,amssymb,mathtools,bm,longtable,array,enumitem,xcolor,hyperref,fancyhdr,url}
+\hypersetup{colorlinks=true,linkcolor=blue!55!black,pdfauthor={CHASI research notes},pdftitle={茶思研究汇报逐页讲解与答辩手册}}
+\setlength{\parindent}{2em}
+\setlength{\parskip}{4pt}
+\setlength{\emergencystretch}{3em}
+\allowdisplaybreaks
+\pagestyle{fancy}\fancyhf{}\fancyfoot[C]{\thepage}
+\begin{document}
+\begin{center}\LARGE\bfseries 茶思研究汇报逐页讲解与答辩手册\end{center}
+\tableofcontents\clearpage
+\clearpage\section*{茶思研究汇报：逐页讲稿、完整链条与答辩手册}
+\addcontentsline{toc}{section}{茶思研究汇报：逐页讲稿、完整链条与答辩手册}
+
+\begin{quote}\small 对应磁盘上的 15 页《CHASI\_研究汇报\_研究计划表达\_20261020.pptx》，读取时 SHA-256：\path{f460c1bcdd725b24e2624c977ab223126004ecf4f11cabd47d1c2ba5d629a55a}。正式 MATLAB 链依据源码提交 \path{db9d7e3c71a75f8f9724b743fc78023185b5cddf} 的 \path{matlab/chasi/}。这份稿子解释当前幻灯片，不修改幻灯片；旧运行记录不自动适用于该提交的新 UE 位置抽样。202610 方案依据 Markdown 原文及本地 \path{1.png}、\path{2.png}、\path{3.png}，属于拟研究方法。\end{quote}
+
+\subsection*{读稿约定与四处必须主动澄清的地方}
+
+本稿用 $l$ 表示 TRP，$k$ 表示被观察的接收 UE，$j$ 表示所有发射数据流所属的 UE，$g$ 表示资源组。写 $\sum_j$ 时包含 $j=k$；写干扰 $\sum_{j\ne k}$ 时排除它。$\mathbf w$ 已包含幅度，$ \mathbf A^H$ 是接收处理矩阵，$\boldsymbol\Omega$ 是 MSE 权重，$\eta$ 是效用导出的用户权重，三者不能混称。\par
+
+\textbf{PPT 口径修正建议，讲解时应口头说明。} \textcircled{1} 第 8 页的“受流量到达和队列限制”超出默认静态评价器：它使用忙闲、尾包需求系数和有效样本窗，没有队列出队；队列属于可选动态回放路径。\textcircled{2} 第 12 页“按协议统计的体验率”应说成“当前静态业务体验代理”；原图规定抬头去尾、突发样本和 bottom 5\% 口径，当前实现不能据此直接宣称正式协议验收。\textcircled{3} 第 4 页颜色标初始归属站址而非调度或完整服务集；UE 7 的 T01/T02 连线是第 1 资源组的例子。\textcircled{4} 第 12 页“调度、服务”两词的顺序与表头 $b,\chi$ 不一致，应按 $b$＝服务/关联、$\chi$＝调度讲。\textcircled{5} 第 14 页“<10\%、>30\%”是原始目标，绝非新版方案实验结果；第 15 页的“对拍、功率可行”也不是收敛。\par
+
+\par\medskip\hrule\medskip
+
+\clearpage\section*{第一部分　逐页汇报讲稿}
+\addcontentsline{toc}{section}{第一部分　逐页汇报讲稿}
+
+\subsection*{第 1 页　非理想测量下的用户中心多TRP协同优化研究}
+
+\textbf{本页问题。} 为什么研究这个问题，今天报告的证据边界在哪里？\par
+
+\textbf{直接讲稿。} “我的研究对象是茶思任务里的用户中心多 TRP 协同。一个用户可以由几个 TRP 共同发射，理想条件下可以增加有用信号、抑制小区边缘干扰；但 SRS 和 CSI 的测量质量并不一致。我们既要处理这个信息不确定性，也要守住各 TRP 的功率预算，并让 273 RB 的求解规模可计算。今天我先讲原始场景，再沿真实代码中的信道、测量、预编码与评价逐步展开，最后单独讨论 202610 新方案。当前已经有矩阵 WMMSE 与集中式 ADMM 的数值链；新版的确定性椭球、稀疏、休眠和事件触发仍是研究计划。”\par
+
+\textbf{图形讲法。} 本页只有标题；先指“非理想测量”，再指“用户中心多TRP”，最后指“优化研究”。标题不等于成果声明。\par
+
+\textbf{公式、变量。} 本页无公式；TRP 是一个发射节点或扇区，UE 是接收用户，SRS 是上行测量参考，CSI 是供下行优化的信道信息。下一页建立汇报顺序。\par
+
+\textbf{追问。} “已经达到茶思验收了吗？”——没有。保存的同输入数值对拍和功率可行记录与正式规模收敛、协议指标达标是不同证据。\par
+
+\subsection*{第 2 页　主要内容}
+
+\textbf{本页问题。} 老师应该按什么顺序理解这套材料？\par
+
+\textbf{直接讲稿。} “我分四段讲。第一段从任务约束和七站物理网络开始，明确什么是原始要求、什么是场景假设。第二段顺着位置到真信道、测量到估计、规则资源到预编码、再到真实信道评价，解释当前程序究竟算了什么。第三段拆开 WMMSE 外轮、ADMM 内轮以及统计误差如何进入计算。最后把 202610 方案单独作为研究计划讨论：它希望把误差尺度和方向、稀疏服务及低交互协同放到同一框架，但我们不会用当前代码结果证明尚未实现的环节。”\par
+
+\textbf{图形讲法。} 沿目录的四段自上而下读；每段结束时回到“场景—变量—求解—评价—拟研究”的主线。无独立公式；各符号在后页首次出现时解释。\par
+
+\textbf{衔接与追问。} 下一页先把困难、方法和评价对象对齐。若问“为什么不直接讲算法”，回答：没有场景、变量与评价分母，算法好坏没有可核验含义。\par
+
+\subsection*{第 3 页　研究问题与方法}
+
+\textbf{本页问题。} 三类困难分别对应什么计算和什么检验？\par
+
+\textbf{直接讲稿。} “第一行是测量不均匀：有的 UE–TRP 链路 SRS 较可靠，有的链路老化或低 SINR，因此优化不能把所有估计信道当成同样精确。当前实现为每条链路形成条件误差统计 $\mathbf C$，让它参与接收协方差与预编码二次项；下一步才考虑确定性误差集合。第二行是边缘体验：同一 UE 的服务 TRP 有用信号相干叠加，其他 UE 在同资源上形成干扰，所以用用户中心服务与 WMMSE 的接收、权重和预编码交替更新。第三行是规模和预算：273 RB 被分成资源组，但每个 TRP 的总功率仍跨组共享，因此 ADMM 需要联合投影。右侧的体验低分位、功率和残差是要检验的量，不是已经达标的结论。”\par
+
+\textbf{图形讲法。} 三行逐行从左侧困难沿箭头指向中间机制，再指右侧检验量；不把不同横行箭头合并为“已验证闭环”。\par
+
+\textbf{公式与变量。} 此页 $\mathbf C_{klg}\in\mathbb C^{4\times4}$ 是估计误差在 UE 接收维度的条件协方差；$g$ 是资源组。预算公式在第 10 页详述。\par
+
+\textbf{衔接与追问。} 下一页把 $l,k,g$ 落到真实拓扑。“为什么 $\mathbf C$ 不等于最坏情况保障？”——协方差描述平均二阶统计；确定性集合还需形状、置信尺度和约束推导。\par
+
+\subsection*{第 4 页　网络拓扑与协同架构}
+
+\textbf{本页问题。} 21 个 TRP 和 210 个 UE 在哪里，谁服务谁？\par
+
+\textbf{直接讲稿。} “左图不是示意基站图，而是当前 MATLAB 场景用坐标生成的完整拓扑。中心站在 $(450,450)$ 米，外围六站按半径 300 米成六边形排列；每站三个 TRP 共用同一个物理站址，箭头是三个扇区主方向，不代表扇区外没有信号。每小区当前取 10 名 UE，合计 210 名。彩色小点每个都对应一个实际 UE，颜色只编码初始归属站址。我们放大第 1 资源组中的 UE 7：它的归属 TRP 是 T01，服务集合含 T01 和 T02。这两个 TRP 共址，图上的服务连线可能重合。CPU 是逻辑协调侧；当前数值预编码在一个 MATLAB 进程中集中计算，图标位置不是部署坐标。”\par
+
+\textbf{图形讲法。} 先指七个站址，再指一个站址内三扇区；随后指全体 UE 散点与颜色图例，最后指放大的 UE 7—T01/T02 链路和逻辑 CPU。\par
+
+\textbf{公式、来源、去向。} $\mathbf s_c=(450,450)\,\mathrm m$，$\mathbf s_m=\mathbf s_c+300[\cos(m\pi/3),\sin(m\pi/3)]^T$，$m=0,\ldots,5$。面积均匀环扇区抽样 $r=\sqrt{25^2+u(150^2-25^2)}\,\mathrm m$、$\theta=\phi_l+(v-1/2)2\pi/3$，$u,v\sim U(0,1)$。站距、站数、每站扇区数、每小区 10–20 UE 是原始材料；中心坐标和 25–150 米边界是项目假设。坐标生成 $\mathbf H^{\rm true}$ 的距离与方向增益，UE 归属进入服务规则。依据 \path{chasi_geometry_from_samples.m} 与拓扑 CSV/manifest。\par
+
+\textbf{衔接与追问。} 下一页进入执行顺序。“为什么 $r$ 不是对 25–150 米均匀取值？”——二维面积元为 $r\,dr\,d\theta$；使 $r^2$ 均匀才能使单位面积 UE 密度均匀。这里原图说“小区内均匀分布”，但具体环扇区边界不是验收原文给定。\par
+
+\subsection*{第 5 页　真实执行链}
+
+\textbf{本页问题。} 程序怎样从场景最终得到一个可评价的波束？\par
+
+\textbf{直接讲稿。} “请从左往右看六个阶段。先建几何与业务，再用位置、距离和随机传播生成真信道 $\mathbf H^{\rm true}$。仿真用它生成带噪的 CSI-RS 与 SRS 观测，得到估计信道 $\widehat{\mathbf H}$ 和误差协方差 $\mathbf C$。关联 $b$、调度 $\chi$、流数 $r$ 和组权重 $\nu$ 目前由规则给定。正式优化器读 $\widehat{\mathbf H},\mathbf C$，用矩阵 WMMSE 与集中式 ADMM 求完整复预编码 $\mathbf w$。最后固定这同一 $\mathbf w$，放在真信道上重新算速率与体验代理。真信道参与仿真生成和终端评价，非理想分支不能在求解阶段偷看真信道。历史 GA、PSO 的候选链是独立实现。”\par
+
+\textbf{图形讲法。} 依 \textcircled{1}—\textcircled{6} 追踪，每经过一箭头明确带走什么：位置→$H^{\rm true}$→$(\widehat H,C)$→$(b,\chi,r,\nu)$→$w$→真实速率与功率；末端再指独立搜索说明。\par
+
+\textbf{公式、变量。} $\widehat{\mathbf H}_{klg}\in\mathbb C^{4\times64}$，$\mathbf C_{klg}\in\mathbb C^{4\times4}$，$\mathbf w_{lkg}\in\mathbb C^{64\times r_{kg}}$。$\nu_g=N_g^{\rm RB}/273$ 无量纲；各组加权求功率和速率。正式入口 \path{chasi_run.m} 调用 \path{chasi_generate_scene.m}、\path{chasi_generate_traffic.m}、\path{chasi_matrix_wmmse.m}、\path{chasi_evaluate.m}。\par
+
+\textbf{衔接与追问。} 下一页展开测量。“运行顺序与无线传播顺序一样吗？”——不同。代码先生成信道再求 $w$；真实数据传输时先对数据预编码，信号再经过信道。\par
+
+\subsection*{第 6 页　SRS–CSI 测量与估计}
+
+\textbf{本页问题。} 哪些信息由测量产生，谁在当前实现中计算？\par
+
+\textbf{直接讲稿。} “沿 UE、TRP、CPU 三条泳道看，物理上上行 SRS 与下行 CSI-RS 都提供关于链路的观测，但当前程序在 MATLAB 里直接生成等效样本，没有波形、编解码或前传协议栈。质量由导频 SINR、观测年龄及某组是否被 SRS 跳频测到控制。对一条链路，先验、CSI-RS 的全接收维观测和 SRS 所选两行观测做精度相加，输出 $4\times64$ 的后验估计 $\widehat H$ 与每个发射列共享的 $4\times4$ 条件误差协方差 $C$。协调侧再以这些信息和固定资源求 $w$；物理解释上各 TRP 用对应的波束块发送。当前求解仍是单进程集中数值计算。”\par
+
+\textbf{图形讲法。} 从左上 UE 测量视角指向中间观测样本，随后进入 CPU 条件估计，再沿 $\widehat H,C$ 指向资源/求解，最后下行返回 TRP 和 UE。虚构的 TRP 本地 ADMM 通路不能从此图推断。\par
+
+\textbf{公式逐式讲。} 令 $\mathbf P_0=\beta_{kl}\mathbf R_{\rm rx}$（$4\times4$），$\mathbf S\in\{0,1\}^{2\times4}$ 为 SRS 行选择。默认分支的噪声方差 $n_c=\beta_{kl}10^{-\gamma_c^{\rm dB}/10}e^{2a_c/T_c}$、$n_s=\beta_{kl}10^{-\gamma_s^{\rm dB}/10}e^{2a_s/T_c}$，单位在归一化信道功率制。于是\par
+\[
+\mathbf C=(\mathbf P_0^{-1}+n_c^{-1}\mathbf I_4+n_s^{-1}\mathbf S^H\mathbf S)^{-1},\qquad
+\widehat{\mathbf H}=\mathbf C(n_c^{-1}\mathbf Y_c+n_s^{-1}\mathbf S^H\mathbf Y_s).
+\]
+$\mathbf Y_c$ 为 $4\times64$，$\mathbf Y_s$ 为 $2\times64$；未测组删除 SRS 项。精度和是高斯先验与独立白噪声观测下的后验，不是标准空口协议的完整实现。依据 \path{chasi_generate_scene.m}。\par
+
+\textbf{衔接与追问。} 下一页解释哪些量固定。“$C$ 为什么只有 $4\times4$？”——当前假设发射列条件独立且具有相同接收侧协方差，完整 $\operatorname{vec}(H)$ 的协方差是 $I_{64}\otimes C$；这不是任意发射相关模型。\par
+
+\subsection*{第 7 页　资源变量与方法分工}
+
+\textbf{本页问题。} 哪些量是搜索、规则和快层求解各自负责的？\par
+
+\textbf{直接讲稿。} “先看右边当前正式链：服务掩码 $b$、调度 $\chi$、流数 $r$、组权重 $\nu$ 都在本轮求解前固定；优化变量只有含方向与功率幅度的 $w$。每个 TRP 在所有资源组共用一个功率预算 $P_l$。左侧历史搜索链的候选编码包括公平性指数、连接数、调度阈值、rank 门限和修复参数等；GA 通过选择、交叉、变异产生候选，PSO 通过速度和位置更新产生候选，再由旧评价器筛选。这些候选及目标没有直接接到正式矩阵求解器。中间虚线是拟研究接口：慢层产生正式场景可行的关联或调度候选，快层解波束并回传同口径的体验、功率和成本。”\par
+
+\textbf{图形讲法。} 先左后右，最后指虚线；不能沿虚线讲成运行数据流。候选 $c$ 属历史搜索空间，不等于当前的 $b,\chi,r$ 数组。\par
+
+\textbf{公式。} 当前 $p_l=\sum_g\nu_g\sum_j\|\mathbf w_{ljg}\|_F^2\le P_l$。$p_l,P_l$ 是当前归一化模型中与发射功率预算同量纲的量，$\nu_g$ 为 RB 占比。源 \path{chasi_generate_scene.m} 资源规则、\path{chasi_matrix_wmmse.m} 功率投影；历史搜索位于独立 \path{matlab/core/} 链，不能拿它的旧目标解释正式速率。\par
+
+\textbf{衔接与追问。} 下一页看 $w$ 的物理作用。“为什么旧搜索不能直接接上？”——搜索候选编码、可行性修复、正式资源掩码和返回目标的接口还没有建立；旧评价器与当前真信道评价也不是同一个目标。\par
+
+\subsection*{第 8 页　下行通信与评价}
+
+\textbf{本页问题。} 同一个 $w$ 如何产生有用信号、干扰和最终统计？\par
+
+\textbf{直接讲稿。} “这里按物理顺序读。每个 TRP 先把各用户独立数据流乘以相应 $64\times r$ 的预编码块并相加；这些信号经过各自 $4\times64$ 的真信道到达某个 UE。同一用户来自多个服务 TRP 的分量在接收端相干相加，其他用户在同组的发射构成干扰，再加噪声。真实信道下用总协方差与干扰协方差的 log-det 差求频谱效率；按资源组对应 RB 数、12 子载波和 30 kHz 子载波间隔转成时窗容量。当前默认静态评价还用业务忙闲与尾段需求系数筛选、加权有效窗口，形成体验代理和低分位。页面写‘队列限制’容易误解：默认静态路径没有真实队列出队，不能称已符合完整协议。”\par
+
+\textbf{图形讲法。} 从左至右指 $w$、真信道、$y$，把 $j=k$ 有用流与 $j\ne k$ 干扰分开，再沿下方速率—容量—体验—报告走；不可把真信道箭头倒接回非理想优化器。\par
+
+\textbf{公式。} $\mathbf x_{lg}=\sum_j\mathbf w_{ljg}\mathbf s_{jg}$（$64\times1$）；$\mathbf y_{kg}=\sum_l\mathbf H^{\rm true}_{klg}\mathbf x_{lg}+\mathbf n_{kg}$（$4\times1$）。设 $\mathbf F^{\rm true}_{kjg}=\sum_lH^{\rm true}_{klg}w_{ljg}$（$4\times r_{jg}$），则 $R^{\rm SE,true}_{kg}=\log_2\det(I_4+\sum_jF_{kjg}F_{kjg}^H)-\log_2\det(I_4+\sum_{j\ne k}F_{kjg}F_{kjg}^H)$。源 \path{chasi_evaluate.m} 的 \path{true_rates}。\par
+
+\textbf{衔接与追问。} 下一页解释如何求 $w$。“体验率是否等于 SE？”——不等。SE 是 bit/s/Hz，体验代理聚合资源、时间和有效样本；原始协议还规定抬头去尾、burst 样本及 bottom 5\%。\par
+
+\subsection*{第 9 页　WMMSE–ADMM 嵌套求解}
+
+\textbf{本页问题。} 外轮为什么交替，内轮究竟解什么？\par
+
+\textbf{直接讲稿。} “先从一个满足功率的 $w$ 出发。外层以估计信道形成有效信道 $F$ 和接收协方差 $R^{yy}$；它们给出线性 MMSE 接收器 $A$、MSE 矩阵 $E$、矩阵权重 $\Omega=E^{-1}$。若目标使用用户效用，还要形成与 $\Omega$ 不同的标量 $\eta$。固定 $A,\Omega,\eta$，预编码问题成为有二次目标与跨组功率约束的子问题；内层 ADMM 先以 CG 解原变量 $x$，再联合投影得到功率可行副本 $z$，以 $y$ 记录 $x-z$ 的一致性误差。内层残差和 CG 检查结束后返回 $z$，外层重算目标，接受或回溯，再决定是否停止。三个循环分别是 WMMSE 分块交替、ADMM 约束分裂和 CG 解线性系统。”\par
+
+\textbf{图形讲法。} 先沿上方外圈 $w\to(F,R^{yy})\to(A,E,\Omega)\to$ 二次子问题，再进入下方内圈 $x\to z\to y\to$ 残差；内圈返回上方“重算、接受/回溯、停止”，未停止时回到 $F$。\par
+
+\textbf{公式。} $\mathbf F_{kjg}=\sum_l\widehat H_{klg}w_{ljg}$，$\mathbf R^{yy}_{kg}=I_4+\sum_jF_{kjg}F_{kjg}^H+\sum_l p_{lg}C_{klg}$，$\mathbf A_{kg}=(R^{yy}_{kg})^{-1}F_{kkg}$，$\mathbf E_{kg}=I_r-A^HF_{kkg}-F_{kkg}^HA+A^HR^{yy}A$，$\Omega=E^{-1}$。$p_{lg}=\sum_j\|w_{ljg}\|_F^2$；所有维度见第 12 页和第二部分。源码 \path{chasi_matrix_wmmse.m} 的 \path{state}、\path{quadratic}、\path{admm}。\par
+
+\textbf{衔接与追问。} 下一页放大内圈。“WMMSE 是否使整个问题凸？”——没有；它是固定其他块后交替优化。即使固定块下的二次预编码子问题凸，也不能推断联合问题全局凸。\par
+
+\subsection*{第 10 页　ADMM 功率约束与停止}
+
+\textbf{本页问题。} 为什么要联合投影，怎样判断内外层？\par
+
+\textbf{直接讲稿。} “固定接收和权重后，每组 $x$ 步求解一套正规方程，CG 只是避免显式形成或逆高维矩阵。$z$ 步不是逐组各给一个 $P_l$，而是把同一 TRP 所有组加权功率放在一个约束里一起投影。$y$ 是缩放对偶，按更新后的 $x-z$ 累加；原始残差看两份变量是否一致，对偶残差看副本是否仍大幅变化，CG 还要检查线性系统解得够不够准。程序把可行的 $z$ 送回外层，再以真实的当前优化目标做接受和回溯。四个判断不能互换：功率满足、跨语言对拍一致、ADMM 内轮停止、WMMSE 外轮停止。”\par
+
+\textbf{图形讲法。} 依 \textcircled{1} $x$、\textcircled{2} $z$、\textcircled{3} $y$/残差读；最后指跨组预算大框和底部四种判断。\par
+
+\textbf{公式。} 若固定量下目标写作 $\sum_g\nu_g(\langle w_g,\mathcal Q_gw_g\rangle-2\Re\langle B_g,w_g\rangle)$，代码的缩放 ADMM $x$ 步为\par
+\[
+(\nu_g\mathcal Q_g+\tfrac\rho2 I)x_g
+=\nu_g B_g+\tfrac\rho2(z_g-y_g),\quad
+z=\Pi_{\mathcal P}(x+y),\quad y^+=y+x-z.
+\]
+$\mathcal P=\{w: \sum_g\nu_g\sum_j\|w_{ljg}\|_F^2\le P_l,\ \forall l\}$；$\rho$ 与 $\mathcal Q$ 都按归一化目标制。该 $\mathcal Q$ 是二次算子，\textbf{不是}第 13 页的误差椭球 $Q$。源 \path{chasi_matrix_wmmse.m} 的 \path{admm}、\path{qapply}、\path{project}。\par
+
+\textbf{衔接与追问。} 下一页追溯 $C$。“正式规模停止了吗？”——保存验证里同输入对拍与功率可行，但默认正式规模达到外轮上限并带最新内轮未精确停止标记；不能称收敛。\par
+
+\subsection*{第 11 页　现有统计误差机制}
+
+\textbf{本页问题。} 非均匀测量误差具体进了求解器哪里？\par
+
+\textbf{直接讲稿。} “先看链路质量：SRS/CSI 的 SINR、年龄以及被跳频选中的接收行不同，形成每条 UE—TRP、每组的条件协方差 $C_{klg}$。当某 TRP 发射总预编码功率为 $p_{lg}$ 时，这条链路的估计误差在接收协方差中贡献 $p_{lg}C_{klg}$，于是影响 $A$、$E$、$\Omega$。固定这些量再展开加权 MSE，$C$ 又进入二次算子中的功率惩罚，所以最终改变 $w$。当前是统计平均意义的设计；研究切入点是把可观测误差统计校准成全信道的方向性不确定集合，再推导真正的最坏情形内层，最后用名义、统一和非均匀误差做同条件对照。”\par
+
+\textbf{图形讲法。} 指质量/年龄→$C$→$R^{yy}$→$\mathcal Q(C)$→$w$→真信道评价；研究椭球分支另指为拟议路径，不能画回现有实线。\par
+
+\textbf{公式。} 在 $\widetilde H_{klg}=H_{klg}-\widehat H_{klg}$ 的列独立、零均值、每列协方差 $C_{klg}$ 假设下，$\mathbb E[\widetilde H_{klg}w_{ljg}w_{ljg}^H\widetilde H_{klg}^H\mid\widehat H]=\|w_{ljg}\|_F^2C_{klg}$；合并 $j$ 得 $p_{lg}C_{klg}$。$C$ 为 $4\times4$，误差项也是 $4\times4$。源 \path{chasi_generate_scene.m}、\path{chasi_matrix_wmmse.m}。\par
+
+\textbf{衔接与追问。} 第 12 页统一符号。“统计项是否保证任意椭球误差下最低速率？”——不保证；它积分/平均二阶误差，而最坏情况需要明确定义集合并求内层极小。\par
+
+\subsection*{第 12 页　核心变量}
+
+\textbf{本页问题。} 一个符号第一次出现后，怎样保证全篇不换义？\par
+
+\textbf{直接讲稿。} “按表的五类读：$l,k,j,g$ 是 TRP、接收 UE、发射数据所属 UE、资源组；$H^{\rm true}$ 与 $\widehat H$ 都是 $4\times64$，$C$ 是接收端 $4\times4$；$b,\chi,r,\nu$ 是固定资源，$w$ 是 $64\times r$ 的优化量，$p$ 由 $w$ 派生；WMMSE 的 $F,A$ 是 $4\times r$，$R^{yy}$ 是 $4\times4$，$E,\Omega$ 是 $r\times r$，$\eta$ 是用户效用标量；ADMM 的 $x,z,y$ 与 $w$ 同型。特别注意 $R^{\rm SE}$ 是频谱效率，$R^{\rm exp}$ 是业务时窗统计，不能只因都叫速率就相等。”\par
+
+\textbf{图形讲法。} 从索引行向下读各组，读到 $w$ 后用手指回 $H\to F\to A,E,\Omega\to x,z\to R$ 的链。此页无新等式。\par
+
+\textbf{衔接与追问。} 后三页是方案，不在当前计算链。“$p$ 和 $P_l$ 是瓦特吗？”——配置给每 TRP 20 W 名义预算，但默认传播路径以归一化噪声 $I$ 运算；报告中应称模型发射功率预算/归一化记账，不能把它直接解释成设备耗电。\par
+
+\subsection*{第 13 页　新版方案：测量可靠性驱动协同}
+
+\textbf{本页问题。} 202610 方案所说的“非均匀”有哪两层，和当前 $C$ 怎样区分？\par
+
+\textbf{直接讲稿。} “第一层是链路间：不同 UE—TRP 的 SRS 质量、距离和时变特征不同，所以误差总尺度不应一样。第二层是链路内：同一条链路在选定空间坐标基下的不同方向，也可能有不同误差幅度。原文用一个单接收天线的 64 维信道误差向量和 64 阶正定 $Q$ 画椭球；对角 $Q$ 的每个对角元限制一个方向的误差。但我们的现有信道是 $4\times64$，现有 $C$ 是每发射列的 $4\times4$ 接收侧统计，二者不是同一个矩阵。下一步应定义全矩阵误差的向量化、坐标基和置信尺度，再讨论如何进入优化。”\par
+
+\textbf{图形讲法。} 先沿上方 SRS误差→CSI偏差→协同风险；再分别指链路间尺度和链路内方向；最后指公式及底部现有 $H,C$ 的维度差。\par
+
+\textbf{公式逐式讲。} 本地 \path{1.png} 的原式为 $\Delta h_{kl}^H Q_{kl}^{-1}\Delta h_{kl}\le1$；\path{3.png} 给 $Q=\operatorname{diag}(\sigma_1^2,\ldots,\sigma_{64}^2)$。$Q$ 的特征向量给方向，特征值给各主轴半径平方；若 $Q$ 只是统计协方差，要额外标定置信尺度 $\tau$，如 $\Delta h^H(\tau Q)^{-1}\Delta h\le1$。这一步是解释与待研究校准，不是原文已经完成。原文的 $\sigma^2=f(\mathrm{SRS\ SINR},d,v,\mathrm{NLOS})$ 没有给 $f$ 的拟合方式、量纲与覆盖率。\par
+
+\textbf{衔接与追问。} 下一页讨论波束和约束。“$Q$ 对角就代表空间相关了吗？”——只在指定天线或特征/波束域坐标基下；一般相关矩阵在物理天线基下有非对角元。\par
+
+\subsection*{第 14 页　新版方案的优化变量与约束}
+
+\textbf{本页问题。} 新方案希望优化哪些物理对象，稀疏和休眠有何区别？\par
+
+\textbf{直接讲稿。} “完整波束 $w_{lkg}$ 同时定方向和幅度，所以发射功率从它的范数计算，不能再把一个未定义的独立 $p$ 重复乘进去。方案考虑公平速率效用，同时惩罚不必要的 TRP—UE 服务链，以及整台 TRP 的激活代价。若把某条链路在所有组的波束置零，只是该 TRP 不再服务这个 UE；它仍可能服务其他 UE，也仍能对这个 UE 造成干扰。真正的整 TRP 关断需要激活变量与该 TRP 全部波束耦合。最低速率和功率预算若加为硬约束，还必须检查是否可行。二进制激活松弛后再阈值判决，会改变问题，因此需在确定活跃集合后重优化并复查。这一页的体验和功率数字是原始目标，不是当前实验结果。”\par
+
+\textbf{图形讲法。} 先看目标式，再分别指 $w\to p$、链路组 vs 整 TRP、约束/后处理三个区域；不要把稀疏箭头直接指向“休眠已实现”。\par
+
+\textbf{公式。} 可分析的整理式（是对原文的\textbf{解释性修正}，并非已实现目标）为\par
+\[
+\max_{w,s}\ \sum_k U_\alpha(R_k)-\lambda_{\rm link}\sum_{l,k}\|w_{lk,:}\|_F-\lambda_{\rm on}\sum_l s_l,
+\quad \sum_g\nu_g\sum_k\|w_{lkg}\|_F^2\le s_lP_l,
+\quad s_l\in\{0,1\}.
+\]
+$U_\alpha(R)=R^{1-\alpha}/(1-\alpha)$（$\alpha\ne1$），$\alpha=1$ 用 $\log R$；$w_{lk,:}$ 跨全部 $g$。原文把 $\gamma s_l$ 放在 $\sum_k$ 内会重复计激活成本，故这里分开 $\lambda_{\rm link},\lambda_{\rm on}$，未改变当前代码。新方案的 $R_k\ge R_k^{\min}$ 还需明确 $R_k$ 的时窗与资源聚合口径。\par
+
+\textbf{衔接与追问。} 下一页谈求解。“链路关掉就没有该 TRP 的干扰？”——错。停止为 $k$ 发数据只消掉该 TRP 对 $k$ 的有用分量；它发送给其他 UE 的信号仍会经 $H_{klg}$ 干扰 $k$。\par
+
+\subsection*{第 15 页　新版求解流程与实现边界}
+
+\textbf{本页问题。} 哪些节点沿用当前结构，哪些只是研究设想？\par
+
+\textbf{直接讲稿。} “我把新方案放回现有两层循环里看。当前外层是由 $w$ 重算 $A,E,\Omega$，固定它们形成预编码二次问题；内层集中式 ADMM 用 CG 解 $x$、跨组功率投影 $z$、用 $y$ 更新一致性误差，再检查残差。新方案要研究的是：把条件误差统计校准为完整信道误差集合并真正求最坏情形；在 $x$ 的波束子问题中加入有明确定义的链路组稀疏；给 TRP 激活变量建立可行的更新和阈值后重优化；若要在 TRP 本地运行，还须拆开跨 TRP 相干项、定义交换消息和缓存，并证明事件触发条件不会与残差定义混淆。当前证据只支持矩阵 WMMSE、统计 $C$ 和集中式 ADMM 的实现，以及同输入对拍与功率可行。正式规模停止条件尚未通过；新机制没有效果数据。”\par
+
+\textbf{图形讲法。} 先沿外层 $w\to A\to E,\Omega\to$ 二次问题；进入内层 $x\to z\to y\to$ 两种残差；指向拟议消息门但强调它在现有实线之外；最后读右侧状态框。\par
+
+\textbf{公式。} 当前原始残差 $r^{t+1}=x^{t+1}-z^{t+1}$，对偶残差 $s^{t+1}=\rho(z^{t+1}-z^t)$；拟议触发量可写 $\|m^{t+1}-\bar m\|$，其中 $m$ 是待定义的消息，$\bar m$ 是上次真正发送的缓存。这三者时点和用途不同。原文 \path{2.png} 是 $\max_w\min_{\Delta H\in\mathcal U}\sum_k U_k(R_k(w,\widehat H+\Delta H))$；它没有给出当前统计 WMMSE 到最坏情形的等价推导。原文未缩放对偶 $\mu^+=\mu+\rho(x-z)$，当前代码使用缩放 $y=\mu/\rho$。\par
+
+\textbf{衔接与追问。} 汇报正文至此结束，答辩时回指第 5、9、13 页。“组稀疏有软阈值闭式解吗？”——孤立的组范数近端算子有；带耦合二次项、功率与鲁棒约束的完整子问题一般不能一次软阈值结束。详细推导见第二部分。\par
+
+\par\medskip\hrule\medskip
+
+\clearpage\section*{第二部分　从物理网络到优化评价的完整链条}
+\addcontentsline{toc}{section}{第二部分　从物理网络到优化评价的完整链条}
+
+\subsection*{0. 先把索引和时间尺度分清}
+
+\begin{small}
+\begin{longtable}{|p{.18\textwidth}|p{.39\textwidth}|p{.35\textwidth}|}
+\hline
+\textbf{符号} & \textbf{对象与范围} & \textbf{在求和中怎样使用} \\ \hline
+\endfirsthead
+\hline \textbf{符号} & \textbf{对象与范围} & \textbf{在求和中怎样使用} \\ \hline
+\endhead
+$c$ & 站址，$1,\ldots,7$ & 一个站址有三个共址 TRP \\ \hline
+$l$ & TRP，$1,\ldots,21$ & 发射端或功率约束所属节点 \\ \hline
+$k$ & 当前观察的接收 UE & 形成有用信号和受扰信号的目标 \\ \hline
+$j$ & 发射数据流所属 UE & $j=k$ 有用；$j\ne k$ 干扰 \\ \hline
+$g$ & 资源组，$1,\ldots,17$ & 前 16 组各 16 RB，末组 17 RB \\ \hline
+$a,m$ & 接收天线 $a\le4$、TRP 端口 $m\le64$ & 矩阵 $H(a,m)$ \\ \hline
+$q$ & 数据流索引，$1,\ldots,r_{jg}$ & 默认 rank 2，可随组/UE 变化 \\ \hline
+$t,n,h$ & 物理 TTI、WMMSE 外轮、ADMM 内轮 & 不能混为同一种迭代 \\ \hline
+\end{longtable}
+\end{small}
+
+当前场景有 7 站、21 共址扇区 TRP、默认每小区 10 UE 共 210 UE。TRP 64 Tx 是\textbf{下行发射端口}；UE 4 Rx 用于下行矩阵接收；UE 2 Tx 是上行 SRS 的场景参数，不能放进下行 $4\times64$ 乘法中。100 MHz、30 kHz SCS、273 RB、17 组、SRS 340 TTI 跳遍全带、每跳 20 TTI、CSI-RS 周期 40 TTI 来自原始场景与配置。当前 $b,\chi,r,\nu$ 由场景/规则固定，$w$ 才是本轮预编码求解量。CPU 是逻辑协调侧；当前算法在单进程 MATLAB 内集中完成。\par
+
+\subsection*{1. 从位置到真信道：先生成实验对象}
+
+站址如第 4 页公式。第 $l$ 个 TRP 的主方向 $\phi_l=2\pi((l-1)\bmod3)/3$；$d_{kl}=\|u_k-s_l\|_2$ 是米。默认方向因子 $G_{kl}^{\rm sec}=0.08+0.92\max\{\cos(\theta_{kl}-\phi_l),0\}^4$；默认大尺度增益\par
+\[
+\beta_{kl}=0.025\left(\frac{\max(d_{kl},10\,\mathrm m)}{100\,\mathrm m}\right)^{-3.2}G_{kl}^{\rm sec}.
+\]
+$\beta$ 是仿真归一化的\textbf{功率增益}，$\sqrt\beta$ 才乘到信道幅度。该默认简化模型不是完整 3GPP CDL/UMi/UMa；代码另有可选 \path{umi_pathloss_subset}/\path{uma_pathloss_subset}，正式默认不应写成已采用标准全模型。接收相关 $R_{\rm rx}(a,b)=0.35^{|a-b|}$ 为 $4\times4$，下三角 Cholesky 因子 $L_{\rm rx}L_{\rm rx}^H=R_{\rm rx}$。独立复高斯 $Z_{klg}\in\mathbb C^{4\times64}$，各元素 $\mathcal{CN}(0,1)$，因而\par
+\[
+H^{\rm true}_{klg}=\sqrt{\beta_{kl}}L_{\rm rx}Z_{klg}\in\mathbb C^{4\times64}.
+\]
+乘法尺寸为 $(4\times4)(4\times64)=4\times64$；左乘使接收天线相关，发射列仍独立，没有暗含发射侧阵列相关。$g$ 区分各组随机实现。项目假设包括中心坐标、环扇区边界、默认增益和相关系数；原图仅规定规模与部分场景参数。源码 \path{chasi_geometry_from_samples.m}、\path{chasi_generate_scene.m}。\par
+
+\subsection*{2. 从真信道模拟观测，再形成优化器可见量}
+
+真信道是仿真器的“答案”，不等于优化器可直接访问。CSI-RS 等效全矩阵观测 $Y_c=H^{\rm true}+N_c$；SRS 只取选择矩阵 $S\in\{0,1\}^{2\times4}$ 对应两接收行，$Y_s=SH^{\rm true}+N_s$。这里的上行/下行与互易是\textbf{等效统计构造}，代码没有完整协议收发链。默认观测噪声方差由先验链路增益、dB SINR 转线性 $10^{\gamma_{\rm dB}/10}$ 和年龄膨胀 $e^{2a/T_c}$ 得到；年龄单位毫秒，$T_c=120$ ms 为配置。CSI-RS 观测按 40 TTI 更新；SRS 17 次跳频的组在对应时刻才附加两行测量精度。\par
+
+对每个独立发射列，先验 $P_0=\beta R_{\rm rx}$、观测为独立高斯时，后验精度和、均值为第 6 页所列等式。$C\in\mathbb C^{4\times4}$ 描述\textbf{条件误差} $\widetilde h_m=h_m-\widehat h_m$ 的二阶统计，而 $\widehat H\in\mathbb C^{4\times64}$ 是要送给优化器的信道矩阵。若按列向量化整个 $H$，独立列假设下 $\operatorname{Cov}(\operatorname{vec}\widetilde H)=I_{64}\otimes C\in\mathbb C^{256\times256}$。这既不等于任意发射空间相关，也不是已校准的确定性误差椭球。默认的 \path{awgn_independent} 观测和可选的 \path{pilot_reuse_gaussian} 路径不能混说；后者含复用近似，尚不能声称所有跨用户联合后验都完整建模。优化非理想分支取 $(\widehat H,C)$；理想分支明确可取真 $H$ 与 $C=0$，但不能把它混进非理想结果。\par
+
+\subsection*{3. 资源、服务、rank 与可行初值}
+
+服务掩码 $b_{lkg}\in\{0,1\}$ 决定 $w_{lkg}$ 能否非零；调度 $\chi_{kg}\in\{0,1\}$ 决定用户是否在组 $g$ 发流；$r_{kg}\le\min(4,64)$ 是流数，默认 2；$\nu_g=N_g^{\rm RB}/273$ 是资源组权重，$\sum_g\nu_g=1$。当前程序在每组按活动 TRP、初始归属用户池、轮转选择等规则生成调度和最多两个活动服务 TRP；home 是几何归属，服务集合是当前活动协同关系，两者不是一个概念。当前调度目标可用 40\% PRB 配置，原始挑战还提 50\% PRB 条件；不能把两者写成同一个已验证设置。历史 GA/PSO 候选不是正式链此处的即时决策变量。\par
+
+初值在每条允许链路对 $\widehat H_{klg}$ 作 SVD，取右奇异方向组成 $w^0_{lkg}$，再用与 ADMM 相同的跨组功率投影使 $\sum_g\nu_g\sum_k\|w^0_{lkg}\|_F^2\le P_l$。所以第 9 页从“可行 $w$”起步有代码依据。SVD 仅是初始化，外层之后 $w$ 可以改变方向和幅度。源 \path{chasi_generate_scene.m}、\path{chasi_matrix_wmmse.m} 初始化与 \path{project}。\par
+
+\subsection*{4. 数据先预编码，之后经过信道}
+
+令独立高斯数据 $s_{jg}\in\mathbb C^{r_{jg}\times1}$、$\mathbb E[s_{jg}s_{ig}^H]=\delta_{ji}I_{r_{jg}}$（相应维度），$n_{kg}\sim\mathcal{CN}(0,I_4)$。一个 TRP 发射\par
+\[
+x_{lg}=\sum_{j:\chi_{jg}=1}w_{ljg}s_{jg}\in\mathbb C^{64\times1},
+\qquad
+y_{kg}=\underbrace{\left(\sum_lH_{klg}w_{lkg}\right)s_{kg}}_{\text{UE }k\text{ 的有用信号}}
++\underbrace{\sum_{j\ne k}\left(\sum_lH_{klg}w_{ljg}\right)s_{jg}}_{\text{同组其他 UE 的干扰}}+n_{kg}.
+\]
+内层 $H_{klg}(4\times64)w_{ljg}(64\times r_j)=F_{kjg}(4\times r_j)$，再乘 $s_{jg}(r_j\times1)$ 得 4 维接收向量。对同一个 $j$ 的不同 TRP 先求和，故速率里有跨 TRP 相干交叉项；不能把每个 TRP 功率单独加完再当有用信号。掩码为 0 时对应 $w=0$。$w$ 已含幅度，不能再乘 $\sqrt p$。这里是\textbf{物理传播顺序}；代码生成 $H$ 的时间顺序与它不同。\par
+
+\subsection*{5. 接收协方差如何从上式产生}
+
+定义 $F_{kjg}=\sum_l\widehat H_{klg}w_{ljg}$。因不同用户数据独立、零均值，$\mathbb E[yy^H\mid\widehat H]$ 的已知信道部分为 $\sum_jF_{kjg}F_{kjg}^H$，其中 $j=k$ 也在内。若 $\widetilde H_{klg}$ 在不同 TRP 和发射列间条件独立、零均值且每列协方差 $C_{klg}$，则\par
+\[
+\mathbb E[\widetilde H_{klg}w_{ljg}w_{ljg}^H\widetilde H_{klg}^H\mid\widehat H]
+=\|w_{ljg}\|_F^2C_{klg},
+\qquad
+R^{yy}_{kg}=I_4+\sum_jF_{kjg}F_{kjg}^H+\sum_l p_{lg}C_{klg},
+\quad p_{lg}=\sum_j\|w_{ljg}\|_F^2.
+\]
+三个主项均为 $4\times4$。$I_4$ 是代码白化/归一化的噪声协方差，不能读为实际 1 W。$F$ 的平方先对同一 $j$ 汇集所有 $l$，因此保留跨 TRP 相干项；$pC$ 是统计误差的非相干二阶项。若真实误差存在代码未表示的跨 TRP/跨发射列相关，则此式需增加交叉协方差项。源码 \path{chasi_matrix_wmmse.m} 的 \path{state}。\par
+
+\subsection*{6. MMSE 接收器：优化的是估计误差}
+
+令线性估计 $\widehat s_{kg}=A_{kg}^Hy_{kg}$，$A_{kg}\in\mathbb C^{4\times r_{kg}}$。固定 $w$ 与统计量，最小化 $\mathbb E\|A^Hy-s_k\|_2^2$。对复矩阵求驻点有 $R^{yy}A=F_{kkg}$，因此\par
+\[
+A_{kg}=(R^{yy}_{kg})^{-1}F_{kkg}.
+\]
+$R^{yy}$ 为正定 $4\times4$（有 $I_4$），右侧 $F$ 为 $4\times r$，解 $A$ 同为 $4\times r$。代码用线性方程求解而不必显式逆。注意协方差含当前用户的信号，因为 MMSE 是从总观测 $y$ 估计该用户数据，不是把它先删掉再设计接收器。输出 $A$ 用于 $E$、$\Omega$ 和预编码二次项。\par
+
+\subsection*{7. MSE 矩阵与两种不同的“权重”}
+
+从误差\textbf{定义}起步：$e_{kg}=A_{kg}^Hy_{kg}-s_{kg}\in\mathbb C^{r\times1}$，$E_{kg}=\mathbb E[e_{kg}e_{kg}^H]\in\mathbb C^{r\times r}$。期望对独立数据、噪声及条件信道误差取，视当前 $\widehat H,w$ 为固定。逐项展开 $yy^H$、$ys^H$ 和 $ss^H$：\par
+\[
+E_{kg}=I_r-A_{kg}^HF_{kkg}-F_{kkg}^HA_{kg}+A_{kg}^HR^{yy}_{kg}A_{kg}.
+\]
+对角元素是各流误差方差，非对角元素是流间误差相关，不可用单流公式 $e=1/(1+\gamma)$ 无条件替换矩阵。代入 MMSE 方程 $R^{yy}A=F_{kkg}$，化简为 $E^{\rm MMSE}=I_r-F_{kkg}^H(R^{yy})^{-1}F_{kkg}$。引入正定矩阵 $\Omega$，对固定 $E$ 最大化 $\log\det\Omega-\operatorname{tr}(\Omega E)+r$，驻点给 $\Omega=E^{-1}$；它是 $r\times r$ 的\textbf{流/MSE 权重}。另有 $\eta_{kg}$ 是将不同用户速率或 PF 边际效用加权的\textbf{用户标量}，来源完全不同。$A,E,\Omega$ 都会在下一外轮重算。\par
+
+\subsection*{8. 速率、效用及 WMMSE 对应条件}
+
+在高斯独立流、线性 MMSE 接收、所用协方差模型一致并把干扰当噪声时，单组矩阵谱效率\par
+\[
+R^{\rm SE}_{kg}=-\log_2\det E^{\rm MMSE}_{kg}
+=\log_2\det R^{yy}_{kg}-\log_2\det(R^{yy}_{kg}-F_{kkg}F_{kkg}^H).
+\]
+$\log\det$ 的自然对数换成 bit/s/Hz 要除 $\ln2$。代码 \path{state} 得到的非理想速率是带 $pC$ 的统计代理；\path{true_rates} 则用真信道另算。固定用户权重 $\eta\ge0$ 的加权和速率有对应的加权 MSE 交替形式；若外目标是 PF $U=\sum_k\log(1+\bar R_k/R_0)$，代码在当前外轮由 $\bar R_k=\sum_g\nu_gR^{\rm SE}_{kg}$ 形成边际 $\eta_k\propto1/(\bar R_k+R_0)$，用其构建局部子问题，之后重算真实目标并接受/回溯。不能说整个非凸问题因此全局等价于一个凸二次问题。$\Omega$ 为每用户流内矩阵，$\eta$ 为用户间取舍；两者同时出现在二次系数里。源码 \path{objectiveSnapshot}、\path{state}。\par
+
+\subsection*{9. 固定 $A,\Omega,\eta$ 后，预编码二次项从哪里来}
+
+展开 $\sum_{k,g}\nu_g\eta_{kg}\operatorname{tr}(\Omega_{kg}E_{kg})$，剔除与 $w$ 无关的常数。对每个接收 UE 定义 $M_{kg}=A_{kg}(\eta_{kg}\Omega_{kg})A_{kg}^H\in\mathbb C^{4\times4}$；对允许的服务块定义 $B_{lkg}=\widehat H_{klg}^HA_{kg}(\eta_{kg}\Omega_{kg})\in\mathbb C^{64\times r_{kg}}$。统计项对每个 TRP 的系数是 $D_{lg}=\sum_k\Re\operatorname{tr}(M_{kg}C_{klg})\ge0$。于是\par
+\[
+q_g(w)=\sum_{k,j}\left\|M_{kg}^{1/2}\sum_l\widehat H_{klg}w_{ljg}\right\|_F^2
++\sum_lD_{lg}\sum_j\|w_{ljg}\|_F^2
+-2\Re\sum_{l,k}\operatorname{tr}(B_{lkg}^Hw_{lkg}).
+\]
+$j$ 贯穿全部发射用户、$k$ 贯穿全部接收用户，故第一项含有用与所有干扰，第二项来自误差 $C$，线性项只来自接收自己的有用流。代码用隐式算子 $\mathcal Q_gw$ 而非显式大矩阵。实际子问题是 $\min_w\sum_g\nu_gq_g(w)$，要求 $w_{lkg}=0$ 对禁用掩码，并对每 $l$ 满足 $\sum_g\nu_g\sum_j\|w_{ljg}\|_F^2\le P_l$。在 $C\succeq0,\Omega\succ0,\eta\ge0$ 且固定它们时，二次项半正定，功率球/掩码约束凸；这不表示外层联合问题凸。源 \path{quadratic}、\path{qapply}。\par
+
+\subsection*{10. ADMM 的分裂、线性系统、投影、对偶和残差}
+
+令 $f(x)=\sum_g\nu_gq_g(x_g)$，$\mathcal P$ 为掩码与跨组功率可行集，引入副本 $z$：$\min_{x,z}f(x)+\iota_{\mathcal P}(z)$，$x=z$。用缩放对偶 $y$ 的增广目标是\par
+\[
+L_\rho(x,z,y)=f(x)+\iota_{\mathcal P}(z)
++\frac\rho2\|x-z+y\|_F^2-\frac\rho2\|y\|_F^2.
+\]
+因 $q=\langle x,\mathcal Qx\rangle-2\Re\langle B,x\rangle$ 没有额外 $1/2$，一阶条件有 $2\nu\mathcal Qx-2\nu B+\rho(x-z+y)=0$，所以代码线性系统正是第 10 页的 $\nu\mathcal Q+\rho I/2$。CG 求这套隐式线性系统；CG 残差是线性方程误差，不是 ADMM 一致性残差。$z^{h+1}=\Pi_{\mathcal P}(x^{h+1}+y^h)$ 把\textbf{全部 $g$} 对同一 $l$ 联合处理。投影的 KKT 形式可写 $z_{lg}=v_{lg}/(1+\lambda_l\nu_g)$，$\lambda_l\ge0$ 用一维二分使预算守恒；因同一个 $\lambda_l$ 作用所有组，不能逐组独立投影。$y^{h+1}=y^h+x^{h+1}-z^{h+1}$。原始残差 $\|x^{h+1}-z^{h+1}\|$、对偶残差 $\rho\|z^{h+1}-z^h\|$，代码还以绝对/相对阈值和最大 CG 残差联合判断，并可调整 $\rho$ 同步缩放 $y$。返回 $z$ 是为了给外轮一个功率可行候选；返回 $x$ 则可能违反预算。源 \path{admm}、\path{project}。\par
+
+\subsection*{11. 返回外轮：接受、回溯和四类停止}
+
+新候选 $z$ 改变 $F,R^{yy},A,E,\Omega$ 与速率/效用，因此外轮不能沿用旧状态直接报告结果。当前程序重算 \path{objectiveSnapshot}，若候选未满足接受条件，会在旧 $w$ 与候选间做最多 12 次步长折半回溯；满足后才更新外轮状态。外轮停止同时看目标相对变化、预编码相对变化与最新 ADMM 是否停止；迭代到配置上限仅给“上限”原因，不等于数学收敛。功率可行只说明 $z\in\mathcal P$；同输入 MATLAB/Python 对拍只说明实现数值一致；ADMM 停止需残差与 CG 精度；WMMSE 停止需外目标和变量变化条件。保存的 210/420 UE 记录支持对拍、零功率违规，但正式规模的停止条件仍未满足；更早位置抽样下的速率数字也不能套到当前面积均匀拓扑。源 \path{chasi_matrix_wmmse.m} 主外轮与 \path{CHASI_VALIDATION_20261017.md}，历史报告仅作运行证据，不能覆盖当前源码。\par
+
+\subsection*{12. 用同一 $w$ 在真信道评价，再看业务口径}
+
+优化阶段的统计代理不能代替最终仿真评价。对每组，用 $H^{\rm true}$ 重建 $F_{kjg}^{\rm true}$，令 $I_{kg}=I_4+\sum_{j\ne k}F_{kjg}^{\rm true}(F_{kjg}^{\rm true})^H$，则\par
+\[
+R_{kg}^{\rm SE,true}=\log_2\det(I_{kg}+F_{kkg}^{\rm true}(F_{kkg}^{\rm true})^H)-\log_2\det I_{kg},
+\qquad \bar R_k^{\rm SE}=\sum_g\nu_gR_{kg}^{\rm SE,true}.
+\]
+$R^{\rm SE}$ 单位 bit/s/Hz；按代码每 RB 取 $12\times30$ kHz，$N_g^{\rm RB}=273\nu_g$，每 TTI 可用比特近似 $R_{kg}^{\rm SE,true}N_g^{\rm RB}(12\Delta f)T_{\rm TTI}$，$T_{\rm TTI}=1$ ms。静态 \path{chasi_evaluate.m} 只在忙且非尾端的有效时隙累加，并在尾段按代码的需求系数加权，统计 $V_k/T_k^{\rm valid}$，同时保留仅有效 UE 与含零 UE 两套分母并取底部 5\% 分位。这个 $V_k$ 是业务门控的容量/交付\textbf{代理}，不是完整缓冲队列服务量；原图的 burst 级独立样本、抬头去尾、协议统计仍需逐项一致性验证。可选 \path{chasi_time_evolution} 有动态队列逻辑，但默认静态入口不调用它。功率是 $\sum_l\sum_g\nu_g\sum_j\|w_{ljg}\|_F^2$ 的模型空口发射量，不是设备总能耗。原始挑战中的“80\%”需用\textbf{共同基线下的相对提升比}定义并确认分母，不能误写绝对体验比；“平均体验损失<10\%”“空口总发射功率下降>30\%”也须按对应独立功控基线比较。\par
+
+\subsection*{完整变量追踪表}
+
+\begin{small}
+\begin{longtable}{|p{.17\textwidth}|p{.19\textwidth}|p{.17\textwidth}|p{.15\textwidth}|p{.16\textwidth}|}
+\hline
+\textbf{变量} & \textbf{含义及维度/单位} & \textbf{生成位置} & \textbf{更新方式} & \textbf{后续使用} \\ \hline
+\endfirsthead
+\hline \textbf{变量} & \textbf{含义及维度/单位} & \textbf{生成位置} & \textbf{更新方式} & \textbf{后续使用} \\ \hline
+\endhead
+$s_c,s_l,u_k$ & 站/UE 坐标，米 & 几何生成函数 & 场景一次抽样 & 距离、扇区增益、home \\ \hline
+$b_{lkg},\chi_{kg},r_{kg},\nu_g$ & 服务、调度、流数、RB 占比 & 场景生成函数 & 当前规则固定 & 预编码掩码、资源聚合 \\ \hline
+$\beta_{kl}$ & 大尺度功率增益，无量纲 & 场景生成函数 & 随位置生成 & $H^{\rm true}$、先验 \\ \hline
+$H^{\rm true}_{klg}$ & 真信道，$4\times64$ & 场景生成函数 & 场景一次生成 & 仿真测量、真实评价 \\ \hline
+$Y_c,Y_s$ & 等效 CSI-RS/SRS 观测，$4\times64,2\times64$ & 场景生成函数 & 按组与年龄生成 & 后验估计 \\ \hline
+$\widehat H_{klg},C_{klg}$ & 估计信道 $4\times64$、接收侧误差 $4\times4$ & 场景生成函数 & 先验+观测精度融合 & 非理想优化 \\ \hline
+$w_{lkg}$ & 完整预编码，$64\times r_{kg}$ & \path{chasi_matrix_wmmse.m} & SVD 初值、外轮 ADMM & 下行发送与评价 \\ \hline
+$p_{lg}$ & 组内 TRP 功率，模型预算单位 & \path{state} & 由 $w$ 派生 & $R^{yy}$ 误差项、预算 \\ \hline
+$F_{kjg}$ & 相干有效信道，$4\times r_{jg}$ & \path{state}/\path{true_rates} & 每次 $w$ 改变重算 & 接收、MSE、速率 \\ \hline
+$R^{yy}_{kg}$ & 接收协方差，$4\times4$ & \path{state} & 随 $w,C$ 重算 & MMSE 接收器 \\ \hline
+$A_{kg}$ & 接收矩阵，$4\times r$ & \path{state} & 外轮 MMSE & MSE、二次系数 \\ \hline
+$E_{kg},\Omega_{kg}$ & MSE 及逆 MSE，$r\times r$ & \path{state} & 外轮更新 & 统计代理速率、二次系数 \\ \hline
+$\eta_{kg}$ & 用户效用权重，标量 & 目标快照函数 & 目标分支按外轮更新 & 二次系数 $M,B$ \\ \hline
+$x,z,y$ & 原变量、可行副本、缩放对偶；与 $w$ 同型 & \path{admm} & 内轮交替 & 返回 $z$ 到外轮 \\ \hline
+$\rho$ & ADMM 惩罚系数，归一化目标制 & \path{chasi_solver_config.m} & 可按残差调节 & 线性系统与对偶 \\ \hline
+$R^{\rm SE,true},R^{\rm exp}$ & 频谱效率 bit/s/Hz、静态体验代理 bit/s & \path{chasi_evaluate.m} & 固定 $w$ 后统计 & 低分位与对照 \\ \hline
+\end{longtable}
+\end{small}
+
+\subsection*{教学小例子：两 TRP、两 UE、每 UE 一流}
+
+\textbf{这只是手算结构示意，不是正式七站场景，也不是已有实验结果。} 令两个 TRP $l=1,2$，两个用户 $k=1,2$，一个组、每人一流。为写清信号，把 UE 暂简化为单接收天线、TRP 暂简化为单发射端口。$s_1,s_2$ 独立且单位方差：$x_1=w_{11}s_1+w_{12}s_2$，$x_2=w_{21}s_1+w_{22}s_2$。UE1 收到\par
+\[
+y_1=(h_{11}w_{11}+h_{12}w_{21})s_1+(h_{11}w_{12}+h_{12}w_{22})s_2+n_1.
+\]
+前一括号是 UE1 的相干有用项，后一括号是 UE2 数据造成的干扰。若记 $f_{11}$、$f_{12}$ 为两括号，则 $R^{yy}_1=1+|f_{11}|^2+|f_{12}|^2+c_{11}p_1+c_{12}p_2$，$a_1=f_{11}/R^{yy}_1$，$e_1=1-2\Re(a_1^*f_{11})+|a_1|^2R^{yy}_1$，$\omega_1=e_1^{-1}$。固定 $a_1,\omega_1$（以及 UE2 的对应量）后，改变四个 $w$ 去降低加权 MSE，同时约束两 TRP 各自总功率。ADMM 的 $x$ 临时求二次最优，$z$ 投回功率可行球，$y$ 促其一致；返回 $z$ 后重算 $f,a,e,\omega$。正式模型把上述标量提升为 $64$ Tx、$4$ Rx、最多 $2$ 流、21 TRP、17 组，并保持相同依赖顺序。\par
+
+\par\medskip\hrule\medskip
+
+\clearpage\section*{第三部分　老师追问答辩手册}
+\addcontentsline{toc}{section}{第三部分　老师追问答辩手册}
+
+\subsection*{拓扑、资源与计算主体}
+
+\textbf{问：7 站与 21 TRP 为什么不矛盾？} 答：每站三个共址扇区 TRP，站址索引 $c$ 与发射节点索引 $l$ 不同；不能把三个 TRP 画成三个不同站址。见第 4 页与 \path{chasi_geometry_from_samples.m}。\par
+
+\textbf{问：UE 为什么是 210，均匀怎么实现？} 答：当前每小区取原始 10–20 范围的下限 10，共 $7\times3\times10$。角度在扇区均匀，半径平方在 25²–150² 上均匀，故环扇区内面积均匀；半径边界为项目假设。\par
+
+\textbf{问：64 Tx、4 Rx、2 Tx 各在哪里？} 答：$H^{\rm true}$/预编码下行乘法用 TRP 64 Tx 与 UE 4 Rx；UE 2 Tx 是 SRS 上行场景设定，不能混进下行 $4\times64$ 矩阵尺寸。当前 SRS 是等效观测。\par
+
+\textbf{问：CPU 是一个分布式算法节点吗？} 答：图中是协调角色；实际 \path{chasi_run.m} 在 MATLAB 单进程调用集中式预编码，ADMM 的 $x,z$ 拆分不等于 TRP 本地并行。\par
+
+\textbf{问：home、服务集合和调度一样吗？} 答：home 是几何归属；服务集合为某资源组的活动 TRP 对该 UE 的允许链；调度 $\chi$ 决定该组是否向 UE 发流，三个概念和掩码用途不同。见第 4、7 页。\par
+
+\subsection*{信道与测量}
+
+\textbf{问：$L_{\rm rx}$ 为什么左乘？} 答：$L_{\rm rx}$ 为 $4\times4$，$Z$ 为 $4\times64$；左乘使四个接收行相关，发射列仍独立，满足 $L_{\rm rx}L_{\rm rx}^H=R_{\rm rx}$。不是完整标准 CDL 模型。\par
+
+\textbf{问：噪声的 $I_4$ 是真实 1 W 吗？} 答：不是，接收模型做了噪声归一化；功率与信道增益需在同一模型制下读。默认路径不应直接据此推设备能耗。\par
+
+\textbf{问：SRS SINR 从 dB 到线性怎样换？} 答：$\gamma_{\rm lin}=10^{\gamma_{\rm dB}/10}$；代码观测噪声与 $1/\gamma_{\rm lin}$ 成正比，年龄以指数因子增大噪声，从而降低精度。\par
+
+\textbf{问：$C$ 为什么 $4\times4$ 却可描述 $4\times64$ 的误差？} 答：当前假设 64 个发射列条件独立、每列同一 $4\times4$ 接收侧协方差；完整向量化协方差是 $I_{64}\otimes C$。若发射方向相关，这个假设不足。\par
+
+\textbf{问：未测到的 SRS 跳频组怎么处理？} 答：该组后验精度里没有 SRS 的 $S^HS/n_s$ 项，只用先验与 CSI-RS 等可用观测；不应把所有 273 RB 说成同一时刻都被 SRS 直接测到。\par
+
+\subsection*{发射、接收和速率}
+
+\textbf{问：同一用户多个 TRP 的功率为什么不能直接相加？} 答：接收有用幅度是 $F_{kkg}=\sum_lH_{klg}w_{lkg}$，速率用 $F_{kkg}F_{kkg}^H$；后者含 $l\ne l'$ 的交叉项，反映相干叠加。\par
+
+\textbf{问：$R^{yy}$ 的 $\sum_j$ 包括当前用户吗？} 答：包括；它是总观测协方差。计算该用户干扰协方差或真实速率分母才用 $j\ne k$。\par
+
+\textbf{问：$A=(R^{yy})^{-1}F$ 从何而来？} 答：固定 $w$，最小化 $\mathbb E\|A^Hy-s_k\|^2$，对 $A$ 求驻点得 $R^{yy}A=F_{kk}$；矩阵形状 $(4\times4)(4\times r)=4\times r$。\par
+
+\textbf{问：$E$ 的非对角元素是什么？} 答：多流估计误差之间的相关性；只有单流或特殊对角化条件下才能退成逐流标量关系，不能无条件套 $e=1/(1+\gamma)$。\par
+
+\textbf{问：$\Omega$ 与 $\eta$ 都叫权重，有何不同？} 答：$\Omega=E^{-1}$ 是一个 UE 内 $r\times r$ 的 MSE 矩阵权重；$\eta$ 是用户之间的效用边际标量，例如 PF 分支按当前累计代理速率确定。\par
+
+\textbf{问：$-\log_2\det E$ 为什么是速率？} 答：在线性 MMSE、独立高斯数据和一致的干扰加噪声协方差下由矩阵 MMSE—互信息关系得到；统计误差模型下是求解用代理，最终仍在真信道重算。\par
+
+\subsection*{WMMSE 与 ADMM}
+
+\textbf{问：固定 $A,\Omega$ 后到底优化什么？} 答：优化所有允许服务链和组的完整复矩阵 $w$，目标为加权 MSE 展开的半正定二次式，受掩码及每 TRP 跨组功率约束；$A,\Omega$ 只是本次外轮固定，下轮重算。\par
+
+\textbf{问：$\mathcal Q$ 怎样包含 $C$？} 答：$M_k=A_k\eta_k\Omega_kA_k^H$；统计项 $D_l=\sum_k\Re\operatorname{tr}(M_kC_{kl})$ 乘发射功率，进入隐式二次算子 $\mathcal Q$。它和误差椭球 $Q$ 名近义异。\par
+
+\textbf{问：ADMM 公式为什么有 $\rho/2$？} 答：源码二次目标写 $\langle x,\mathcal Qx\rangle-2\Re\langle B,x\rangle$，没有前置 $1/2$；对它求导与 $\rho\|x-z+y\|^2/2$ 求导后整体除以 2，得到 $\nu\mathcal Q+\rho I/2$。\par
+
+\textbf{问：CG、ADMM、WMMSE 分别干什么？} 答：CG 解 ADMM $x$ 步线性系统；ADMM 处理二次目标与跨组功率约束；WMMSE 在接收器/权重与预编码之间交替并检查效用目标。它们有三层不同停止条件。\par
+
+\textbf{问：为何返回 $z$ 不返回 $x$？} 答：$z$ 是投影到掩码和每 TRP 跨组预算后的可行副本；$x$ 是暂时的原变量，未必可行。\par
+
+\textbf{问：有功率可行和对拍，能说算法收敛吗？} 答：不能。功率只检验约束，对拍只检验同输入实现一致；内轮须原始/对偶/CG 残差，外轮须目标和变量变化与内轮状态。当前正式规模保存记录未满足后两项。\par
+
+\subsection*{业务评价和验收}
+
+\textbf{问：实际评价为什么还要用真信道？} 答：仿真中它是独立于优化器输入的环境真值；用同一个 $w$ 在真 $H$ 上重算可检验 CSI 误差影响。非理想求解不得偷用真 $H$。\par
+
+\textbf{问：当前 $R^{\rm exp}$ 真是协议体验速率吗？} 答：默认静态实现是忙闲与有效窗口门控的容量代理，没有队列出队，也没有完整实现原图的 burst 级样本协议。它能支持内部对照，正式协议达标仍需口径验证。\par
+
+\textbf{问：bottom 5\% 的分母为什么重要？} 答：只对有效 UE 取分位与把未完成/无有效样本 UE 计零会给不同 CDF；原图要求各用户/突发样本和头尾剔除，必须锁定样本单位和排除规则才能谈边缘提升。\par
+
+\textbf{问：80\% 是绝对速率比吗？} 答：原图描述为 50\% PRB 条件下“边缘体验提升达到集中式理想信道估计的 80\%”。应先定义共同基线 $B$，再核对 $(E_{\rm cand}-B)/(E_{\rm ideal}-B)$ 的样本与分母；不能直接写 $E_{\rm cand}/E_{\rm ideal}$。\par
+
+\subsection*{研究计划、新版方案与边界}
+
+\textbf{问：现有 $C$ 可以直接当椭球 $Q$ 吗？} 答：不能。$C$ 是每发射列 $4\times4$ 接收侧条件协方差；原文单接收向量 $Q$ 是 $64\times64$ 发射方向形状。需定义全矩阵向量化、坐标基、统计到确定性边界的置信尺度及覆盖率。\par
+
+\textbf{问：误差大就一定波束变宽吗？} 答：不一定；最优方向取决于信道几何、其他用户干扰、功率和效用目标。原文此类定性语句是研究动机，必须由对照证实。\par
+
+\textbf{问：最坏情况式已由 WMMSE 解决了吗？} 答：没有。\path{2.png} 提出 $\max_w\min_{\Delta H\in\mathcal U}$，但原文没有给多流矩阵信道下的鲁棒等价、内层可解性与外层收敛条件。当前代码做统计平均设计。\par
+
+\textbf{问：组稀疏置零是否等于 TRP 休眠？} 答：链路组 $\|w_{lk,:}\|$ 归零只停该 TRP 对用户 $k$ 的服务；整 TRP 休眠需要对所有用户/资源的波束及激活状态联动，并区分辐射功率与设备功耗。\par
+
+\textbf{问：事件触发应比较什么？} 答：先明确消息 $m$ 的内容、发送方/接收方和上次真正发送的缓存 $\bar m$；$\|m-\bar m\|$ 是触发量。$x^{h+1}-z^{h+1}$ 是当前原始残差，$\rho(z^{h+1}-z^h)$ 是对偶残差；三者不可互称。静默时缓存、共识和对偶如何演化仍需设计。\par
+
+\textbf{问：新版方法如何验证而不预设成功？} 答：先用观测残差/覆盖率验证 $Q$ 校准；固定拓扑、业务、SRS 质量、预算、求解容差和随机流，做名义、统一、非均匀误差对照；分别报告边缘体验、平均损失、空口功率、内外层残差、时间与消息量。先解释失败与可行性，再讨论可能收益。\par
+
+\subsection*{来源与核对边界}
+
+\begin{itemize}[leftmargin=2em,itemsep=1pt]
+\item 幻灯片及每页备注：当前磁盘 PPTX，SHA-256 见首页；未用旧生成脚本覆盖。
+\item 原始任务：本地《难题1.png》《典型验收场景.png》《用户速率协议定义.png》。特别区分 50\% PRB 挑战条件与代码默认 40\% 目标配置。
+\item 新方案：\textsf{202610-系统方案v2.md} 及 \path{1.png} 椭球、\path{2.png} min–max、\path{3.png} 对角形状；方案的保证性话语、闭式解和收益比例不是当前实证。
+\item 旧方案：\textsf{202609-系统方案.pdf} 用于说明研究思路的历史演进；其中“整个问题转凸”“ADMM 即 TRP 分布式”等叙述不能替代当前代码与数学条件。
+\item 当前正式代码：\path{matlab/chasi/chasi_config.m}、\path{chasi_geometry_from_samples.m}、\path{chasi_generate_scene.m}、\path{chasi_run.m}、\path{chasi_matrix_wmmse.m}、\path{chasi_solver_config.m}、\path{chasi_evaluate.m}、\path{chasi_traffic.m}、\path{chasi_time_evolution.m}，源码提交见首页。
+\item 历史编号与旁证：\path{docs/CHASI_UNIFIED_TRACE.tex} 的 C01–C38、L01–L17、Z01–Z03 以及 \path{docs/CHASI_VALIDATION_20261017.md}、\path{docs/CHASI_TOPOLOGY_AUDIT_20261019.md}。本稿公式重新按当前源码核对，旧报告只用于历史证据；未经新实验不能转述为新版拓扑的性能结果。
+\end{itemize}
+
+\subsubsection*{关键源码定位（提交 \path{db9d7e3}，行号供会后查验）}
+
+\begin{itemize}[leftmargin=2em,itemsep=1pt]
+\item 站址、三扇区和面积均匀半径：\path{matlab/chasi/chasi_geometry_from_samples.m:14-50}；默认规模、测量周期与预算：\path{matlab/chasi/chasi_config.m:8-55}。
+\item $R_{\rm rx}$、Cholesky、$H^{\rm true}$ 与后验 $\widehat H,C$：\path{matlab/chasi/chasi_generate_scene.m:12-13,55-85}；资源组/调度：同文件 \path{153-199}；默认方向/距离增益：\path{201-215}。
+\item 正式入口、默认与可选时间回放边界：\path{matlab/chasi/chasi_run.m:39-97,130-140}。
+\item 可行初值、外轮接受/回溯、停止：\path{matlab/chasi/chasi_matrix_wmmse.m:12-26,42-104}；目标与 PF 用户权重：\path{307-350}。
+\item 真信道求解器内比较分支：\path{chasi_matrix_wmmse.m:352-371}；$F,R^{yy},A,E,\Omega$：\path{380-407}；$M,B,D$：\path{409-424}；隐式 $\mathcal Q$：\path{426-444}。
+\item ADMM、CG、联合投影：\path{chasi_matrix_wmmse.m:446-489,491-503,505-536}；正式真信道评价与业务门控：\path{matlab/chasi/chasi_evaluate.m:35-96,137-154}；评价契约未确认项：\path{186-197}。
+\end{itemize}
+\end{document}

@@ -1,0 +1,59 @@
+# 茶思研究汇报现场速查
+
+> 对应 15 页用户当前 PPTX（SHA-256 前缀 `f460c1bcdd725b24`）；正式代码提交 `db9d7e3`。完整校验值及逐式推导见《CHASI_逐页汇报与答辩讲解稿》。
+
+## 30 秒主线
+
+原始茶思任务要求在七站三扇区、非理想 SRS/CSI、273 RB、每 TRP 功率约束下研究用户中心多 TRP 协同的边缘体验与规模。当前 MATLAB 场景生成 $H^{\rm true}$；等效观测产生 $\widehat H,C$；规则固定服务、调度、流数和资源权重；集中式矩阵 WMMSE–ADMM 求完整波束 $w$；同一 $w$ 在真信道上评价。202610 方案拟研究校准的非均匀误差椭球、最坏情形、稀疏/休眠与事件触发；这些不是当前已运行结果。
+
+## 沿 PPT 页码的一句话
+
+- 1–3：问题是测量不准、边缘干扰、跨组功率与计算规模；右侧指标是检验量，不是结果。
+- 4：7 站 × 3 共址 TRP，当前每小区 10 UE；彩色点是真实 UE，颜色是初始归属站址；UE7/T01/T02 是第 1 组示例。
+- 5–6：$H^{\rm true}\to(\widehat H,C)\to(b,\chi,r,\nu)\to w\to R^{\rm true}$；测量/CPU 泳道是等效仿真，不是完整协议与分布式实现。
+- 7–8：历史 GA/PSO 链未接正式入口；当前只优化 $w$；真信道速率再进入静态业务体验**代理**。
+- 9–10：外轮重算 $F,R^{yy},A,E,\Omega$；内轮 CG 解 $x$、联合功率投影 $z$、更新缩放对偶 $y$；返回可行 $z$。
+- 11–12：$C$ 进 $R^{yy}$ 和二次算子；$\Omega$ 是流内 MSE 权重，$\eta$ 是用户间效用权重。
+- 13–15：原文 $64$ 维单接收向量椭球与当前 $4\times64$ 信道/$4\times4$ 接收侧统计不同；最坏情况、稀疏、休眠、TRP 本地计算、触发均属拟研究。
+
+## 必背公式与维度
+
+\[
+H^{\rm true}_{klg}=\sqrt{\beta_{kl}}L_{\rm rx}Z_{klg}\in\mathbb C^{4\times64},
+\quad L_{\rm rx}\in\mathbb C^{4\times4},
+\quad Z_{klg}\in\mathbb C^{4\times64}.
+\]
+\[
+F_{kjg}=\sum_l\widehat H_{klg}w_{ljg}\in\mathbb C^{4\times r_{jg}},
+\quad p_{lg}=\sum_j\|w_{ljg}\|_F^2,
+\quad R^{yy}_{kg}=I_4+\sum_jF_{kjg}F_{kjg}^H+\sum_lp_{lg}C_{klg}.
+\]
+\[
+A_{kg}=(R^{yy}_{kg})^{-1}F_{kkg}\in\mathbb C^{4\times r},
+\quad E_{kg}=I_r-A^HF_{kkg}-F_{kkg}^HA+A^HR^{yy}A,
+\quad\Omega_{kg}=E_{kg}^{-1}\in\mathbb C^{r\times r}.
+\]
+\[
+\sum_g\nu_g\sum_j\|w_{ljg}\|_F^2\le P_l,
+\quad(\nu_g\mathcal Q_g+\tfrac\rho2 I)x_g=\nu_g B_g+\tfrac\rho2(z_g-y_g),
+\quad z=\Pi_{\mathcal P}(x+y),\quad y^+=y+x-z.
+\]
+\[
+R_{kg}^{\rm SE,true}=\log_2\det(I_4+\sum_jF^{\rm true}_{kjg}(F^{\rm true}_{kjg})^H)
+-\log_2\det(I_4+\sum_{j\ne k}F^{\rm true}_{kjg}(F^{\rm true}_{kjg})^H).
+\]
+
+## 五个最容易被追问的边界
+
+1. **$R^{yy}$ 的 $j$ 包含 $k$；干扰分母的 $j\ne k$ 排除 $k$。** 同一用户跨 TRP 先在 $F$ 中相干加幅度。
+2. **默认 $I_4$ 是归一化噪声。** $w$ 含发射幅度；不能再无定义地乘 $\sqrt p$。
+3. **功率可行 ≠ ADMM 收敛 ≠ WMMSE 停止。** 保存对拍也只证明同输入数值一致；正式规模停止条件未满足。
+4. **默认静态评价没有队列出队。** 页面“队列限制”“按协议体验率”宜口头改成忙闲/尾段门控的容量与体验代理；原图协议需再核对 burst 与 bottom 5% 样本分母。
+5. **$C\in\mathbb C^{4\times4}$ 不是原文 $Q\in\mathbb C^{64\times64}$。** 原文最坏情况式只有研究目标，尚无矩阵信道下的校准、转化与效果证据。
+
+## 研究计划回答模板
+
+**已有基础：** 矩阵 WMMSE、接收侧链路条件误差统计与集中式 ADMM。
+**切入点：** 误差尺度/方向及链路服务与整 TRP 激活的数学对象需明确。
+**拟研究：** 校准全矩阵误差集合、推导最坏情形内层；定义链路组稀疏和休眠后可行重优化；拆分跨 TRP 耦合并定义消息缓存/触发量；研究慢层候选与快层统一评价接口。
+**验证：** 固定场景、业务、预算、容差和随机流，做名义/统一/非均匀对照；分别报告边缘体验、空口功率、可行性、内外残差、时间与消息量，不预设增益。
