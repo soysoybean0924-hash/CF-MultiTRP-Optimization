@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1223" height="555" viewBox="0 0 1223 555"><defs><marker id="arr" markerWidth="8" markerHeight="7" refX="7" refY="3.5" orient="auto"><path d="M0 0 L8 3.5 L0 7 Z" fill="#124a8f"/></marker></defs><rect width="100%" height="100%" fill="white"/><rect x="0.0" y="3.0" width="1223.0" height="40.0" rx="3.0" fill="#e0ecf6" stroke="#e0ecf6" stroke-width="1.3"/>
+<text x="21.0" y="30.1" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="20.8" font-weight="700" fill="#092b56">外层 WMMSE：当前可行 w → 接收统计 → 固定量 → 内层 ADMM → 接受 / 停止</text>
+<rect x="13.0" y="81.0" width="225.0" height="125.0" rx="13.0" fill="#f4f9fd" stroke="#124a8f" stroke-width="1.3"/>
+<text x="31.0" y="118.0" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="22.1" font-weight="700" fill="#092b56">① 当前 w</text>
+<text x="31.0" y="172.3" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="17.2" font-weight="400" fill="#000000">服务集外为零；满足功率</text>
+<rect x="285.0" y="81.0" width="255.0" height="125.0" rx="13.0" fill="#f4f9fd" stroke="#124a8f" stroke-width="1.3"/>
+<text x="303.0" y="118.0" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="22.1" font-weight="700" fill="#092b56">② F、Rʸʸ</text>
+<text x="303.0" y="172.3" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="17.2" font-weight="400" fill="#000000">Ĥw 相干叠加；叠加 C</text>
+<rect x="587.0" y="81.0" width="255.0" height="125.0" rx="13.0" fill="#f4f9fd" stroke="#124a8f" stroke-width="1.3"/>
+<text x="605.0" y="118.0" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="22.1" font-weight="700" fill="#092b56">③ A、E、Ω</text>
+<text x="605.0" y="172.3" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="17.2" font-weight="400" fill="#000000">MMSE 接收与误差权重</text>
+<rect x="890.0" y="81.0" width="310.0" height="125.0" rx="13.0" fill="#f4f9fd" stroke="#124a8f" stroke-width="1.3"/>
+<text x="908.0" y="118.0" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="22.1" font-weight="700" fill="#092b56">④ 二次子问题</text>
+<text x="908.0" y="172.3" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="17.2" font-weight="400" fill="#000000">固定 A、Ω、η；更新 w</text>
+<line x1="238.0" y1="143.0" x2="282.0" y2="143.0" stroke="#124a8f" stroke-width="2.5"  marker-end="url(#arr)"/>
+<line x1="541.0" y1="143.0" x2="584.0" y2="143.0" stroke="#124a8f" stroke-width="2.5"  marker-end="url(#arr)"/>
+<line x1="843.0" y1="143.0" x2="887.0" y2="143.0" stroke="#124a8f" stroke-width="2.5"  marker-end="url(#arr)"/>
+<rect x="452.0" y="275.0" width="400.0" height="103.0" rx="13.0" fill="#fff5e9" stroke="#df7b27" stroke-width="1.3"/>
+<text x="476.0" y="318.6" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="20.8" font-weight="700" fill="#000000">内层 ADMM：x → z → y</text>
+<text x="476.0" y="340.6" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="20.8" font-weight="700" fill="#000000">CG 求解 · 跨组功率投影 · 残差</text>
+<line x1="1043.0" y1="208.0" x2="850.0" y2="275.0" stroke="#df7b27" stroke-width="2.5"  marker-end="url(#arr)"/>
+<text x="946.5" y="245.9" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="14.3" font-weight="400" fill="#df7b27">进入</text>
+<rect x="49.0" y="423.0" width="1129.0" height="67.0" rx="13.0" fill="#e0ecf6" stroke="#124a8f" stroke-width="1.3"/>
+<text x="73.0" y="463.1" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="20.8" font-weight="700" fill="#000000">返回可行副本 z；重算目标并按接受、回溯和外层停止条件判断。</text>
+<line x1="455.0" y1="384.0" x2="360.0" y2="423.0" stroke="#df7b27" stroke-width="2.5"  marker-end="url(#arr)"/>
+<text x="407.5" y="407.9" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="14.3" font-weight="400" fill="#df7b27">返回 z</text></svg>
