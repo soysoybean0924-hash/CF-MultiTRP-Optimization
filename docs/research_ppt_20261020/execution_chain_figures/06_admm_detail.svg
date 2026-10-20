@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1223" height="565" viewBox="0 0 1223 565"><defs><marker id="arr" markerWidth="8" markerHeight="7" refX="7" refY="3.5" orient="auto"><path d="M0 0 L8 3.5 L0 7 Z" fill="#124a8f"/></marker></defs><rect width="100%" height="100%" fill="white"/><text x="23.0" y="47.6" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="22.4" font-weight="700" fill="#092b56">内轮将二次预编码问题拆为原变量 x 与功率可行副本 z，y 记录一致性误差。</text>
+<rect x="19.0" y="95.0" width="374.0" height="135.0" rx="13.0" fill="#f4f9fd" stroke="#124a8f" stroke-width="1.3"/>
+<rect x="19.0" y="95.0" width="374.0" height="44.0" rx="5.0" fill="#124a8f" stroke="#124a8f" stroke-width="1.3"/>
+<text x="206.0" y="123.9" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="21.8" font-weight="700" fill="#ffffff">① CG 更新 x</text>
+<text x="37.0" y="193.1" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="20.8" font-weight="400" fill="#000000">按 νg Qg 与 ρ/2 构成线性系统</text>
+<rect x="423.0" y="95.0" width="374.0" height="135.0" rx="13.0" fill="#f4f9fd" stroke="#1c7663" stroke-width="1.3"/>
+<rect x="423.0" y="95.0" width="374.0" height="44.0" rx="5.0" fill="#1c7663" stroke="#1c7663" stroke-width="1.3"/>
+<text x="610.0" y="123.9" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="21.8" font-weight="700" fill="#ffffff">② 联合投影 z</text>
+<text x="441.0" y="193.1" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="20.8" font-weight="400" fill="#000000">Σg νg Σj ‖wₗjg‖² ≤ Pₗ</text>
+<rect x="827.0" y="95.0" width="374.0" height="135.0" rx="13.0" fill="#f4f9fd" stroke="#df7b27" stroke-width="1.3"/>
+<rect x="827.0" y="95.0" width="374.0" height="44.0" rx="5.0" fill="#df7b27" stroke="#df7b27" stroke-width="1.3"/>
+<text x="1014.0" y="123.9" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="21.8" font-weight="700" fill="#ffffff">③ 对偶与残差</text>
+<text x="845.0" y="193.1" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="20.8" font-weight="400" fill="#000000">y←y+x−z；检查残差</text>
+<line x1="396.0" y1="162.0" x2="418.0" y2="162.0" stroke="#124a8f" stroke-width="2.5"  marker-end="url(#arr)"/>
+<line x1="800.0" y1="162.0" x2="822.0" y2="162.0" stroke="#1c7663" stroke-width="2.5"  marker-end="url(#arr)"/>
+<rect x="22.0" y="279.0" width="1176.0" height="117.0" rx="13.0" fill="#e0ecf6" stroke="#124a8f" stroke-width="1.3"/>
+<text x="49.0" y="344.1" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="22.4" font-weight="700" fill="#000000">为什么跨组投影？一个 TRP 在所有资源组共用同一预算 Pₗ；逐组独立限制会改变原问题。</text>
+<rect x="22.0" y="435.0" width="1176.0" height="64.0" rx="13.0" fill="#fff7eb" stroke="#df7b27" stroke-width="1.3"/>
+<text x="49.0" y="473.0" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="22.1" font-weight="700" fill="#000000">功率可行 ≠ 数值对拍通过 ≠ ADMM 收敛 ≠ WMMSE 外层停止。</text></svg>

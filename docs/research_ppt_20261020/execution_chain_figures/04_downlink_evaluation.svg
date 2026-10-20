@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1223" height="584" viewBox="0 0 1223 584"><defs><marker id="arr" markerWidth="8" markerHeight="7" refX="7" refY="3.5" orient="auto"><path d="M0 0 L8 3.5 L0 7 Z" fill="#124a8f"/></marker></defs><rect width="100%" height="100%" fill="white"/><rect x="16.0" y="17.0" width="202.0" height="118.0" rx="8.0" fill="#092b56" stroke="#092b56" stroke-width="1.3"/>
+<text x="117.0" y="82.5" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23.4" font-weight="700" fill="#ffffff">发射与传播</text>
+<rect x="16.0" y="173.0" width="202.0" height="118.0" rx="8.0" fill="#1c7663" stroke="#1c7663" stroke-width="1.3"/>
+<text x="117.0" y="238.5" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23.4" font-weight="700" fill="#ffffff">UE 接收与速率</text>
+<rect x="16.0" y="329.0" width="202.0" height="118.0" rx="8.0" fill="#df7b27" stroke="#df7b27" stroke-width="1.3"/>
+<text x="117.0" y="394.5" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="23.4" font-weight="700" fill="#ffffff">业务与评价</text>
+<rect x="248.0" y="20.0" width="265.0" height="110.0" rx="13.0" fill="#f4f9fd" stroke="#124a8f" stroke-width="1.3"/>
+<rect x="248.0" y="20.0" width="265.0" height="44.0" rx="5.0" fill="#124a8f" stroke="#124a8f" stroke-width="1.3"/>
+<text x="380.5" y="48.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="20.2" font-weight="700" fill="#ffffff">wₗkg：预编码</text>
+<text x="266.0" y="104.7" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="18.2" font-weight="400" fill="#000000">TRP l 发送 UE k 的 r 流</text>
+<rect x="548.0" y="20.0" width="265.0" height="110.0" rx="13.0" fill="#f4f9fd" stroke="#124a8f" stroke-width="1.3"/>
+<rect x="548.0" y="20.0" width="265.0" height="44.0" rx="5.0" fill="#124a8f" stroke="#124a8f" stroke-width="1.3"/>
+<text x="680.5" y="48.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="20.2" font-weight="700" fill="#ffffff">Hᵗʳᵘᵉ：真实信道</text>
+<text x="566.0" y="104.7" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="18.2" font-weight="400" fill="#000000">各服务 TRP 在 UE 相干叠加</text>
+<rect x="850.0" y="20.0" width="331.0" height="110.0" rx="13.0" fill="#f4f9fd" stroke="#124a8f" stroke-width="1.3"/>
+<rect x="850.0" y="20.0" width="331.0" height="44.0" rx="5.0" fill="#124a8f" stroke="#124a8f" stroke-width="1.3"/>
+<text x="1015.5" y="48.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="20.2" font-weight="700" fill="#ffffff">yₖg：接收信号</text>
+<text x="868.0" y="104.7" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="18.2" font-weight="400" fill="#000000">有用信号 + 同资源干扰 + 噪声</text>
+<line x1="514.0" y1="75.0" x2="544.0" y2="75.0" stroke="#124a8f" stroke-width="2.5"  marker-end="url(#arr)"/>
+<line x1="814.0" y1="75.0" x2="846.0" y2="75.0" stroke="#124a8f" stroke-width="2.5"  marker-end="url(#arr)"/>
+<rect x="248.0" y="175.0" width="265.0" height="110.0" rx="13.0" fill="#f4f9fd" stroke="#1c7663" stroke-width="1.3"/>
+<rect x="248.0" y="175.0" width="265.0" height="44.0" rx="5.0" fill="#1c7663" stroke="#1c7663" stroke-width="1.3"/>
+<text x="380.5" y="203.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="20.2" font-weight="700" fill="#ffffff">每 TTI 可传比特</text>
+<text x="266.0" y="259.7" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="18.2" font-weight="400" fill="#000000">RB 带宽 × SE × 有效时长</text>
+<rect x="548.0" y="175.0" width="265.0" height="110.0" rx="13.0" fill="#f4f9fd" stroke="#1c7663" stroke-width="1.3"/>
+<rect x="548.0" y="175.0" width="265.0" height="44.0" rx="5.0" fill="#1c7663" stroke="#1c7663" stroke-width="1.3"/>
+<text x="680.5" y="203.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="20.2" font-weight="700" fill="#ffffff">速率 / SE</text>
+<text x="566.0" y="259.7" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="18.2" font-weight="400" fill="#000000">真实信道下 log-det 差</text>
+<rect x="850.0" y="175.0" width="331.0" height="110.0" rx="13.0" fill="#f4f9fd" stroke="#1c7663" stroke-width="1.3"/>
+<rect x="850.0" y="175.0" width="331.0" height="44.0" rx="5.0" fill="#1c7663" stroke="#1c7663" stroke-width="1.3"/>
+<text x="1015.5" y="203.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="20.2" font-weight="700" fill="#ffffff">组成分析</text>
+<text x="868.0" y="259.7" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="18.2" font-weight="400" fill="#000000">分出有用信号、干扰与噪声</text>
+<line x1="1015.0" y1="134.0" x2="1015.0" y2="169.0" stroke="#1c7663" stroke-width="2.5"  marker-end="url(#arr)"/>
+<line x1="846.0" y1="230.0" x2="817.0" y2="230.0" stroke="#1c7663" stroke-width="2.5"  marker-end="url(#arr)"/>
+<line x1="544.0" y1="230.0" x2="517.0" y2="230.0" stroke="#1c7663" stroke-width="2.5"  marker-end="url(#arr)"/>
+<rect x="248.0" y="331.0" width="265.0" height="110.0" rx="13.0" fill="#f4f9fd" stroke="#df7b27" stroke-width="1.3"/>
+<rect x="248.0" y="331.0" width="265.0" height="44.0" rx="5.0" fill="#df7b27" stroke="#df7b27" stroke-width="1.3"/>
+<text x="380.5" y="359.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="20.2" font-weight="700" fill="#ffffff">业务交付量</text>
+<text x="266.0" y="415.7" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="18.2" font-weight="400" fill="#000000">受流量到达和队列限制</text>
+<rect x="548.0" y="331.0" width="265.0" height="110.0" rx="13.0" fill="#f4f9fd" stroke="#df7b27" stroke-width="1.3"/>
+<rect x="548.0" y="331.0" width="265.0" height="44.0" rx="5.0" fill="#df7b27" stroke="#df7b27" stroke-width="1.3"/>
+<text x="680.5" y="359.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="20.2" font-weight="700" fill="#ffffff">用户体验</text>
+<text x="566.0" y="415.7" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="18.2" font-weight="400" fill="#000000">有效时窗内交付量 / 时间</text>
+<rect x="850.0" y="331.0" width="331.0" height="110.0" rx="13.0" fill="#f4f9fd" stroke="#df7b27" stroke-width="1.3"/>
+<rect x="850.0" y="331.0" width="331.0" height="44.0" rx="5.0" fill="#df7b27" stroke="#df7b27" stroke-width="1.3"/>
+<text x="1015.5" y="359.4" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="20.2" font-weight="700" fill="#ffffff">最终报告</text>
+<text x="868.0" y="415.7" text-anchor="start" font-family="Microsoft YaHei, sans-serif" font-size="18.2" font-weight="400" fill="#000000">体验分位、功率、停止状态</text>
+<line x1="380.0" y1="289.0" x2="380.0" y2="327.0" stroke="#df7b27" stroke-width="2.5"  marker-end="url(#arr)"/>
+<line x1="514.0" y1="386.0" x2="544.0" y2="386.0" stroke="#df7b27" stroke-width="2.5"  marker-end="url(#arr)"/>
+<line x1="814.0" y1="386.0" x2="846.0" y2="386.0" stroke="#df7b27" stroke-width="2.5"  marker-end="url(#arr)"/>
+<text x="608.0" y="507.2" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="21.3" font-weight="700" fill="#092b56">同一个 w 用于仿真真实信道评价；非理想优化分支的求解输入仍是 Ĥ、C。</text></svg>
