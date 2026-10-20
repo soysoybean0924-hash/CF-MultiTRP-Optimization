@@ -186,13 +186,16 @@ text(s,.79,5.90,11.65,.78,'测量质量和 CSI 年龄使各链路的 C 不同；
 s=new('资源变量与优化目标',
  '当前正式链的b、χ、r、ν由规则设定，w为64×r复数预编码且含发射幅度。'
  '功率约束跨资源组：对同一TRP汇总νg加权的所有用户预编码能量，预算Pl默认20W。'
- 'WMMSE 使用估计CSI与误差统计处理物理层加权速率/PF代理；最终体验协议是独立评价。'
+ 'PF分支的实际目标为对已调度用户求和log(1+Tk/T0)，其中Tk按资源权重汇总估计SE，T0为PF floor。其他分支还有sum-rate和edge-weighted。'
+ 'WMMSE 使用估计CSI与误差统计处理物理层目标；最终体验协议是独立评价。'
  '历史候选x为九维归一化编码，分别映射到betaPF、numConnections、scheduleThreshold、rhoLink、rhoPower、maxRank、rankThreshold、repairPower、maxRepairLinks；'
  '这些是旧链参数，不能当作正式场景正在优化的物理资源。GA以交叉、变异和选择产生候选；PSO按位置、速度更新产生候选；'
  'SRACOS承担选择/引导。历史评价器原先以调度流SINR代理为主，存在旧场景条件适配入口；正式chasi_run无搜索调用。'
  '依据 chasi_generate_scene.m、chasi_matrix_wmmse.m、历史搜索源码及 EVIDENCE_INDEX。')
 head(s,.57,1.47,5.75,'固定资源规则');
 text(s,.78,2.02,5.45,2.05,'b：资源组内 UE 调度；χ：服务 TRP 掩码；r：每 UE 流数，当前为 2；ν：组内发射 RB 比例。',19)
+eq(s,'objective_pf',.78,4.06,5.30,.48)
+text(s,.80,4.55,5.20,.38,'Tₖ：加权估计速率；T₀：PF 平滑常数。',15.5)
 head(s,6.54,1.47,5.98,'当前求解变量');
 text(s,6.76,2.02,5.55,1.25,'w：TRP 为 UE 使用的 64×r 复预编码；非服务链路为零。',19)
 eq(s,'power',6.76,3.52,5.45,.65)
@@ -204,7 +207,7 @@ head(s,6.55,5.35,5.8,'快层求解'); text(s,6.77,5.91,5.4,.83,'固定 b、χ、
 # 8. Downlink and rate.
 s=new('接收模型与速率',
  'w_ljg是TRP l对UE j的预编码块；F_kjg是到UE k的跨TRP相干叠加，有用项为j=k，其余为干扰。'
- 'Ryy为4×4接收协方差，I为归一化噪声，p_lg C_klg体现统计误差对接收扰动。'
+ 'Ryy为4×4接收协方差，I为归一化噪声，p_lg C_klg体现统计误差对接收扰动。Rint=Ryy−FkkFkk^H为4×4干扰加噪声协方差。'
  'SE采用logdet；真信道评价用Htrue重新形成有效信道、干扰与速率。业务体验按原协议另行聚合，不能将SE直接称体验。'
  '当前只有二阶等效计算，没有生成完整OFDM波形。依据 CHASI_UNIFIED_TRACE C15–C20、C32，chasi_matrix_wmmse.m、chasi_evaluate.m。')
 head(s,.57,1.47,5.9,'多 TRP 相干叠加'); eq(s,'effective',.77,2.03,5.83,.67)
@@ -213,7 +216,7 @@ head(s,6.54,1.47,6.05,'接收协方差'); eq(s,'covariance',6.76,2.03,5.79,.68)
 text(s,6.76,2.88,5.52,1.26,'Ryy：4×4；含有用信号、所有用户干扰、归一化噪声与误差统计项。',18)
 rule(s,.66,4.50,12.56,4.50)
 head(s,.57,4.76,6.0,'速率计算'); eq(s,'rate',.78,5.32,5.82,.68)
-text(s,6.82,5.33,5.47,1.10,'RSE：频谱效率，bit/s/Hz。最终体验还要按 RB、时间、业务协议和有效用户样本统计。',18)
+text(s,6.82,5.33,5.47,1.10,'Rint：干扰加噪声协方差，4×4；RSE：频谱效率，bit/s/Hz。体验另按业务协议统计。',18)
 
 # 9. WMMSE outer loop.
 s=new('WMMSE 更新',

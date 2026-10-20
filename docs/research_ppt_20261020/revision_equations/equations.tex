@@ -13,6 +13,9 @@
 % power
 \[\sum_g\nu_g\sum_j\|\mathbf{w}_{ljg}\|_F^2\leq P_l\]
 
+% objective_pf
+\[U_{\mathrm{PF}}=\sum_{k\in\mathcal{K}_s}\log(1+T_k/T_0)\]
+
 % effective
 \[\mathbf{F}_{kjg}=\sum_l\mathbf{H}_{klg}\mathbf{w}_{ljg}\ \in\mathbb{C}^{4\times r_{jg}}\]
 
@@ -20,7 +23,7 @@
 \[\mathbf{R}^{yy}_{kg}=\mathbf{I}+\sum_j\mathbf{F}_{kjg}\mathbf{F}_{kjg}^H+\sum_l p_{lg}\mathbf{C}_{klg}\]
 
 % rate
-\[R_{kg}^{\mathrm{SE}}=\log_2\det\!\left(\mathbf{I}+\mathbf{F}_{kkg}^H\mathbf{R}_{kg}^{-1}\mathbf{F}_{kkg}\right)\]
+\[R_{kg}^{\mathrm{SE}}=\log_2\det\!\left(\mathbf{I}+\mathbf{F}_{kkg}^H(\mathbf{R}_{kg}^{\mathrm{int}})^{-1}\mathbf{F}_{kkg}\right)\]
 
 % receiver
 \[\mathbf{A}_{kg}=\left(\mathbf{R}^{yy}_{kg}\right)^{-1}\mathbf{F}_{kkg}\]
